@@ -137,6 +137,7 @@ export function MetricTable({ rows }: MetricTableProps) {
 
   return (
     <div>
+      <div style={{ overflowX: "auto" }}>
       <table style={tableStyle}>
         <thead>
           <tr>
@@ -176,16 +177,17 @@ export function MetricTable({ rows }: MetricTableProps) {
                   )}
                 </th>
                 <td style={valueCellStyle("A", rowWinner, flagged)}>
-                  <AnimatedMetric value={row.a} unit={row.unit} decimals={DECIMALS} />
+                  <AnimatedMetric value={row.a} unit={row.unit} decimals={DECIMALS} size="sm" />
                 </td>
                 <td style={valueCellStyle("B", rowWinner, flagged)}>
-                  <AnimatedMetric value={row.b} unit={row.unit} decimals={DECIMALS} />
+                  <AnimatedMetric value={row.b} unit={row.unit} decimals={DECIMALS} size="sm" />
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
+      </div>
       <div style={legendStyle}>
         <span style={legendItemStyle}>
           <span aria-hidden="true" style={swatchStyle("var(--c-pred-a)")} />

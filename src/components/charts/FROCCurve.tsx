@@ -51,8 +51,13 @@ export function FROCCurve({
   const x = logScale([fpMin, fpMax], [MARGIN.left, MARGIN.left + plotW]);
   const y = linearScale([0, 1], [MARGIN.top + plotH, MARGIN.top]);
 
+  // Clamp into the log domain: fpPerScan of 0 would map to -Infinity (log of 0),
+  // and values beyond the axis would fall outside the plot. Points at or below
+  // fpMin sit on the left axis; points above fpMax sit on the right axis.
+  const clampFp = (fp: number) => Math.min(Math.max(fp, fpMin), fpMax);
+
   const curvePoints = points
-    .map((p) => `${x(p.fpPerScan)},${y(p.sensitivity)}`)
+    .map((p) => `${x(clampFp(p.fpPerScan))},${y(p.sensitivity)}`)
     .join(" ");
 
   return (

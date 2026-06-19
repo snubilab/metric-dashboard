@@ -20,6 +20,9 @@ const TWEEN_DURATION_MS = 250;
 
 export type MetricTone = "default" | "warn";
 
+/** Numeral size. "lg" is the default hero size; "sm" fits dense tables. */
+export type MetricSize = "sm" | "md" | "lg";
+
 export interface AnimatedMetricProps {
   /** The metric value to display. NaN renders an em-dash. */
   value: number;
@@ -31,7 +34,16 @@ export interface AnimatedMetricProps {
   label?: string;
   /** Visual tone. "warn" colors the numeral with the warn token. */
   tone?: MetricTone;
+  /** Numeral scale. Defaults to "lg" (hero). Use "sm" inside dense tables. */
+  size?: MetricSize;
 }
+
+/** Token sizes for the numeral and its unit, per scale. */
+const SIZE_TOKENS: Record<MetricSize, { numeral: string; unit: string }> = {
+  sm: { numeral: "var(--text-lg)", unit: "var(--text-xs)" },
+  md: { numeral: "var(--text-xl)", unit: "var(--text-sm)" },
+  lg: { numeral: "var(--text-2xl)", unit: "var(--text-base)" },
+};
 
 /**
  * Pure formatter for a metric value. Co-located with the component (rather than
@@ -60,19 +72,19 @@ function canTween(): boolean {
   return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-const numeralStyle = (tone: MetricTone): React.CSSProperties => ({
+const numeralStyle = (tone: MetricTone, size: MetricSize): React.CSSProperties => ({
   fontFamily: "var(--font-mono)",
-  fontSize: "var(--text-2xl)",
+  fontSize: SIZE_TOKENS[size].numeral,
   fontVariantNumeric: "tabular-nums",
   lineHeight: 1,
   color: tone === "warn" ? "var(--c-warn)" : "var(--c-text)",
 });
 
-const unitStyle: React.CSSProperties = {
+const unitStyle = (size: MetricSize): React.CSSProperties => ({
   fontFamily: "var(--font-mono)",
-  fontSize: "var(--text-base)",
+  fontSize: SIZE_TOKENS[size].unit,
   color: "var(--c-text-dim)",
-};
+});
 
 const labelStyle: React.CSSProperties = {
   fontFamily: "var(--font-ui)",
@@ -88,6 +100,7 @@ export function AnimatedMetric({
   decimals = 2,
   label,
   tone = "default",
+  size = "lg",
 }: AnimatedMetricProps) {
   const [displayValue, setDisplayValue] = useState(value);
   // `prevValue` mirrors the last `value` prop we reacted to. Comparing the prop
@@ -148,8 +161,8 @@ export function AnimatedMetric({
     >
       {label !== undefined && <span style={labelStyle}>{label}</span>}
       <span style={{ display: "inline-flex", alignItems: "baseline", gap: "var(--space-1)" }}>
-        <span style={numeralStyle(tone)}>{formatMetric(displayValue, decimals)}</span>
-        {unit !== undefined && <span style={unitStyle}>{unit}</span>}
+        <span style={numeralStyle(tone, size)}>{formatMetric(displayValue, decimals)}</span>
+        {unit !== undefined && <span style={unitStyle(size)}>{unit}</span>}
       </span>
     </div>
   );
