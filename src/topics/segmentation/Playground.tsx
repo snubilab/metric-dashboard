@@ -25,9 +25,8 @@ import type { Layer } from "../../components/canvas/CanvasEditor";
 import { UnitsBanner } from "../../components/UnitsBanner";
 import { MetricTable } from "../../components/MetricTable";
 import { useEngineMetrics } from "../../components/metrics/useEngineMetrics";
-
-/** 256x256, 1mm isotropic spacing — the shared default grid. */
-const GRID = { width: 256, height: 256, spacingMm: [1, 1] as [number, number] };
+import { SEG_PRESETS, DEFAULT_PRESET_ID } from "./presets";
+import type { SegPreset } from "./presets";
 
 /** Bounds for the NSD tolerance slider, in millimeters. */
 const NSD_MIN = 0;
@@ -37,21 +36,18 @@ const NSD_STEP = 0.5;
 const EMPTY_DICE_OPTIONS: EmptyDicePolicy[] = ["one", "zero", "nan"];
 const EMPTY_DISTANCE_OPTIONS: EmptyDistancePolicy[] = ["undefined", "diagonal", "fixed"];
 
-/**
- * A starter state: a ground-truth lesion, an accurate Prediction A, and an
- * over-segmenting Prediction B, so the table immediately shows an A/B contrast.
- */
-function initialState(): EngineState {
-  const gt: Shape[] = [{ kind: "circle", cx: 110, cy: 128, r: 38 }];
+/** The well-configured preset loaded on first render. */
+const DEFAULT_PRESET: SegPreset =
+  SEG_PRESETS.find((p) => p.id === DEFAULT_PRESET_ID) ?? SEG_PRESETS[0];
+
+/** A deep-ish clone so editing the canvas never mutates the shared preset data. */
+function cloneState(state: EngineState): EngineState {
   return {
-    grid: GRID,
-    gt,
-    predictions: [
-      { id: "A", shapes: [{ kind: "circle", cx: 116, cy: 128, r: 38 }] },
-      { id: "B", shapes: [{ kind: "circle", cx: 110, cy: 128, r: 54 }] },
-    ],
-    policy: { emptyDice: "one", emptyDistance: "undefined" },
-    nsdToleranceMm: 2,
+    ...state,
+    gt: state.gt.map((s) => ({ ...s })),
+    predictions: state.predictions.map((p) => ({ ...p, shapes: p.shapes.map((s) => ({ ...s })) })),
+    grid: { ...state.grid, spacingMm: [...state.grid.spacingMm] as [number, number] },
+    policy: { ...state.policy },
   };
 }
 
@@ -134,14 +130,85 @@ const headingStyle: CSSProperties = {
   color: "var(--c-text-dim)",
 };
 
+const presetRowStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "var(--space-2)",
+};
+
+const presetButtonBaseStyle: CSSProperties = {
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-sm)",
+  color: "var(--c-text)",
+  background: "var(--c-surface-2)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+  padding: "var(--space-2) var(--space-3)",
+  cursor: "pointer",
+};
+
+const presetButtonActiveStyle: CSSProperties = {
+  ...presetButtonBaseStyle,
+  borderColor: "var(--c-gt)",
+  color: "var(--c-gt)",
+};
+
+const presetDescriptionStyle: CSSProperties = {
+  margin: 0,
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-sm)",
+  color: "var(--c-text-dim)",
+};
+
+/** A labeled row of one-click presets; clicking one loads its full state. */
+function PresetBar({
+  activeId,
+  onSelect,
+}: {
+  activeId: string;
+  onSelect: (preset: SegPreset) => void;
+}) {
+  const active = SEG_PRESETS.find((p) => p.id === activeId);
+  return (
+    <section style={panelStyle}>
+      <h3 style={headingStyle}>Presets</h3>
+      <div style={presetRowStyle} role="group" aria-label="Segmentation presets">
+        {SEG_PRESETS.map((preset) => {
+          const isActive = preset.id === activeId;
+          return (
+            <button
+              key={preset.id}
+              type="button"
+              aria-pressed={isActive}
+              style={isActive ? presetButtonActiveStyle : presetButtonBaseStyle}
+              onClick={() => onSelect(preset)}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
+      </div>
+      {active ? <p style={presetDescriptionStyle}>{active.description}</p> : null}
+    </section>
+  );
+}
+
 export default function Playground() {
-  const [state, setState] = useState<EngineState>(initialState);
+  const [state, setState] = useState<EngineState>(() => cloneState(DEFAULT_PRESET.state));
+  const [activePresetId, setActivePresetId] = useState<string>(DEFAULT_PRESET.id);
   const [activeLayer, setActiveLayer] = useState<Layer>("GT");
   const { rows } = useEngineMetrics(state);
+
+  /** Replace the entire engine state with the chosen preset and highlight it. */
+  const selectPreset = (preset: SegPreset) => {
+    setState(cloneState(preset.state));
+    setActivePresetId(preset.id);
+  };
 
   /** Write an edited layer's shapes back into the single source-of-truth state. */
   const handleLayerChange = (layer: Layer, shapes: Shape[]) => {
     setActiveLayer(layer);
+    setActivePresetId("");
     setState((prev) => {
       if (layer === "GT") {
         return { ...prev, gt: shapes };
@@ -163,6 +230,8 @@ export default function Playground() {
 
   return (
     <div style={pageStyle}>
+      <PresetBar activeId={activePresetId} onSelect={selectPreset} />
+
       <div style={splitStyle}>
         <div style={columnStyle}>
           <CanvasEditor

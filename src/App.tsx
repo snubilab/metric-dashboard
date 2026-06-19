@@ -17,6 +17,7 @@ import { TOPICS, orderedTopics } from "./app/topicRegistry";
 import { Sidebar } from "./app/Sidebar";
 import { LearnView } from "./app/LearnView";
 import { ScenariosView } from "./app/ScenariosView";
+import { ThemeToggle } from "./app/ThemeToggle";
 
 type Tab = "learn" | "playground" | "scenarios";
 
@@ -56,8 +57,16 @@ const headerStyle: React.CSSProperties = {
 
 const titleRowStyle: React.CSSProperties = {
   display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "var(--space-4)",
+};
+
+const titleGroupStyle: React.CSSProperties = {
+  display: "flex",
   alignItems: "baseline",
   gap: "var(--space-3)",
+  minWidth: 0,
 };
 
 const titleStyle: React.CSSProperties = {
@@ -175,8 +184,11 @@ function App() {
       <main style={mainStyle}>
         <header style={headerStyle}>
           <div style={titleRowStyle}>
-            <h1 style={titleStyle}>{topic.title}</h1>
-            <span style={groupTagStyle}>{topic.group}</span>
+            <div style={titleGroupStyle}>
+              <h1 style={titleStyle}>{topic.title}</h1>
+              <span style={groupTagStyle}>{topic.group}</span>
+            </div>
+            <ThemeToggle />
           </div>
           <div role="tablist" aria-label="Topic views" style={tabBarStyle}>
             {TABS.map((tab) => {

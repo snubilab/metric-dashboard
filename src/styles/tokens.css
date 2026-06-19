@@ -1,10 +1,12 @@
 /**
  * Design-system token contract.
  *
- * Dark is the default theme (:root). A light override lives under
- * [data-theme="light"]. Only neutrals change between themes; the Okabe-Ito data
- * colors are theme-invariant so GT / Pred-A / Pred-B / disagreement read
- * identically in canvas fills, tables, charts, and legends across both themes.
+ * Light is the default theme (:root) — a bright, clean, slightly cool scheme. A
+ * dark override lives under [data-theme="dark"] on the document element (<html>):
+ * a soft modern slate rather than near-black. Only neutrals change between
+ * themes; the Okabe-Ito data colors are theme-invariant so GT / Pred-A / Pred-B /
+ * disagreement read identically in canvas fills, tables, charts, and legends
+ * across both themes.
  *
  * All visual values in components MUST come from these custom properties.
  */
@@ -13,16 +15,16 @@
   /* Data colors — colorblind-safe Okabe-Ito (theme-invariant) */
   --c-gt: #009e73; /* ground truth — bluish green */
   --c-pred-a: #0072b2; /* prediction A — blue */
-  --c-pred-b: #e69f00; /* prediction B — orange */
-  --c-warn: #d55e00; /* disagreement / HD95 spikes — vermillion */
+  --c-pred-b: #f59e0b; /* prediction B — clean amber (crisper on white than #e69f00) */
+  --c-warn: #e5484d; /* disagreement / HD95 spikes — clean red (crisper on white than #d55e00) */
 
-  /* Neutrals — dark (default) */
-  --c-bg: #0d1117;
-  --c-surface: #161b22;
-  --c-surface-2: #1c232c;
-  --c-border: #2d333b;
-  --c-text: #e6edf3;
-  --c-text-dim: #8b949e;
+  /* Neutrals — light (default): bright, slightly cool */
+  --c-bg: #f7f9fc;
+  --c-surface: #ffffff;
+  --c-surface-2: #eef2f7;
+  --c-border: #dce3ec;
+  --c-text: #16202e;
+  --c-text-dim: #5a6b7e;
 
   /* Fonts (metric numerals use mono so digits align) */
   --font-ui: system-ui, Inter, sans-serif;
@@ -54,12 +56,12 @@
   --dur-base: 250ms;
 }
 
-[data-theme="light"] {
-  /* Neutrals — light override (data colors unchanged) */
-  --c-bg: #ffffff;
-  --c-surface: #f6f8fa;
-  --c-surface-2: #ffffff;
-  --c-border: #d0d7de;
-  --c-text: #1f2328;
-  --c-text-dim: #656d76;
+[data-theme="dark"] {
+  /* Neutrals — dark override: soft modern slate (data colors unchanged) */
+  --c-bg: #131a24;
+  --c-surface: #1b2431;
+  --c-surface-2: #232e3d;
+  --c-border: #344150;
+  --c-text: #eaf0f7;
+  --c-text-dim: #94a3b5;
 }

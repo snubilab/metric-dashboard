@@ -12,8 +12,8 @@ describe("theme data colors (Okabe-Ito, colorblind-safe)", () => {
   it("matches the documented hex values exactly", () => {
     expect(theme.colors.gt).toBe("#009E73");
     expect(theme.colors.predA).toBe("#0072B2");
-    expect(theme.colors.predB).toBe("#E69F00");
-    expect(theme.colors.warn).toBe("#D55E00");
+    expect(theme.colors.predB).toBe("#F59E0B");
+    expect(theme.colors.warn).toBe("#E5484D");
   });
 
   it("uses four distinct colors", () => {

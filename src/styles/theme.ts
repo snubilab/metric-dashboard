@@ -13,10 +13,10 @@ const DATA_COLORS = {
   gt: "#009E73",
   /** Prediction A — blue. */
   predA: "#0072B2",
-  /** Prediction B — orange. */
-  predB: "#E69F00",
-  /** Disagreement / HD95 spikes — vermillion. */
-  warn: "#D55E00",
+  /** Prediction B — clean amber (crisper on white than #E69F00). */
+  predB: "#F59E0B",
+  /** Disagreement / HD95 spikes — clean red (crisper on white than #D55E00). */
+  warn: "#E5484D",
 } as const;
 
 /** Font stacks. Metric numerals use the mono stack so digits align. */
