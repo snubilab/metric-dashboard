@@ -157,6 +157,8 @@ const complementaritySectionStyle: React.CSSProperties = {
   flexDirection: "column",
   gap: "var(--space-6)",
   paddingTop: "var(--space-6)",
+  // Keep the final benchmark row from sitting flush against the page bottom.
+  paddingBottom: "var(--space-8)",
   borderTop: "1px solid var(--c-border)",
 };
 

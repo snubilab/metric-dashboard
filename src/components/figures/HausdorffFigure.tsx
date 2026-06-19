@@ -1,49 +1,50 @@
 /**
- * HausdorffFigure — one static example of the Hausdorff distance.
+ * HausdorffFigure — two panels contrasting the Hausdorff distance.
  *
- * Two slightly offset closed boundaries (GT + prediction). A single long arrow
- * marks the farthest boundary-to-boundary distance — the worst case the
- * Hausdorff distance reports. A note reminds that HD95 trims the extreme 5%.
- * Static, non-interactive.
+ * Panel 1 ("typical"): two slightly offset boundaries with a single arrow
+ * marking the worst-case boundary distance, centered in the panel. Panel 2
+ * ("misleading"): near-perfect overlap spoiled by ONE stray outlier pixel far
+ * away that dominates HD (HD95 trims the top 5%). Static, non-interactive.
  */
 
 import { useLang } from "../../i18n/LanguageContext";
 
 const L = {
   ko: {
-    aria: "하우스도르프 예시: 두 경계 사이 최대 거리 화살표",
+    aria: "하우스도르프 예시: 두 경계의 최대 거리, 그리고 이상점 하나가 HD를 지배하는 오해 사례",
+    typical: "정상 예시",
+    misleading: "오해 사례",
     gt: "정답(GT)",
     pred: "예측",
     worst: "최대 거리",
-    caption: "HD = 최악의 경계 거리 · HD95는 상위 5% 제외",
+    caption: "HD = 최악의 경계 거리",
+    trap: "HD는 이상점 하나에 지배됨 (HD95는 상위 5%를 잘라 완화)",
+    outlier: "이상점",
   },
   en: {
-    aria: "Hausdorff example: arrow marking the single farthest boundary distance",
+    aria: "Hausdorff example: the single farthest boundary distance, plus a misleading case where one stray outlier dominates HD",
+    typical: "typical",
+    misleading: "misleading",
     gt: "GT",
     pred: "Pred",
-    worst: "max distance",
-    caption: "HD = worst boundary distance · HD95 trims top 5%",
+    worst: "max",
+    caption: "HD = worst boundary distance",
+    trap: "HD는 이상점 하나에 지배됨 (HD95는 상위 5%를 잘라 완화)",
+    outlier: "outlier",
   },
 } as const;
 
-const WIDTH = 320;
-const HEIGHT = 170;
+const WIDTH = 360;
+const HEIGHT = 210;
+const PANEL_W = WIDTH / 2;
+const PANEL_CX = PANEL_W / 2;
+const TAG_Y = 22;
+const CAPTION_Y = HEIGHT - 12;
 
 export default function HausdorffFigure() {
   const { lang } = useLang();
   const t = L[lang];
   const arrowId = "hd-arrow";
-
-  // GT blob (a smooth closed curve) and a prediction blob offset to the right,
-  // with a bulge at top-right that creates the single worst-case spike.
-  const gtPath = "M 90 78 C 90 48, 130 42, 150 56 C 172 70, 168 104, 146 112 C 120 122, 90 108, 90 78 Z";
-  const predPath = "M 116 80 C 116 46, 168 36, 196 58 C 224 80, 214 112, 186 118 C 150 126, 116 114, 116 80 Z";
-
-  // The worst-case arrow: from a GT boundary point to the farthest prediction point.
-  const fromX = 95;
-  const fromY = 86;
-  const toX = 218;
-  const toY = 64;
 
   return (
     <svg
@@ -60,36 +61,75 @@ export default function HausdorffFigure() {
         </marker>
       </defs>
 
-      {/* Boundaries */}
-      <path d={gtPath} fill="var(--c-gt)" fillOpacity={0.1} stroke="var(--c-gt)" strokeWidth={2} />
-      <path d={predPath} fill="var(--c-pred-a)" fillOpacity={0.1} stroke="var(--c-pred-a)" strokeWidth={2} />
+      <line x1={PANEL_W} y1={14} x2={PANEL_W} y2={HEIGHT - 22} stroke="var(--c-border)" strokeWidth={1} />
 
-      {/* The single worst-case distance arrow */}
-      <line
-        x1={fromX}
-        y1={fromY}
-        x2={toX}
-        y2={toY}
-        stroke="var(--c-text-dim)"
-        strokeWidth={2}
-        markerEnd={`url(#${arrowId})`}
-      />
-      <circle cx={fromX} cy={fromY} r={3} fill="var(--c-text-dim)" />
-
-      {/* Labels */}
-      <text x={108} y={132} fill="var(--c-gt)" textAnchor="middle">
-        {t.gt}
+      {/* ----- Panel 1: typical ----- */}
+      <text x={PANEL_CX} y={TAG_Y} fill="var(--c-text-dim)" textAnchor="middle">
+        {t.typical}
       </text>
-      <text x={196} y={132} fill="var(--c-pred-a)" textAnchor="middle">
-        {t.pred}
-      </text>
-      <text x={(fromX + toX) / 2} y={(fromY + toY) / 2 - 8} fill="var(--c-warn)" textAnchor="middle">
-        {t.worst}
-      </text>
-
-      <text x={WIDTH / 2} y={HEIGHT - 10} fill="var(--c-text-dim)" textAnchor="middle">
+      <g transform={`translate(${PANEL_CX}, 92)`}>
+        {/* Two offset blobs centered around 0 */}
+        <path
+          d="M -52 4 C -52 -26, -20 -32, -2 -20 C 16 -8, 12 22, -8 28 C -32 36, -52 22, -52 4 Z"
+          fill="var(--c-gt)"
+          fillOpacity={0.1}
+          stroke="var(--c-gt)"
+          strokeWidth={2}
+        />
+        <path
+          d="M -24 6 C -24 -28, 24 -38, 50 -16 C 70 0, 60 30, 32 36 C 0 42, -24 28, -24 6 Z"
+          fill="var(--c-pred-a)"
+          fillOpacity={0.1}
+          stroke="var(--c-pred-a)"
+          strokeWidth={2}
+        />
+        {/* The single worst-case distance arrow */}
+        <line x1={-50} y1={-2} x2={56} y2={-18} stroke="var(--c-text-dim)" strokeWidth={2} markerEnd={`url(#${arrowId})`} />
+        <circle cx={-50} cy={-2} r={3} fill="var(--c-text-dim)" />
+        <text x={4} y={-26} fill="var(--c-warn)" textAnchor="middle">
+          {t.worst}
+        </text>
+        <text x={-46} y={44} fill="var(--c-gt)" textAnchor="middle">
+          {t.gt}
+        </text>
+        <text x={42} y={50} fill="var(--c-pred-a)" textAnchor="middle">
+          {t.pred}
+        </text>
+      </g>
+      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
         {t.caption}
       </text>
+
+      {/* ----- Panel 2: misleading ----- */}
+      <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
+        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+          {t.misleading}
+        </text>
+        <path
+          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
+          fill="none"
+          stroke="var(--c-warn)"
+          strokeWidth={1.5}
+        />
+        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
+          !
+        </text>
+
+        <g transform={`translate(${PANEL_CX}, 92)`}>
+          {/* Near-perfect overlap of GT and prediction */}
+          <circle cx={-14} cy={8} r={34} fill="var(--c-gt)" fillOpacity={0.14} stroke="var(--c-gt)" strokeWidth={2} />
+          <circle cx={-12} cy={8} r={34} fill="var(--c-pred-a)" fillOpacity={0.18} stroke="var(--c-pred-a)" strokeWidth={2} />
+          {/* One stray outlier pixel far away — dominates HD */}
+          <rect x={56} y={-44} width={9} height={9} fill="var(--c-warn)" stroke="var(--c-warn)" strokeWidth={1} />
+          <line x1={-12} y1={4} x2={56} y2={-40} stroke="var(--c-warn)" strokeWidth={1.5} strokeDasharray="3 3" markerEnd={`url(#${arrowId})`} />
+          <text x={60} y={-50} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+            {t.outlier}
+          </text>
+        </g>
+        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
+          {t.trap}
+        </text>
+      </g>
     </svg>
   );
 }

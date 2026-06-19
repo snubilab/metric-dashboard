@@ -66,16 +66,25 @@ const cellStyle: React.CSSProperties = {
   borderBottom: "1px solid var(--c-border)",
 };
 
-const blindMetricStyle: React.CSSProperties = {
+// The metric columns hold slash-delimited lists (e.g. "HD95 / NSD / ASSD") and
+// occasionally short prose. Keep words and metric tokens intact so they break
+// only at spaces, never mid-token; the wider column allocation below gives them
+// the room to do so. The narrower blindSpot column absorbs the freed width.
+const metricCellStyle: React.CSSProperties = {
   ...cellStyle,
-  color: "var(--c-warn)",
   fontWeight: 600,
+  overflowWrap: "normal",
+  wordBreak: "keep-all",
+};
+
+const blindMetricStyle: React.CSSProperties = {
+  ...metricCellStyle,
+  color: "var(--c-warn)",
 };
 
 const caughtByStyle: React.CSSProperties = {
-  ...cellStyle,
+  ...metricCellStyle,
   color: "var(--c-gt)",
-  fontWeight: 600,
 };
 
 export function CoverageTable({ intro, pairs }: CoverageTableProps) {
@@ -87,6 +96,11 @@ export function CoverageTable({ intro, pairs }: CoverageTableProps) {
       <p style={introStyle}>{intro}</p>
       <div style={{ overflowX: "auto" }}>
         <table style={tableStyle}>
+          <colgroup>
+            <col style={{ width: "45%" }} />
+            <col style={{ width: "27.5%" }} />
+            <col style={{ width: "27.5%" }} />
+          </colgroup>
           <thead>
             <tr>
               <th scope="col" style={headCellStyle}>

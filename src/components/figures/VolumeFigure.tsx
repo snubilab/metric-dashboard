@@ -1,37 +1,45 @@
 /**
- * VolumeFigure — one static example of a volume / area difference.
+ * VolumeFigure — two panels contrasting a volume / area difference.
  *
- * Two filled blobs of clearly different size sit side by side (GT vs
- * prediction). A delta indicator between them flags the volume gap that the
- * metric reports. Static, non-interactive.
+ * Panel 1 ("typical"): two filled blobs of clearly different size (GT vs
+ * prediction) with a delta indicator for the volume gap, centered in the panel.
+ * Panel 2 ("misleading"): GT and prediction have EQUAL area (volume diff = 0)
+ * yet are spatially displaced and barely overlap. Static, non-interactive.
  */
 
 import { useLang } from "../../i18n/LanguageContext";
 
 const L = {
   ko: {
-    aria: "부피 예시: 크기가 다른 두 영역과 차이 표시",
+    aria: "부피 예시: 크기가 다른 두 영역의 차이, 그리고 부피 차이는 0이지만 위치가 완전히 다른 오해 사례",
+    typical: "정상 예시",
+    misleading: "오해 사례",
     gt: "정답(GT)",
-    pred: "예측 (더 작음)",
+    pred: "예측",
     delta: "Δ 부피",
     caption: "부피 차이 = |GT − 예측|",
+    trap: "부피 차이는 0이지만 위치가 완전히 다름",
+    same: "같은 부피",
   },
   en: {
-    aria: "Volume example: two regions of different size with a difference indicator",
+    aria: "Volume example: the difference between two differently sized regions, plus a misleading case where the volume difference is zero yet the locations are completely different",
+    typical: "typical",
+    misleading: "misleading",
     gt: "GT",
-    pred: "Pred (smaller)",
+    pred: "Pred",
     delta: "Δ volume",
     caption: "Volume diff = |GT − pred|",
+    trap: "부피 차이는 0이지만 위치가 완전히 다름",
+    same: "equal volume",
   },
 } as const;
 
-const WIDTH = 320;
-const HEIGHT = 170;
-const CY = 76;
-const GT_CX = 92;
-const GT_R = 50;
-const PRED_CX = 224;
-const PRED_R = 32;
+const WIDTH = 360;
+const HEIGHT = 210;
+const PANEL_W = WIDTH / 2;
+const PANEL_CX = PANEL_W / 2;
+const TAG_Y = 22;
+const CAPTION_Y = HEIGHT - 12;
 
 export default function VolumeFigure() {
   const { lang } = useLang();
@@ -53,46 +61,68 @@ export default function VolumeFigure() {
         </marker>
       </defs>
 
-      {/* Larger GT blob */}
-      <circle cx={GT_CX} cy={CY} r={GT_R} fill="var(--c-gt)" fillOpacity={0.4} stroke="var(--c-gt)" strokeWidth={2} />
-      {/* Smaller prediction blob */}
-      <circle
-        cx={PRED_CX}
-        cy={CY}
-        r={PRED_R}
-        fill="var(--c-pred-a)"
-        fillOpacity={0.4}
-        stroke="var(--c-pred-a)"
-        strokeWidth={2}
-      />
+      <line x1={PANEL_W} y1={14} x2={PANEL_W} y2={HEIGHT - 22} stroke="var(--c-border)" strokeWidth={1} />
 
-      {/* Delta indicator: a double-headed arrow spanning the radius difference */}
-      <line
-        x1={GT_CX + GT_R + 6}
-        y1={CY}
-        x2={PRED_CX - PRED_R - 6}
-        y2={CY}
-        stroke="var(--c-text-dim)"
-        strokeWidth={1.5}
-        strokeDasharray="4 3"
-        markerStart={`url(#${arrowId})`}
-        markerEnd={`url(#${arrowId})`}
-      />
-      <text x={(GT_CX + GT_R + PRED_CX - PRED_R) / 2} y={CY - 8} fill="var(--c-warn)" textAnchor="middle">
-        {t.delta}
+      {/* ----- Panel 1: typical ----- */}
+      <text x={PANEL_CX} y={TAG_Y} fill="var(--c-text-dim)" textAnchor="middle">
+        {t.typical}
       </text>
-
-      {/* Labels */}
-      <text x={GT_CX} y={CY + GT_R + 18} fill="var(--c-gt)" textAnchor="middle">
-        {t.gt}
-      </text>
-      <text x={PRED_CX} y={CY + PRED_R + 18} fill="var(--c-pred-a)" textAnchor="middle">
-        {t.pred}
-      </text>
-
-      <text x={WIDTH / 2} y={HEIGHT - 8} fill="var(--c-text-dim)" textAnchor="middle">
+      <g transform={`translate(${PANEL_CX}, 96)`}>
+        {/* Larger GT, smaller prediction, symmetric about x=0 */}
+        <circle cx={-44} cy={0} r={40} fill="var(--c-gt)" fillOpacity={0.4} stroke="var(--c-gt)" strokeWidth={2} />
+        <circle cx={48} cy={0} r={26} fill="var(--c-pred-a)" fillOpacity={0.4} stroke="var(--c-pred-a)" strokeWidth={2} />
+        <line
+          x1={-4}
+          y1={0}
+          x2={22}
+          y2={0}
+          stroke="var(--c-text-dim)"
+          strokeWidth={1.5}
+          strokeDasharray="4 3"
+          markerStart={`url(#${arrowId})`}
+          markerEnd={`url(#${arrowId})`}
+        />
+        <text x={9} y={-8} fill="var(--c-warn)" textAnchor="middle">
+          {t.delta}
+        </text>
+        <text x={-44} y={56} fill="var(--c-gt)" textAnchor="middle">
+          {t.gt}
+        </text>
+        <text x={48} y={44} fill="var(--c-pred-a)" textAnchor="middle">
+          {t.pred}
+        </text>
+      </g>
+      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
         {t.caption}
       </text>
+
+      {/* ----- Panel 2: misleading ----- */}
+      <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
+        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+          {t.misleading}
+        </text>
+        <path
+          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
+          fill="none"
+          stroke="var(--c-warn)"
+          strokeWidth={1.5}
+        />
+        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
+          !
+        </text>
+
+        <g transform={`translate(${PANEL_CX}, 92)`}>
+          {/* GT and prediction: SAME radius (equal area), displaced so they barely overlap */}
+          <circle cx={-34} cy={-8} r={30} fill="var(--c-gt)" fillOpacity={0.35} stroke="var(--c-gt)" strokeWidth={2} />
+          <circle cx={34} cy={14} r={30} fill="var(--c-pred-a)" fillOpacity={0.35} stroke="var(--c-pred-a)" strokeWidth={2} />
+          <text x={0} y={-44} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+            {t.same}
+          </text>
+        </g>
+        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          {t.trap}
+        </text>
+      </g>
     </svg>
   );
 }

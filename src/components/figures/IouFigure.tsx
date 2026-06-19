@@ -1,34 +1,43 @@
 /**
- * IouFigure — one static example of Intersection-over-Union (Jaccard).
+ * IouFigure — two panels contrasting Intersection-over-Union (Jaccard).
  *
- * Two overlapping circles; the lens intersection is shaded while the full union
- * is outlined with a dashed dim contour, so the ratio intersection / union reads
- * at a glance. A small mono caption states IoU = intersection / union. Static.
+ * Panel 1 ("typical"): two overlapping circles with the lens intersection
+ * shaded and the union outlined, centered in the panel. Panel 2 ("misleading"):
+ * two masks with decent overlap (high IoU) yet a clearly wrong boundary the
+ * region ratio never reveals. Static, non-interactive.
  */
 
 import { useLang } from "../../i18n/LanguageContext";
 
 const L = {
   ko: {
-    aria: "IoU 예시: 교집합(음영)과 합집합(외곽선)",
+    aria: "IoU 예시: 교집합과 합집합의 비, 그리고 IoU가 높아도 경계 오차를 드러내지 못하는 오해 사례",
+    typical: "정상 예시",
+    misleading: "오해 사례",
     intersection: "교집합",
     union: "합집합",
     caption: "IoU = 교집합 / 합집합",
+    trap: "IoU가 높아도 경계 오차는 드러나지 않음",
+    bad: "경계 오차",
   },
   en: {
-    aria: "IoU example: intersection shaded versus union outlined",
+    aria: "IoU example: intersection over union, plus a misleading case where a high IoU still hides a clearly wrong boundary",
+    typical: "typical",
+    misleading: "misleading",
     intersection: "intersection",
     union: "union",
     caption: "IoU = intersection / union",
+    trap: "IoU가 높아도 경계 오차는 드러나지 않음",
+    bad: "bad edge",
   },
 } as const;
 
-const WIDTH = 320;
-const HEIGHT = 170;
-const GT_CX = 132;
-const PRED_CX = 197;
-const CY = 74;
-const R = 50;
+const WIDTH = 360;
+const HEIGHT = 210;
+const PANEL_W = WIDTH / 2;
+const PANEL_CX = PANEL_W / 2;
+const TAG_Y = 22;
+const CAPTION_Y = HEIGHT - 12;
 
 export default function IouFigure() {
   const { lang } = useLang();
@@ -46,32 +55,70 @@ export default function IouFigure() {
     >
       <defs>
         <clipPath id={clipId}>
-          <circle cx={GT_CX} cy={CY} r={R} />
+          <circle cx={-26} cy={0} r={34} />
         </clipPath>
       </defs>
 
-      {/* Union: both circles outlined dashed to show the combined extent */}
-      <circle cx={GT_CX} cy={CY} r={R} fill="none" stroke="var(--c-text-dim)" strokeWidth={2} strokeDasharray="5 3" />
-      <circle cx={PRED_CX} cy={CY} r={R} fill="none" stroke="var(--c-text-dim)" strokeWidth={2} strokeDasharray="5 3" />
+      <line x1={PANEL_W} y1={14} x2={PANEL_W} y2={HEIGHT - 22} stroke="var(--c-border)" strokeWidth={1} />
 
-      {/* Faint per-circle fills to distinguish GT and prediction */}
-      <circle cx={GT_CX} cy={CY} r={R} fill="var(--c-gt)" fillOpacity={0.12} />
-      <circle cx={PRED_CX} cy={CY} r={R} fill="var(--c-pred-a)" fillOpacity={0.12} />
-
-      {/* Shaded intersection */}
-      <circle cx={PRED_CX} cy={CY} r={R} fill="var(--c-warn)" fillOpacity={0.45} clipPath={`url(#${clipId})`} />
-
-      {/* Labels */}
-      <text x={(GT_CX + PRED_CX) / 2} y={CY + 4} fill="var(--c-text)" textAnchor="middle">
-        {t.intersection}
+      {/* ----- Panel 1: typical ----- */}
+      <text x={PANEL_CX} y={TAG_Y} fill="var(--c-text-dim)" textAnchor="middle">
+        {t.typical}
       </text>
-      <text x={WIDTH / 2} y={CY - R - 6} fill="var(--c-text-dim)" textAnchor="middle">
-        {t.union}
-      </text>
-
-      <text x={WIDTH / 2} y={HEIGHT - 12} fill="var(--c-text-dim)" textAnchor="middle">
+      <g transform={`translate(${PANEL_CX}, 102)`}>
+        {/* Union outline (dashed) */}
+        <circle cx={-26} cy={0} r={34} fill="none" stroke="var(--c-text-dim)" strokeWidth={2} strokeDasharray="5 3" />
+        <circle cx={26} cy={0} r={34} fill="none" stroke="var(--c-text-dim)" strokeWidth={2} strokeDasharray="5 3" />
+        {/* Faint per-circle fills */}
+        <circle cx={-26} cy={0} r={34} fill="var(--c-gt)" fillOpacity={0.12} />
+        <circle cx={26} cy={0} r={34} fill="var(--c-pred-a)" fillOpacity={0.12} />
+        {/* Shaded intersection */}
+        <circle cx={26} cy={0} r={34} fill="var(--c-warn)" fillOpacity={0.45} clipPath={`url(#${clipId})`} />
+        <text x={0} y={4} fill="var(--c-text)" textAnchor="middle">
+          {t.intersection}
+        </text>
+        <text x={0} y={-42} fill="var(--c-text-dim)" textAnchor="middle">
+          {t.union}
+        </text>
+      </g>
+      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
         {t.caption}
       </text>
+
+      {/* ----- Panel 2: misleading ----- */}
+      <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
+        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+          {t.misleading}
+        </text>
+        <path
+          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
+          fill="none"
+          stroke="var(--c-warn)"
+          strokeWidth={1.5}
+        />
+        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
+          !
+        </text>
+
+        <g transform={`translate(${PANEL_CX}, 96)`}>
+          {/* GT square mask */}
+          <rect x={-44} y={-34} width={62} height={62} fill="var(--c-gt)" fillOpacity={0.16} stroke="var(--c-gt)" strokeWidth={2} />
+          {/* Prediction: decent overlap (high IoU) but a jagged, clearly wrong boundary */}
+          <path
+            d="M -28 -30 L 30 -34 L 22 -2 L 38 26 L -18 30 L -26 4 Z"
+            fill="var(--c-pred-a)"
+            fillOpacity={0.22}
+            stroke="var(--c-warn)"
+            strokeWidth={2.5}
+          />
+          <text x={30} y={-40} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+            {t.bad}
+          </text>
+        </g>
+        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          {t.trap}
+        </text>
+      </g>
     </svg>
   );
 }

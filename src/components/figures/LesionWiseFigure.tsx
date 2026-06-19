@@ -1,34 +1,47 @@
 /**
- * LesionWiseFigure — one static example of lesion-level (instance) detection.
+ * LesionWiseFigure — two panels contrasting lesion-level (instance) detection.
  *
- * A scene with three GT lesions: one correctly found (TP — GT outline with a
- * matching prediction fill), one missed (FN — GT outline in warn), and one
- * spurious prediction with no GT (FP — extra color). This shows lesion-level
- * detection, which is coarser than voxel overlap. Static, non-interactive.
+ * Panel 1 ("typical"): three GT lesions — one found (TP), one missed (FN), one
+ * spurious prediction (FP) — centered in the panel, showing detection counts
+ * rather than voxel overlap. Panel 2 ("misleading"): voxel Dice is high on the
+ * big lesion while one small lesion is missed entirely. Static, non-interactive.
  */
 
 import { useLang } from "../../i18n/LanguageContext";
 
 const L = {
   ko: {
-    aria: "병변 단위 예시: 찾음(TP), 놓침(FN), 헛검출(FP)",
-    tp: "TP (찾음)",
-    fn: "FN (놓침)",
-    fp: "FP (헛검출)",
+    aria: "병변 단위 예시: 찾음/놓침/헛검출, 그리고 복셀 Dice는 높지만 병변 하나를 통째로 놓치는 오해 사례",
+    typical: "정상 예시",
+    misleading: "오해 사례",
+    tp: "TP",
+    fn: "FN",
+    fp: "FP",
     caption: "병변 단위: 복셀 겹침이 아닌 검출 수",
+    trap: "복셀 Dice는 높지만 병변 하나를 통째로 놓침",
+    big: "큰 병변",
+    miss: "놓친 병변",
   },
   en: {
-    aria: "Lesion-wise example: one found (TP), one missed (FN), one spurious (FP)",
-    tp: "TP (found)",
-    fn: "FN (missed)",
-    fp: "FP (spurious)",
+    aria: "Lesion-wise example: found, missed and spurious lesions, plus a misleading case where voxel Dice is high yet an entire small lesion is missed",
+    typical: "typical",
+    misleading: "misleading",
+    tp: "TP",
+    fn: "FN",
+    fp: "FP",
     caption: "Lesion-wise: detection count, not voxel overlap",
+    trap: "복셀 Dice는 높지만 병변 하나를 통째로 놓침",
+    big: "big lesion",
+    miss: "missed lesion",
   },
 } as const;
 
-const WIDTH = 320;
-const HEIGHT = 170;
-const ROW_Y = 70;
+const WIDTH = 360;
+const HEIGHT = 210;
+const PANEL_W = WIDTH / 2;
+const PANEL_CX = PANEL_W / 2;
+const TAG_Y = 22;
+const CAPTION_Y = HEIGHT - 12;
 
 export default function LesionWiseFigure() {
   const { lang } = useLang();
@@ -43,28 +56,66 @@ export default function LesionWiseFigure() {
       aria-label={t.aria}
       style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}
     >
-      {/* TP lesion: GT outline with a matching prediction fill inside */}
-      <circle cx={58} cy={ROW_Y} r={30} fill="none" stroke="var(--c-gt)" strokeWidth={2.5} />
-      <circle cx={58} cy={ROW_Y} r={20} fill="var(--c-pred-a)" fillOpacity={0.55} stroke="var(--c-pred-a)" strokeWidth={2} />
-      <text x={58} y={ROW_Y + 52} fill="var(--c-gt)" textAnchor="middle">
-        {t.tp}
-      </text>
+      <line x1={PANEL_W} y1={14} x2={PANEL_W} y2={HEIGHT - 22} stroke="var(--c-border)" strokeWidth={1} />
 
-      {/* FN lesion: GT present but no prediction — dashed warn outline */}
-      <circle cx={160} cy={ROW_Y} r={28} fill="var(--c-warn)" fillOpacity={0.08} stroke="var(--c-warn)" strokeWidth={2.5} strokeDasharray="6 4" />
-      <text x={160} y={ROW_Y + 52} fill="var(--c-warn)" textAnchor="middle">
-        {t.fn}
+      {/* ----- Panel 1: typical ----- */}
+      <text x={PANEL_CX} y={TAG_Y} fill="var(--c-text-dim)" textAnchor="middle">
+        {t.typical}
       </text>
-
-      {/* FP lesion: a spurious prediction with no GT — extra color */}
-      <circle cx={262} cy={ROW_Y} r={24} fill="var(--c-pred-b)" fillOpacity={0.5} stroke="var(--c-pred-b)" strokeWidth={2.5} />
-      <text x={262} y={ROW_Y + 50} fill="var(--c-pred-b)" textAnchor="middle">
-        {t.fp}
-      </text>
-
-      <text x={WIDTH / 2} y={HEIGHT - 8} fill="var(--c-text-dim)" textAnchor="middle">
+      <g transform={`translate(${PANEL_CX}, 96)`}>
+        {/* TP: GT outline with a matching prediction fill */}
+        <circle cx={-54} cy={0} r={24} fill="none" stroke="var(--c-gt)" strokeWidth={2.5} />
+        <circle cx={-54} cy={0} r={15} fill="var(--c-pred-a)" fillOpacity={0.55} stroke="var(--c-pred-a)" strokeWidth={2} />
+        <text x={-54} y={42} fill="var(--c-gt)" textAnchor="middle">
+          {t.tp}
+        </text>
+        {/* FN: GT present, no prediction */}
+        <circle cx={2} cy={0} r={22} fill="var(--c-warn)" fillOpacity={0.08} stroke="var(--c-warn)" strokeWidth={2.5} strokeDasharray="6 4" />
+        <text x={2} y={42} fill="var(--c-warn)" textAnchor="middle">
+          {t.fn}
+        </text>
+        {/* FP: spurious prediction with no GT */}
+        <circle cx={56} cy={0} r={19} fill="var(--c-pred-b)" fillOpacity={0.5} stroke="var(--c-pred-b)" strokeWidth={2.5} />
+        <text x={56} y={40} fill="var(--c-pred-b)" textAnchor="middle">
+          {t.fp}
+        </text>
+      </g>
+      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
         {t.caption}
       </text>
+
+      {/* ----- Panel 2: misleading ----- */}
+      <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
+        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+          {t.misleading}
+        </text>
+        <path
+          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
+          fill="none"
+          stroke="var(--c-warn)"
+          strokeWidth={1.5}
+        />
+        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
+          !
+        </text>
+
+        <g transform={`translate(${PANEL_CX}, 92)`}>
+          {/* Big lesion with high voxel overlap (Dice high) */}
+          <circle cx={-22} cy={2} r={38} fill="var(--c-gt)" fillOpacity={0.16} stroke="var(--c-gt)" strokeWidth={2} />
+          <circle cx={-19} cy={2} r={38} fill="var(--c-pred-a)" fillOpacity={0.32} stroke="var(--c-pred-a)" strokeWidth={2} />
+          <text x={-20} y={6} fill="var(--c-text)" textAnchor="middle" fontSize="9">
+            {t.big}
+          </text>
+          {/* One small lesion missed entirely */}
+          <circle cx={58} cy={-26} r={8} fill="var(--c-warn)" fillOpacity={0.18} stroke="var(--c-warn)" strokeWidth={2} strokeDasharray="3 2" />
+          <text x={56} y={-40} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+            {t.miss}
+          </text>
+        </g>
+        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          {t.trap}
+        </text>
+      </g>
     </svg>
   );
 }

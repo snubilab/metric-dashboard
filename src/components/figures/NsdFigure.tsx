@@ -1,57 +1,76 @@
 /**
- * NsdFigure — one static example of the Normalized Surface Dice tolerance band.
+ * NsdFigure — two panels contrasting the Normalized Surface Dice tolerance band.
  *
- * A single boundary is drawn with a shaded tolerance band of width tau around
- * it. Boundary sample points that fall inside the band count as OK (GT color);
- * the few that stray outside count against NSD (warn color). Caption: NSD@tau.
- * Static, non-interactive.
+ * Panel 1 ("typical"): a reference boundary with a tolerance band of width tau;
+ * sample points inside the band count as OK, the few outside count against NSD,
+ * centered in the panel. Panel 2 ("misleading"): a loose tolerance band so a
+ * clearly bad boundary still scores a high NSD. Static, non-interactive.
  */
 
 import { useLang } from "../../i18n/LanguageContext";
 
 const L = {
   ko: {
-    aria: "NSD 예시: 허용 오차 띠(τ) 안의 경계점은 정상, 밖은 오차",
+    aria: "NSD 예시: 허용 오차 띠 안의 경계점 비율, 그리고 허용오차가 크면 나쁜 경계도 통과하는 오해 사례",
+    typical: "정상 예시",
+    misleading: "오해 사례",
     tau: "허용 오차 τ",
-    ok: "정상",
-    out: "초과",
     caption: "NSD@τ = 띠 안 경계점 비율",
+    trap: "허용오차가 크면 나쁜 경계도 통과",
+    loose: "넓은 τ",
   },
   en: {
-    aria: "NSD example: boundary points inside the tolerance band tau count as OK",
+    aria: "NSD example: fraction of boundary inside the tolerance band, plus a misleading case where a loose tolerance lets a bad boundary pass",
+    typical: "typical",
+    misleading: "misleading",
     tau: "tolerance τ",
-    ok: "in band",
-    out: "outside",
     caption: "NSD@τ = fraction of boundary in band",
+    trap: "허용오차가 크면 나쁜 경계도 통과",
+    loose: "wide τ",
   },
 } as const;
 
-const WIDTH = 320;
-const HEIGHT = 170;
-const TAU = 14; // half-width of the tolerance band in svg units
+const WIDTH = 360;
+const HEIGHT = 210;
+const PANEL_W = WIDTH / 2;
+const PANEL_CX = PANEL_W / 2;
+const TAG_Y = 22;
+const CAPTION_Y = HEIGHT - 12;
 
-/** Reference boundary y at a given x — a gentle curve centered vertically. */
-function boundaryY(x: number): number {
-  return 78 + 22 * Math.sin((x - 40) / 70);
+const X0 = -72;
+const X1 = 72;
+const TAU_TIGHT = 12;
+const TAU_LOOSE = 30;
+
+function refY(x: number): number {
+  return 18 * Math.sin(x / 40);
+}
+function badY(x: number): number {
+  // A clearly wrong, jagged boundary that still sits within a loose band.
+  return refY(x) + 22 * Math.sin(x / 11);
 }
 
-function curvePoints(offset: number): string {
+function curvePoints(yAt: (x: number) => number, offset: number): string {
   const pts: string[] = [];
-  for (let x = 36; x <= 284; x += 8) {
-    pts.push(`${x},${(boundaryY(x) + offset).toFixed(1)}`);
+  for (let x = X0; x <= X1; x += 6) {
+    pts.push(`${x},${(yAt(x) + offset).toFixed(1)}`);
   }
   return pts.join(" ");
 }
 
-/** Sample boundary points; `dy` nudges a point off the boundary for OK/outside. */
+function bandPolygon(tau: number): string {
+  const top = curvePoints(refY, -tau);
+  const bottom = curvePoints(refY, tau).split(" ").reverse().join(" ");
+  return `${top} ${bottom}`;
+}
+
 const SAMPLES: { x: number; dy: number }[] = [
-  { x: 60, dy: 4 },
-  { x: 96, dy: -6 },
-  { x: 132, dy: 20 }, // strays outside the band
-  { x: 168, dy: -5 },
-  { x: 204, dy: 7 },
-  { x: 240, dy: -22 }, // strays outside the band
-  { x: 268, dy: 3 },
+  { x: -54, dy: 4 },
+  { x: -30, dy: -6 },
+  { x: -6, dy: 18 },
+  { x: 18, dy: -5 },
+  { x: 42, dy: -20 },
+  { x: 60, dy: 3 },
 ];
 
 export default function NsdFigure() {
@@ -67,46 +86,80 @@ export default function NsdFigure() {
       aria-label={t.aria}
       style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}
     >
-      {/* Tolerance band: area between the boundary offset by +/- tau */}
-      <polygon
-        points={`${curvePoints(-TAU)} ${curvePoints(TAU)
-          .split(" ")
-          .reverse()
-          .join(" ")}`}
-        fill="var(--c-gt)"
-        fillOpacity={0.14}
-        stroke="var(--c-text-dim)"
-        strokeWidth={1}
-        strokeDasharray="4 3"
-      />
+      <line x1={PANEL_W} y1={14} x2={PANEL_W} y2={HEIGHT - 22} stroke="var(--c-border)" strokeWidth={1} />
 
-      {/* The reference boundary */}
-      <polyline points={curvePoints(0)} fill="none" stroke="var(--c-text)" strokeWidth={2} />
-
-      {/* Boundary sample points: inside the band -> OK, outside -> warn */}
-      {SAMPLES.map((s) => {
-        const inBand = Math.abs(s.dy) <= TAU;
-        return (
-          <circle
-            key={s.x}
-            cx={s.x}
-            cy={boundaryY(s.x) + s.dy}
-            r={4}
-            fill={inBand ? "var(--c-gt)" : "var(--c-warn)"}
-            stroke="var(--c-surface)"
-            strokeWidth={1}
-          />
-        );
-      })}
-
-      {/* tau callout near the band edge */}
-      <text x={300} y={boundaryY(284) - TAU - 4} fill="var(--c-text-dim)" textAnchor="end">
-        {t.tau}
+      {/* ----- Panel 1: typical ----- */}
+      <text x={PANEL_CX} y={TAG_Y} fill="var(--c-text-dim)" textAnchor="middle">
+        {t.typical}
       </text>
-
-      <text x={WIDTH / 2} y={HEIGHT - 12} fill="var(--c-text-dim)" textAnchor="middle">
+      <g transform={`translate(${PANEL_CX}, 96)`}>
+        <polygon
+          points={bandPolygon(TAU_TIGHT)}
+          fill="var(--c-gt)"
+          fillOpacity={0.14}
+          stroke="var(--c-text-dim)"
+          strokeWidth={1}
+          strokeDasharray="4 3"
+        />
+        <polyline points={curvePoints(refY, 0)} fill="none" stroke="var(--c-text)" strokeWidth={2} />
+        {SAMPLES.map((s) => {
+          const inBand = Math.abs(s.dy) <= TAU_TIGHT;
+          return (
+            <circle
+              key={s.x}
+              cx={s.x}
+              cy={refY(s.x) + s.dy}
+              r={4}
+              fill={inBand ? "var(--c-gt)" : "var(--c-warn)"}
+              stroke="var(--c-surface)"
+              strokeWidth={1}
+            />
+          );
+        })}
+        <text x={X1 - 2} y={refY(X1) - TAU_TIGHT - 6} fill="var(--c-text-dim)" textAnchor="end">
+          {t.tau}
+        </text>
+      </g>
+      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
         {t.caption}
       </text>
+
+      {/* ----- Panel 2: misleading ----- */}
+      <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
+        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+          {t.misleading}
+        </text>
+        <path
+          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
+          fill="none"
+          stroke="var(--c-warn)"
+          strokeWidth={1.5}
+        />
+        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
+          !
+        </text>
+
+        <g transform={`translate(${PANEL_CX}, 96)`}>
+          {/* A loose tolerance band swallows the bad boundary */}
+          <polygon
+            points={bandPolygon(TAU_LOOSE)}
+            fill="var(--c-warn)"
+            fillOpacity={0.1}
+            stroke="var(--c-warn)"
+            strokeWidth={1}
+            strokeDasharray="4 3"
+          />
+          {/* Reference and a clearly bad, jagged prediction — both inside the band */}
+          <polyline points={curvePoints(refY, 0)} fill="none" stroke="var(--c-gt)" strokeWidth={2} />
+          <polyline points={curvePoints(badY, 0)} fill="none" stroke="var(--c-pred-a)" strokeWidth={2} />
+          <text x={X1 - 2} y={refY(X1) - TAU_LOOSE - 4} fill="var(--c-warn)" textAnchor="end" fontSize="9">
+            {t.loose}
+          </text>
+        </g>
+        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          {t.trap}
+        </text>
+      </g>
     </svg>
   );
 }

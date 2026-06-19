@@ -1,100 +1,137 @@
 /**
- * ApThresholdFigure — why the IoU threshold changes AP (AP50 vs AP75).
+ * ApThresholdFigure (v2) — IoU threshold effect on AP, shown in two panels.
  *
- * One GT box is overlapped by a prediction at IoU ~ 0.6. Under the loose 0.5
- * threshold the pair counts as a true positive (AP50); under the strict 0.75
- * threshold the same pair fails to match and becomes a false positive (AP75).
- * The caption contrasts the loose vs strict regimes — a stricter IoU threshold
- * lowers AP.
+ * Panel 1 (typical): one GT overlapped by a prediction at IoU ~ 0.6 — a TP under
+ * the loose 0.5 threshold (AP50) but an FP under the strict 0.75 threshold
+ * (AP75). A stricter IoU threshold lowers AP.
  *
- * Static, non-interactive SVG. Tokens only; bilingual labels via useLang().
+ * Panel 2 (misleading): a detector with high AP50 but low AP75. Boxes are found
+ * (high AP50) yet only loosely localized, so the stricter AP75 collapses — a
+ * high AP50 alone hides sloppy localization.
+ *
+ * Static, non-interactive SVG panels. Tokens only; bilingual via useLang().
  */
 
 import { useLang } from "../../i18n/LanguageContext";
+import { TwoPanelFigure } from "./detPanels";
 
 const L = {
   ko: {
-    aria: "AP50 대 AP75 예시: IoU 약 0.6인 박스 쌍이 0.5 기준에서는 TP이지만 0.75 기준에서는 FP가 되어, 기준이 엄격해질수록 AP가 낮아짐을 보여줍니다.",
+    aria: "IoU 기준이 AP에 미치는 영향 개념과, AP50은 높지만 AP75는 낮아 위치추정이 느슨한 오해 사례를 함께 보여주는 그림.",
+    typicalTag: "정상 예시",
+    misleadingTag: "오해 사례",
     iou: "IoU ≈ 0.6",
     tp50: "AP50: TP",
     fp75: "AP75: FP",
-    caption: "AP50 (느슨) vs AP75 (엄격) — 기준↑ → AP↓",
+    ap50: "AP50 0.82",
+    ap75: "AP75 0.31",
+    misleadingCaption: "AP50은 높아도 AP75는 낮음 — 위치추정이 느슨",
   },
   en: {
-    aria: "AP50 versus AP75 example: a box pair at IoU about 0.6 is a TP under the 0.5 threshold but an FP under the 0.75 threshold, so a stricter IoU threshold lowers AP.",
+    aria: "How the IoU threshold affects AP, plus a misleading case where AP50 is high but AP75 is low due to loose localization.",
+    typicalTag: "typical",
+    misleadingTag: "misleading",
     iou: "IoU ≈ 0.6",
     tp50: "AP50: TP",
     fp75: "AP75: FP",
-    caption: "AP50 (loose) vs AP75 (strict) — stricter → lower AP",
+    ap50: "AP50 0.82",
+    ap75: "AP75 0.31",
+    misleadingCaption: "High AP50 but low AP75 — localization is loose",
   },
 } as const;
+
+const VIEW_W = 220;
+const VIEW_H = 150;
 
 export function ApThresholdFigure() {
   const { lang } = useLang();
   const t = L[lang];
 
-  return (
+  const typical = (
     <svg
       width="100%"
-      height={170}
-      viewBox="0 0 480 170"
+      height={VIEW_H}
+      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
       preserveAspectRatio="xMidYMid meet"
-      role="img"
-      aria-label={t.aria}
+      aria-hidden="true"
       style={{ fontFamily: "var(--font-ui)", fontSize: "var(--text-xs)" }}
     >
       {/* Ground-truth box */}
-      <rect
-        data-role="gt"
-        x={150}
-        y={40}
-        width={110}
-        height={78}
-        fill="none"
-        stroke="var(--c-gt)"
-        strokeWidth={2.5}
-      />
-      <text x={205} y={32} textAnchor="middle" fill="var(--c-gt)">
+      <rect data-role="gt" x={40} y={36} width={86} height={64} fill="none" stroke="var(--c-gt)" strokeWidth={2.5} />
+      <text x={83} y={28} textAnchor="middle" fill="var(--c-gt)">
         GT
       </text>
 
-      {/* Prediction overlapping at IoU ~ 0.6 (offset down-right) */}
+      {/* Prediction overlapping at IoU ~ 0.6 */}
       <rect
         data-role="pred"
-        x={196}
-        y={66}
-        width={110}
-        height={78}
+        x={76}
+        y={58}
+        width={86}
+        height={64}
         fill="var(--c-pred-a)"
         fillOpacity={0.18}
         stroke="var(--c-pred-a)"
         strokeWidth={2.5}
       />
-      <text x={252} y={138} textAnchor="middle" fill="var(--c-pred-a)" style={{ fontFamily: "var(--font-mono)" }}>
+      <text x={118} y={118} textAnchor="middle" fill="var(--c-pred-a)" style={{ fontFamily: "var(--font-mono)" }}>
         {t.iou}
       </text>
 
-      {/* Loose threshold: counts as TP */}
+      {/* Loose vs strict outcome */}
       <g data-role="loose">
-        <circle cx={356} cy={62} r={5} fill="var(--c-pred-a)" />
-        <text x={368} y={66} fill="var(--c-pred-a)">
+        <circle cx={172} cy={50} r={5} fill="var(--c-pred-a)" />
+        <text x={182} y={54} fill="var(--c-pred-a)">
           {t.tp50}
         </text>
       </g>
-
-      {/* Strict threshold: same pair becomes FP */}
       <g data-role="strict">
-        <circle cx={356} cy={92} r={5} fill="var(--c-warn)" />
-        <text x={368} y={96} fill="var(--c-warn)">
+        <circle cx={172} cy={74} r={5} fill="var(--c-warn)" />
+        <text x={182} y={78} fill="var(--c-warn)">
           {t.fp75}
         </text>
       </g>
-
-      {/* Caption */}
-      <text x={240} y={164} textAnchor="middle" fill="var(--c-text-dim)">
-        {t.caption}
-      </text>
     </svg>
+  );
+
+  const misleading = (
+    <svg
+      width="100%"
+      height={VIEW_H}
+      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden="true"
+      style={{ fontFamily: "var(--font-ui)", fontSize: "var(--text-xs)" }}
+    >
+      {/* Two bars contrasting AP50 (high) vs AP75 (low). */}
+      {/* AP50 — tall, Pred-A */}
+      <rect data-role="ap50-bar" x={48} y={30} width={44} height={78} fill="var(--c-pred-a)" fillOpacity={0.85} />
+      <text x={70} y={24} textAnchor="middle" fill="var(--c-pred-a)" style={{ fontFamily: "var(--font-mono)" }}>
+        {t.ap50}
+      </text>
+
+      {/* AP75 — short, warn */}
+      <rect data-role="ap75-bar" x={128} y={78} width={44} height={30} fill="var(--c-warn)" fillOpacity={0.85} />
+      <text x={150} y={72} textAnchor="middle" fill="var(--c-warn)" style={{ fontFamily: "var(--font-mono)" }}>
+        {t.ap75}
+      </text>
+
+      {/* Baseline */}
+      <line x1={30} y1={108} x2={190} y2={108} stroke="var(--c-border)" strokeWidth={1.5} />
+    </svg>
+  );
+
+  return (
+    <TwoPanelFigure
+      strings={{
+        aria: t.aria,
+        typicalTag: t.typicalTag,
+        misleadingTag: t.misleadingTag,
+        misleadingCaption: t.misleadingCaption,
+      }}
+      typical={typical}
+      misleading={misleading}
+    />
   );
 }
 

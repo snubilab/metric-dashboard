@@ -1,34 +1,44 @@
 /**
- * DiceFigure — one static example of the Dice (F1) overlap idea.
+ * DiceFigure — two panels contrasting the Dice (F1) overlap idea.
  *
- * Two overlapping circles (ground truth + prediction); the lens-shaped
- * intersection is shaded to make the shared region obvious. A small mono
- * caption states Dice = 2·intersection / (GT + pred). Static, non-interactive.
+ * Panel 1 ("typical"): two overlapping circles (GT + prediction) with the
+ * lens-shaped intersection shaded, centered in the panel. Panel 2
+ * ("misleading"): a large organ scores a near-perfect Dice while a tiny
+ * separate lesion is missed entirely — the big structure dominates the score.
+ * Static, non-interactive.
  */
 
 import { useLang } from "../../i18n/LanguageContext";
 
 const L = {
   ko: {
-    aria: "Dice 예시: 겹치는 두 원과 교집합 영역",
+    aria: "Dice 예시: 겹치는 두 원의 교집합과, 큰 구조가 점수를 지배해 작은 병변 누락을 가리는 오해 사례",
+    typical: "정상 예시",
+    misleading: "오해 사례",
     gt: "정답(GT)",
     pred: "예측",
     caption: "Dice = 2·교집합 / (GT + 예측)",
+    trap: "큰 구조가 점수를 지배해 작은 병변 누락을 가림 (Dice≈0.95)",
+    miss: "누락",
   },
   en: {
-    aria: "Dice example: two overlapping circles with the intersection shaded",
+    aria: "Dice example: two overlapping circles, plus a misleading case where a large structure dominates the score and hides a missed tiny lesion",
+    typical: "typical",
+    misleading: "misleading",
     gt: "GT",
     pred: "Pred",
     caption: "Dice = 2·overlap / (GT + pred)",
+    trap: "큰 구조가 점수를 지배해 작은 병변 누락을 가림 (Dice≈0.95)",
+    miss: "missed",
   },
 } as const;
 
-const WIDTH = 320;
-const HEIGHT = 170;
-const GT_CX = 130;
-const PRED_CX = 195;
-const CY = 78;
-const R = 52;
+const WIDTH = 360;
+const HEIGHT = 210;
+const PANEL_W = WIDTH / 2;
+const PANEL_CX = PANEL_W / 2;
+const TAG_Y = 22;
+const CAPTION_Y = HEIGHT - 12;
 
 export default function DiceFigure() {
   const { lang } = useLang();
@@ -47,36 +57,67 @@ export default function DiceFigure() {
       <defs>
         {/* The intersection is the prediction circle clipped to the GT circle. */}
         <clipPath id={clipId}>
-          <circle cx={GT_CX} cy={CY} r={R} />
+          <circle cx={-30} cy={0} r={36} />
         </clipPath>
       </defs>
 
-      {/* GT and prediction outlines */}
-      <circle cx={GT_CX} cy={CY} r={R} fill="var(--c-gt)" fillOpacity={0.18} stroke="var(--c-gt)" strokeWidth={2} />
-      <circle
-        cx={PRED_CX}
-        cy={CY}
-        r={R}
-        fill="var(--c-pred-a)"
-        fillOpacity={0.18}
-        stroke="var(--c-pred-a)"
-        strokeWidth={2}
-      />
+      {/* Divider between the two panels */}
+      <line x1={PANEL_W} y1={14} x2={PANEL_W} y2={HEIGHT - 22} stroke="var(--c-border)" strokeWidth={1} />
 
-      {/* Shaded intersection (prediction circle clipped to GT) */}
-      <circle cx={PRED_CX} cy={CY} r={R} fill="var(--c-warn)" fillOpacity={0.42} clipPath={`url(#${clipId})`} />
-
-      {/* Labels */}
-      <text x={GT_CX - R + 6} y={CY - R - 6} fill="var(--c-gt)" textAnchor="start">
-        {t.gt}
+      {/* ----- Panel 1: typical ----- */}
+      <text x={PANEL_CX} y={TAG_Y} fill="var(--c-text-dim)" textAnchor="middle">
+        {t.typical}
       </text>
-      <text x={PRED_CX + R - 6} y={CY - R - 6} fill="var(--c-pred-a)" textAnchor="end">
-        {t.pred}
-      </text>
-
-      <text x={WIDTH / 2} y={HEIGHT - 12} fill="var(--c-text-dim)" textAnchor="middle">
+      <g transform={`translate(${PANEL_CX}, 100)`}>
+        {/* Content group centered at the panel's horizontal middle */}
+        <g transform="translate(0, 0)">
+          {/* GT and prediction outlines, symmetric about x=0 */}
+          <circle cx={-30} cy={0} r={36} fill="var(--c-gt)" fillOpacity={0.18} stroke="var(--c-gt)" strokeWidth={2} />
+          <circle cx={30} cy={0} r={36} fill="var(--c-pred-a)" fillOpacity={0.18} stroke="var(--c-pred-a)" strokeWidth={2} />
+          {/* Shaded intersection (prediction circle clipped to GT) */}
+          <circle cx={30} cy={0} r={36} fill="var(--c-warn)" fillOpacity={0.42} clipPath={`url(#${clipId})`} />
+          <text x={-30} y={-44} fill="var(--c-gt)" textAnchor="middle">
+            {t.gt}
+          </text>
+          <text x={30} y={-44} fill="var(--c-pred-a)" textAnchor="middle">
+            {t.pred}
+          </text>
+        </g>
+      </g>
+      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
         {t.caption}
       </text>
+
+      {/* ----- Panel 2: misleading ----- */}
+      <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
+        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+          {t.misleading}
+        </text>
+        {/* Warning mark */}
+        <path
+          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
+          fill="none"
+          stroke="var(--c-warn)"
+          strokeWidth={1.5}
+        />
+        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
+          !
+        </text>
+
+        <g transform={`translate(${PANEL_CX}, 96)`}>
+          {/* Large organ with near-perfect overlap (dominates Dice) */}
+          <circle cx={-18} cy={0} r={42} fill="var(--c-gt)" fillOpacity={0.16} stroke="var(--c-gt)" strokeWidth={2} />
+          <circle cx={-12} cy={0} r={42} fill="var(--c-pred-a)" fillOpacity={0.3} stroke="var(--c-pred-a)" strokeWidth={2} />
+          {/* Tiny separate GT lesion, completely missed by prediction */}
+          <circle cx={62} cy={-26} r={7} fill="var(--c-warn)" fillOpacity={0.18} stroke="var(--c-warn)" strokeWidth={2} strokeDasharray="3 2" />
+          <text x={62} y={-38} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+            {t.miss}
+          </text>
+        </g>
+        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          {t.trap}
+        </text>
+      </g>
     </svg>
   );
 }

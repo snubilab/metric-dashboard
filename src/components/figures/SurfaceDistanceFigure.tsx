@@ -1,52 +1,73 @@
 /**
- * SurfaceDistanceFigure — one static example of ASSD (average symmetric surface
- * distance).
+ * SurfaceDistanceFigure — two panels contrasting ASSD (average symmetric
+ * surface distance).
  *
- * Two roughly parallel boundaries (GT + prediction) with several short arrows
- * spanning between them. ASSD averages all those boundary-to-boundary gaps,
- * unlike Hausdorff which keeps only the worst one. Static, non-interactive.
+ * Panel 1 ("typical"): two roughly parallel boundaries with several short
+ * arrows whose lengths ASSD averages, centered in the panel. Panel 2
+ * ("misleading"): boundaries are mostly aligned but one large local deviation
+ * is diluted by the average. Static, non-interactive.
  */
 
 import { useLang } from "../../i18n/LanguageContext";
 
 const L = {
   ko: {
-    aria: "ASSD 예시: 두 경계 사이 여러 짧은 거리의 평균",
+    aria: "ASSD 예시: 경계 간 거리의 평균, 그리고 평균이 큰 국소 오차를 희석하는 오해 사례",
+    typical: "정상 예시",
+    misleading: "오해 사례",
     gt: "정답(GT)",
     pred: "예측",
     caption: "ASSD = 경계 간 거리의 평균",
+    trap: "평균이 큰 국소 오차를 희석",
+    spike: "국소 오차",
   },
   en: {
-    aria: "ASSD example: several short boundary distances averaged together",
+    aria: "ASSD example: the average of boundary distances, plus a misleading case where the mean dilutes one large local deviation",
+    typical: "typical",
+    misleading: "misleading",
     gt: "GT",
     pred: "Pred",
     caption: "ASSD = average of boundary distances",
+    trap: "평균이 큰 국소 오차를 희석",
+    spike: "local error",
   },
 } as const;
 
-const WIDTH = 320;
-const HEIGHT = 170;
+const WIDTH = 360;
+const HEIGHT = 210;
+const PANEL_W = WIDTH / 2;
+const PANEL_CX = PANEL_W / 2;
+const TAG_Y = 22;
+const CAPTION_Y = HEIGHT - 12;
 
-/** Sample x positions where a short surface-distance arrow is drawn. */
-const SAMPLE_XS = [70, 110, 150, 190, 230, 262];
+/** Panel-local x range for the boundary curves. */
+const X0 = -78;
+const X1 = 78;
 
-/** GT boundary y at a given x — a gentle curve. */
-function gtY(x: number): number {
-  return 70 + 16 * Math.sin((x - 50) / 60);
+function typicalGtY(x: number): number {
+  return 6 * Math.sin(x / 26);
 }
-
-/** Prediction boundary y at a given x — offset below GT by a varying gap. */
-function predY(x: number): number {
-  return gtY(x) + 22 + 8 * Math.sin((x - 50) / 38);
+function typicalPredY(x: number): number {
+  return typicalGtY(x) + 18 + 6 * Math.sin(x / 16);
+}
+function alignedGtY(x: number): number {
+  return 4 * Math.sin(x / 30);
+}
+/** Aligned almost everywhere, with one large bump near x≈30. */
+function alignedPredY(x: number): number {
+  const bump = 36 * Math.exp(-((x - 30) ** 2) / 90);
+  return alignedGtY(x) + 8 + bump;
 }
 
 function curvePoints(yAt: (x: number) => number): string {
   const pts: string[] = [];
-  for (let x = 46; x <= 282; x += 8) {
+  for (let x = X0; x <= X1; x += 6) {
     pts.push(`${x},${yAt(x).toFixed(1)}`);
   }
   return pts.join(" ");
 }
+
+const SAMPLE_XS = [-60, -36, -12, 12, 36, 60];
 
 export default function SurfaceDistanceFigure() {
   const { lang } = useLang();
@@ -68,35 +89,74 @@ export default function SurfaceDistanceFigure() {
         </marker>
       </defs>
 
-      {/* The two boundaries */}
-      <polyline points={curvePoints(gtY)} fill="none" stroke="var(--c-gt)" strokeWidth={2.5} />
-      <polyline points={curvePoints(predY)} fill="none" stroke="var(--c-pred-a)" strokeWidth={2.5} />
+      <line x1={PANEL_W} y1={14} x2={PANEL_W} y2={HEIGHT - 22} stroke="var(--c-border)" strokeWidth={1} />
 
-      {/* Several short surface-distance arrows between the boundaries */}
-      {SAMPLE_XS.map((x) => (
-        <line
-          key={x}
-          x1={x}
-          y1={gtY(x) + 2}
-          x2={x}
-          y2={predY(x) - 2}
-          stroke="var(--c-text-dim)"
-          strokeWidth={1.5}
-          markerEnd={`url(#${arrowId})`}
-        />
-      ))}
-
-      {/* Labels */}
-      <text x={50} y={gtY(50) - 8} fill="var(--c-gt)" textAnchor="start">
-        {t.gt}
+      {/* ----- Panel 1: typical ----- */}
+      <text x={PANEL_CX} y={TAG_Y} fill="var(--c-text-dim)" textAnchor="middle">
+        {t.typical}
       </text>
-      <text x={278} y={predY(278) + 16} fill="var(--c-pred-a)" textAnchor="end">
-        {t.pred}
-      </text>
-
-      <text x={WIDTH / 2} y={HEIGHT - 12} fill="var(--c-text-dim)" textAnchor="middle">
+      <g transform={`translate(${PANEL_CX}, 92)`}>
+        <polyline points={curvePoints(typicalGtY)} fill="none" stroke="var(--c-gt)" strokeWidth={2.5} />
+        <polyline points={curvePoints(typicalPredY)} fill="none" stroke="var(--c-pred-a)" strokeWidth={2.5} />
+        {SAMPLE_XS.map((x) => (
+          <line
+            key={x}
+            x1={x}
+            y1={typicalGtY(x) + 2}
+            x2={x}
+            y2={typicalPredY(x) - 2}
+            stroke="var(--c-text-dim)"
+            strokeWidth={1.5}
+            markerEnd={`url(#${arrowId})`}
+          />
+        ))}
+        <text x={X0 + 4} y={typicalGtY(X0) - 8} fill="var(--c-gt)" textAnchor="start">
+          {t.gt}
+        </text>
+        <text x={X1 - 4} y={typicalPredY(X1) + 16} fill="var(--c-pred-a)" textAnchor="end">
+          {t.pred}
+        </text>
+      </g>
+      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
         {t.caption}
       </text>
+
+      {/* ----- Panel 2: misleading ----- */}
+      <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
+        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+          {t.misleading}
+        </text>
+        <path
+          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
+          fill="none"
+          stroke="var(--c-warn)"
+          strokeWidth={1.5}
+        />
+        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
+          !
+        </text>
+
+        <g transform={`translate(${PANEL_CX}, 86)`}>
+          <polyline points={curvePoints(alignedGtY)} fill="none" stroke="var(--c-gt)" strokeWidth={2.5} />
+          <polyline points={curvePoints(alignedPredY)} fill="none" stroke="var(--c-pred-a)" strokeWidth={2.5} />
+          {/* The single large local deviation */}
+          <line
+            x1={30}
+            y1={alignedGtY(30) + 2}
+            x2={30}
+            y2={alignedPredY(30) - 2}
+            stroke="var(--c-warn)"
+            strokeWidth={2}
+            markerEnd={`url(#${arrowId})`}
+          />
+          <text x={30} y={alignedPredY(30) + 14} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+            {t.spike}
+          </text>
+        </g>
+        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          {t.trap}
+        </text>
+      </g>
     </svg>
   );
 }

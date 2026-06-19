@@ -1,36 +1,45 @@
 /**
- * SensitivityFigure — one static example of recall / sensitivity.
+ * SensitivityFigure — two panels contrasting recall / sensitivity.
  *
- * The whole GT region is shown. The part the prediction also covered is the
- * true-positive area (filled in the GT color); the part the prediction missed
- * is the false-negative area (hatched, warn color). Caption: TP / (TP + FN).
- * Static, non-interactive.
+ * Panel 1 ("typical"): the GT region split into the found part (TP) and the
+ * missed part (FN), centered in the panel. Panel 2 ("misleading"): the
+ * prediction floods almost the whole field (gross over-segmentation) so
+ * sensitivity ≈ 1.0 while precision collapses. Static, non-interactive.
  */
 
 import { useLang } from "../../i18n/LanguageContext";
 
 const L = {
   ko: {
-    aria: "민감도 예시: 정답 영역 중 찾은 부분(TP)과 놓친 부분(FN)",
-    tp: "TP (찾음)",
-    fn: "FN (놓침)",
+    aria: "민감도 예시: 정답 중 찾은 부분(TP)과 놓친 부분(FN), 그리고 전부 양성으로 칠해 민감도 1.0이 되는 오해 사례",
+    typical: "정상 예시",
+    misleading: "오해 사례",
+    tp: "TP",
+    fn: "FN",
     caption: "민감도 = TP / (TP + FN)",
+    trap: "전부 양성으로 칠하면 민감도 1.0 — 정밀도는 붕괴",
+    flood: "전부 양성",
+    gt: "GT",
   },
   en: {
-    aria: "Sensitivity example: the GT region split into found (TP) and missed (FN)",
-    tp: "TP (found)",
-    fn: "FN (missed)",
+    aria: "Sensitivity example: GT split into found (TP) and missed (FN), plus a misleading case where flooding everything as positive makes sensitivity 1.0",
+    typical: "typical",
+    misleading: "misleading",
+    tp: "TP",
+    fn: "FN",
     caption: "Sensitivity = TP / (TP + FN)",
+    trap: "전부 양성으로 칠하면 민감도 1.0 — 정밀도는 붕괴",
+    flood: "all positive",
+    gt: "GT",
   },
 } as const;
 
-const WIDTH = 320;
-const HEIGHT = 170;
-const CX = 150;
-const CY = 74;
-const R = 56;
-/** The prediction covers everything left of this x; right of it is the missed FN slice. */
-const SPLIT_X = 178;
+const WIDTH = 360;
+const HEIGHT = 210;
+const PANEL_W = WIDTH / 2;
+const PANEL_CX = PANEL_W / 2;
+const TAG_Y = 22;
+const CAPTION_Y = HEIGHT - 12;
 
 export default function SensitivityFigure() {
   const { lang } = useLang();
@@ -48,40 +57,72 @@ export default function SensitivityFigure() {
       style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}
     >
       <defs>
-        {/* Hatch pattern marks the missed (false-negative) slice. */}
         <pattern id="sens-hatch" width={8} height={8} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <rect width={8} height={8} fill="var(--c-warn)" fillOpacity={0.12} />
           <line x1={0} y1={0} x2={0} y2={8} stroke="var(--c-warn)" strokeWidth={2.5} />
         </pattern>
+        {/* TP = left of split; FN = right of split (relative to a circle centered at 0,0 r=40) */}
         <clipPath id={tpClipId}>
-          <rect x={CX - R - 2} y={CY - R - 2} width={SPLIT_X - (CX - R - 2)} height={2 * R + 4} />
+          <rect x={-42} y={-42} width={56} height={84} />
         </clipPath>
         <clipPath id={fnClipId}>
-          <rect x={SPLIT_X} y={CY - R - 2} width={CX + R + 2 - SPLIT_X} height={2 * R + 4} />
+          <rect x={14} y={-42} width={28} height={84} />
         </clipPath>
       </defs>
 
-      {/* GT outline */}
-      <circle cx={CX} cy={CY} r={R} fill="none" stroke="var(--c-gt)" strokeWidth={2} />
+      <line x1={PANEL_W} y1={14} x2={PANEL_W} y2={HEIGHT - 22} stroke="var(--c-border)" strokeWidth={1} />
 
-      {/* TP: found part of GT, solid GT color */}
-      <circle cx={CX} cy={CY} r={R} fill="var(--c-gt)" fillOpacity={0.55} clipPath={`url(#${tpClipId})`} />
-      {/* FN: missed part of GT, hatched warn */}
-      <circle cx={CX} cy={CY} r={R} fill="url(#sens-hatch)" clipPath={`url(#${fnClipId})`} />
-      {/* Boundary between TP and FN */}
-      <line x1={SPLIT_X} y1={CY - R} x2={SPLIT_X} y2={CY + R} stroke="var(--c-text-dim)" strokeWidth={1.5} strokeDasharray="4 3" />
-
-      {/* Labels */}
-      <text x={CX - 6} y={CY + 4} fill="var(--c-text)" textAnchor="middle">
-        {t.tp}
+      {/* ----- Panel 1: typical ----- */}
+      <text x={PANEL_CX} y={TAG_Y} fill="var(--c-text-dim)" textAnchor="middle">
+        {t.typical}
       </text>
-      <text x={CX + R + 8} y={CY + 4} fill="var(--c-warn)" textAnchor="start">
-        {t.fn}
-      </text>
-
-      <text x={WIDTH / 2} y={HEIGHT - 12} fill="var(--c-text-dim)" textAnchor="middle">
+      <g transform={`translate(${PANEL_CX}, 102)`}>
+        <circle cx={0} cy={0} r={40} fill="none" stroke="var(--c-gt)" strokeWidth={2} />
+        <circle cx={0} cy={0} r={40} fill="var(--c-gt)" fillOpacity={0.55} clipPath={`url(#${tpClipId})`} />
+        <circle cx={0} cy={0} r={40} fill="url(#sens-hatch)" clipPath={`url(#${fnClipId})`} />
+        <line x1={14} y1={-40} x2={14} y2={40} stroke="var(--c-text-dim)" strokeWidth={1.5} strokeDasharray="4 3" />
+        <text x={-14} y={4} fill="var(--c-text)" textAnchor="middle">
+          {t.tp}
+        </text>
+        <text x={28} y={4} fill="var(--c-warn)" textAnchor="middle">
+          {t.fn}
+        </text>
+      </g>
+      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
         {t.caption}
       </text>
+
+      {/* ----- Panel 2: misleading ----- */}
+      <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
+        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+          {t.misleading}
+        </text>
+        <path
+          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
+          fill="none"
+          stroke="var(--c-warn)"
+          strokeWidth={1.5}
+        />
+        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
+          !
+        </text>
+
+        <g transform={`translate(${PANEL_CX}, 96)`}>
+          {/* Prediction floods almost the entire field */}
+          <rect x={-66} y={-46} width={132} height={92} fill="var(--c-pred-a)" fillOpacity={0.35} stroke="var(--c-pred-a)" strokeWidth={2} />
+          {/* The true GT region is small and fully inside the flood */}
+          <circle cx={-6} cy={2} r={20} fill="var(--c-gt)" fillOpacity={0.6} stroke="var(--c-gt)" strokeWidth={2} />
+          <text x={-6} y={6} fill="var(--c-text)" textAnchor="middle" fontSize="9">
+            {t.gt}
+          </text>
+          <text x={42} y={-34} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+            {t.flood}
+          </text>
+        </g>
+        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          {t.trap}
+        </text>
+      </g>
     </svg>
   );
 }

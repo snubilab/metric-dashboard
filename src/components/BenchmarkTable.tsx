@@ -58,9 +58,22 @@ const cellStyle: React.CSSProperties = {
   borderBottom: "1px solid var(--c-border)",
 };
 
+// Row-header <th> defaults to centered, bold text. Keep the bold weight but
+// left-align it to line up with the other left-aligned columns.
+const nameCellStyle: React.CSSProperties = {
+  ...cellStyle,
+  textAlign: "left",
+  fontWeight: 700,
+};
+
+// The combination holds mono-rendered metric formulas/lists (e.g.
+// "Dice + HD95 + volume"). Keep tokens intact so they break only at spaces,
+// never mid-token, and give the column room via the colgroup below.
 const combinationCellStyle: React.CSSProperties = {
   ...cellStyle,
   fontFamily: "var(--font-mono)",
+  overflowWrap: "normal",
+  wordBreak: "keep-all",
 };
 
 export function BenchmarkTable({ benchmarks }: BenchmarkTableProps) {
@@ -70,6 +83,12 @@ export function BenchmarkTable({ benchmarks }: BenchmarkTableProps) {
   return (
     <div style={{ overflowX: "auto" }}>
       <table style={tableStyle}>
+        <colgroup>
+          <col style={{ width: "18%" }} />
+          <col style={{ width: "26%" }} />
+          <col style={{ width: "30%" }} />
+          <col style={{ width: "26%" }} />
+        </colgroup>
         <thead>
           <tr>
             <th scope="col" style={headCellStyle}>
@@ -89,7 +108,7 @@ export function BenchmarkTable({ benchmarks }: BenchmarkTableProps) {
         <tbody>
           {benchmarks.map((benchmark, index) => (
             <tr key={index}>
-              <th scope="row" style={cellStyle}>
+              <th scope="row" style={nameCellStyle}>
                 {benchmark.name}
               </th>
               <td style={cellStyle}>{benchmark.task}</td>
