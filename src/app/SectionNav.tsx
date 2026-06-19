@@ -26,12 +26,30 @@ interface SectionNavProps {
   onJump: (id: string) => void;
 }
 
+/**
+ * A floating "island": fixed to the right edge and vertically centered, so it
+ * stays put while the Learn content scrolls beneath it. Card-styled (surface +
+ * border + soft elevation). Hidden on narrow viewports via the
+ * `.section-nav-island` class (see global.css) where there is no room beside
+ * the content column.
+ */
 const navStyle: CSSProperties = {
-  position: "sticky",
-  top: "var(--space-4)",
+  position: "fixed",
+  right: "var(--space-6)",
+  top: "50%",
+  transform: "translateY(-50%)",
+  zIndex: 20,
   display: "flex",
   flexDirection: "column",
   gap: "var(--space-2)",
+  width: "210px",
+  maxHeight: "72vh",
+  overflowY: "auto",
+  padding: "var(--space-3) var(--space-4)",
+  background: "var(--c-surface)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-md)",
+  boxShadow: "0 6px 24px rgba(0, 0, 0, 0.14)",
   fontFamily: "var(--font-ui)",
 };
 
@@ -78,7 +96,7 @@ export function SectionNav({ sections, activeId, onJump }: SectionNavProps) {
     return null;
   }
   return (
-    <nav aria-label="Section navigation" style={navStyle}>
+    <nav aria-label="Section navigation" className="section-nav-island" style={navStyle}>
       <h2 style={headingStyle}>{t("onThisPage")}</h2>
       <ul style={listStyle}>
         {sections.map((section) => {

@@ -114,3 +114,11 @@ button {
     scroll-behavior: auto !important;
   }
 }
+
+/* Floating "On this page" island: shown only when there is room beside the
+   content column; hidden on narrower viewports to avoid overlapping content. */
+@media (max-width: 1280px) {
+  .section-nav-island {
+    display: none !important;
+  }
+}

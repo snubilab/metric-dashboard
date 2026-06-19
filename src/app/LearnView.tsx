@@ -31,23 +31,7 @@ function sectionDomId(id: string): string {
   return `section-${id}`;
 }
 
-const layoutStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  gap: "var(--space-8)",
-  alignItems: "flex-start",
-  flexWrap: "wrap",
-  fontFamily: "var(--font-ui)",
-  color: "var(--c-text)",
-};
-
-const navRailStyle: React.CSSProperties = {
-  flex: "0 0 200px",
-  minWidth: "160px",
-};
-
 const rootStyle: React.CSSProperties = {
-  flex: "1 1 32rem",
   display: "flex",
   flexDirection: "column",
   gap: "var(--space-8)",
@@ -281,23 +265,20 @@ export function LearnView({ topic }: LearnViewProps) {
     return null;
   }
   return (
-    <div style={layoutStyle}>
-      <div style={rootStyle}>
-        <p style={introStyle}>{learn.intro}</p>
-        {learn.sections.map((section) => (
-          <Section key={section.id} section={section} lang={lang} />
-        ))}
-        {learn.complementarity && (
-          <ComplementaritySection complementarity={learn.complementarity} lang={lang} />
-        )}
-      </div>
-      <div style={navRailStyle}>
-        <SectionNav
-          sections={learn.sections.map((section) => ({ id: section.id, title: section.title }))}
-          activeId={activeId}
-          onJump={jumpToSection}
-        />
-      </div>
+    <div style={rootStyle}>
+      <p style={introStyle}>{learn.intro}</p>
+      {learn.sections.map((section) => (
+        <Section key={section.id} section={section} lang={lang} />
+      ))}
+      {learn.complementarity && (
+        <ComplementaritySection complementarity={learn.complementarity} lang={lang} />
+      )}
+      {/* Floating island nav: fixed-position, positions itself (see SectionNav). */}
+      <SectionNav
+        sections={learn.sections.map((section) => ({ id: section.id, title: section.title }))}
+        activeId={activeId}
+        onJump={jumpToSection}
+      />
     </div>
   );
 }
