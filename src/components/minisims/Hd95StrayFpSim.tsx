@@ -17,9 +17,25 @@ import type { MiniSimConfig } from "../../types/topic";
 import { rasterize } from "../../engine/raster/rasterize";
 import { dice } from "../../engine/metrics/overlap";
 import { hd, hd95 } from "../../engine/metrics/boundary";
+import { useLang } from "../../i18n/LanguageContext";
 import { AnimatedMetric } from "../AnimatedMetric";
 import { MetricCell, MetricStrip, Slider, WidgetCard } from "./widgetChrome";
 import { circleShape, gtCircle } from "./seedGeometry";
+
+const L = {
+  ko: {
+    title: "떠도는 거짓양성: Dice vs HD vs HD95",
+    caption:
+      "거의 완벽한 예측에 멀리 떨어진 작은 점 하나가 있습니다. Dice는 추가된 몇 픽셀을 거의 알아채지 못하지만, HD는 가장 나쁜 단일 지점이므로 떨어진 점까지의 전체 거리만큼 치솟습니다. HD95는 이상치의 일부를 흡수해 둘 사이에 자리합니다.",
+    strayDistance: "떠도는 FP 거리 (mm)",
+  },
+  en: {
+    title: "Stray false positive: Dice vs HD vs HD95",
+    caption:
+      "A near-perfect prediction with one tiny stray blob far away. Dice hardly notices the few extra pixels, but HD jumps to the full stray distance because it is the single worst point. HD95 absorbs part of the outlier, landing between the two.",
+    strayDistance: "Stray FP distance (mm)",
+  },
+} as const;
 
 const FALLBACK = { cx: 40, cy: 64, r: 24 };
 const STRAY_RADIUS = 3;
@@ -30,6 +46,8 @@ export interface Hd95StrayFpSimProps {
 }
 
 export default function Hd95StrayFpSim({ config }: Hd95StrayFpSimProps) {
+  const { lang } = useLang();
+  const t = L[lang];
   const seed = useMemo(() => gtCircle(config.initialState, FALLBACK), [config]);
   const grid = config.initialState.grid;
   const policy = config.initialState.policy;
@@ -55,10 +73,7 @@ export default function Hd95StrayFpSim({ config }: Hd95StrayFpSimProps) {
   }, [seed, grid, policy, strayDistance]);
 
   return (
-    <WidgetCard
-      title="Stray false positive: Dice vs HD vs HD95"
-      caption="A near-perfect prediction with one tiny stray blob far away. Dice hardly notices the few extra pixels, but HD jumps to the full stray distance because it is the single worst point. HD95 absorbs part of the outlier, landing between the two."
-    >
+    <WidgetCard title={t.title} caption={t.caption}>
       <MetricStrip>
         <MetricCell metricKey="dice">
           <AnimatedMetric value={diceValue} label="Dice" decimals={3} />
@@ -72,7 +87,7 @@ export default function Hd95StrayFpSim({ config }: Hd95StrayFpSimProps) {
       </MetricStrip>
 
       <Slider
-        label="Stray FP distance (mm)"
+        label={t.strayDistance}
         value={strayDistance}
         min={0}
         max={MAX_STRAY_DISTANCE}

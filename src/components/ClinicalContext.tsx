@@ -11,10 +11,26 @@
  */
 
 import type { ClinicalContext as ClinicalContextData } from "../types/topic";
+import { useLang } from "../i18n/LanguageContext";
 
 interface ClinicalContextProps {
   context: ClinicalContextData;
 }
+
+const L = {
+  ko: {
+    situation: "상황",
+    modality: "영상 방식",
+    atStake: "무엇이 걸려 있나",
+    consequence: "임상적 영향",
+  },
+  en: {
+    situation: "Situation",
+    modality: "Modality",
+    atStake: "At stake",
+    consequence: "Consequence",
+  },
+} as const;
 
 const listStyle: React.CSSProperties = {
   display: "grid",
@@ -53,20 +69,21 @@ const pillStyle: React.CSSProperties = {
 };
 
 export function ClinicalContext({ context }: ClinicalContextProps) {
+  const { lang } = useLang();
   return (
     <dl style={listStyle}>
-      <dt style={labelStyle}>Situation</dt>
+      <dt style={labelStyle}>{L[lang].situation}</dt>
       <dd style={valueStyle}>{context.situation}</dd>
 
-      <dt style={labelStyle}>Modality</dt>
+      <dt style={labelStyle}>{L[lang].modality}</dt>
       <dd style={{ ...valueStyle }}>
         <span style={pillStyle}>{context.modality}</span>
       </dd>
 
-      <dt style={labelStyle}>At stake</dt>
+      <dt style={labelStyle}>{L[lang].atStake}</dt>
       <dd style={valueStyle}>{context.atStake}</dd>
 
-      <dt style={labelStyle}>Consequence</dt>
+      <dt style={labelStyle}>{L[lang].consequence}</dt>
       <dd style={valueStyle}>{context.consequence}</dd>
     </dl>
   );

@@ -116,10 +116,14 @@ const listStyle: React.CSSProperties = {
 
 const L = {
   ko: {
+    featuresLabel: "특징",
+    caveatsLabel: "주의점",
     complementsLabel: "함께 보는 지표",
     complementarityTitle: "지표는 어떻게 서로를 보완하는가",
   },
   en: {
+    featuresLabel: "Features",
+    caveatsLabel: "Caveats",
     complementsLabel: "Pairs well with",
     complementarityTitle: "How these metrics complement each other",
   },
@@ -197,8 +201,8 @@ function Section({ section, lang }: { section: MetricSection; lang: Lang }) {
       )}
       {section.figure && <MetricFigure figure={section.figure} />}
       <p style={meaningStyle}>{section.meaning}</p>
-      <LabeledList label="Features" items={section.features} />
-      <LabeledList label="Caveats" items={section.caveats} />
+      <LabeledList label={L[lang].featuresLabel} items={section.features} />
+      <LabeledList label={L[lang].caveatsLabel} items={section.caveats} />
       {section.complements && (
         <div style={calloutStyle}>
           <h4 style={calloutLabelStyle}>{L[lang].complementsLabel}</h4>

@@ -6,7 +6,21 @@
  * operating point marks a single recall/precision pair in the warn color.
  */
 
+import { useLang } from "../../i18n/LanguageContext";
 import { linearScale, niceTicks } from "./scale";
+
+const L = {
+  ko: {
+    recall: "재현율",
+    precision: "정밀도",
+    curveLabel: "정밀도-재현율 곡선",
+  },
+  en: {
+    recall: "Recall",
+    precision: "Precision",
+    curveLabel: "Precision-recall curve",
+  },
+} as const;
 
 /** A single point on a precision-recall curve. */
 export interface PRPoint {
@@ -46,6 +60,8 @@ export function PRCurve({
   width = 320,
   height = 280,
 }: PRCurveProps) {
+  const { lang } = useLang();
+  const t = L[lang];
   const plotW = width - MARGIN.left - MARGIN.right;
   const plotH = height - MARGIN.top - MARGIN.bottom;
   const x = linearScale([0, 1], [MARGIN.left, MARGIN.left + plotW]);
@@ -58,7 +74,7 @@ export function PRCurve({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label="Precision-recall curve"
+      aria-label={t.curveLabel}
       style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}
     >
       {/* Axes frame */}
@@ -159,7 +175,7 @@ export function PRCurve({
         fill="var(--c-text)"
         style={{ fontFamily: "var(--font-ui)" }}
       >
-        Recall
+        {t.recall}
       </text>
       <text
         x={12}
@@ -169,7 +185,7 @@ export function PRCurve({
         transform={`rotate(-90 12 ${MARGIN.top + plotH / 2})`}
         style={{ fontFamily: "var(--font-ui)" }}
       >
-        Precision
+        {t.precision}
       </text>
     </svg>
   );

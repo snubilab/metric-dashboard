@@ -83,13 +83,23 @@ export function LanguageProvider({ children, initialLang }: LanguageProviderProp
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
-/** Access the active language and its setter; requires a LanguageProvider. */
+/**
+ * Safe default returned by `useLang` when no provider is present, so components
+ * that consume the context can still render (e.g. in bare unit tests). Korean is
+ * the default language and `setLang` is a no-op.
+ */
+const FALLBACK_VALUE: LanguageContextValue = {
+  lang: DEFAULT_LANG,
+  setLang: () => {},
+};
+
+/**
+ * Access the active language and its setter. Outside a LanguageProvider this
+ * returns a safe default ({ lang: "ko", setLang: no-op }) so consumers render
+ * without a provider rather than throwing.
+ */
 export function useLang(): LanguageContextValue {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error("useLang must be used within a LanguageProvider");
-  }
-  return context;
+  return useContext(LanguageContext) ?? FALLBACK_VALUE;
 }
 
 /** Stable callback that sets the language; convenience over useLang().setLang. */

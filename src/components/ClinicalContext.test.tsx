@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ClinicalContext as ClinicalContextData } from "../types/topic";
 import { ClinicalContext } from "./ClinicalContext";
+import { LanguageProvider } from "../i18n/LanguageContext";
 
 const sampleContext: ClinicalContextData = {
   situation: "Pre-operative tumor delineation for resection planning",
@@ -20,13 +21,26 @@ describe("ClinicalContext", () => {
     expect(screen.getByText(sampleContext.consequence)).toBeInTheDocument();
   });
 
-  it("renders the labeled rows", () => {
-    render(<ClinicalContext context={sampleContext} />);
+  it("renders the labeled rows in English", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <ClinicalContext context={sampleContext} />
+      </LanguageProvider>,
+    );
 
     expect(screen.getByText("Situation")).toBeInTheDocument();
     expect(screen.getByText("Modality")).toBeInTheDocument();
     expect(screen.getByText("At stake")).toBeInTheDocument();
     expect(screen.getByText("Consequence")).toBeInTheDocument();
+  });
+
+  it("renders the labeled rows in Korean by default", () => {
+    render(<ClinicalContext context={sampleContext} />);
+
+    expect(screen.getByText("상황")).toBeInTheDocument();
+    expect(screen.getByText("영상 방식")).toBeInTheDocument();
+    expect(screen.getByText("무엇이 걸려 있나")).toBeInTheDocument();
+    expect(screen.getByText("임상적 영향")).toBeInTheDocument();
   });
 
   it("renders the modality as a distinct pill element", () => {

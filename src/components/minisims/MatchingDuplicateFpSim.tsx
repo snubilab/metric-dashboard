@@ -15,7 +15,25 @@ import { useMemo, useState } from "react";
 import type { DetBox } from "../../types/engine";
 import type { MiniSimConfig } from "../../types/topic";
 import { matchDetections } from "../../engine/metrics/detection";
+import { useLang } from "../../i18n/LanguageContext";
 import { AnimatedMetricBlock } from "./AnimatedMetricBlock";
+
+const L = {
+  ko: {
+    boardLabel: "검출 매칭 보드",
+    addDuplicate: "병변에 중복 박스 추가",
+    precisionLabel: "정밀도",
+    caption:
+      "병변은 박스 하나에만 매칭될 수 있습니다. 두 번째 고겹침 박스는 거짓양성이 되므로, 재현율은 그대로인 채 정밀도가 떨어집니다.",
+  },
+  en: {
+    boardLabel: "Detection matching board",
+    addDuplicate: "Add duplicate box on the lesion",
+    precisionLabel: "Precision",
+    caption:
+      "The lesion can match only one box. A second high-overlap box becomes a false positive, so precision drops while recall stays the same.",
+  },
+} as const;
 
 interface MatchingDuplicateFpSimProps {
   config: MiniSimConfig;
@@ -72,6 +90,8 @@ function BoardBox({
 
 export function MatchingDuplicateFpSim({ config }: MatchingDuplicateFpSimProps) {
   void config;
+  const { lang } = useLang();
+  const t = L[lang];
   const [preds, setPreds] = useState<DetBox[]>([FIRST_PRED]);
 
   const counts = useMemo(
@@ -99,7 +119,7 @@ export function MatchingDuplicateFpSim({ config }: MatchingDuplicateFpSimProps) 
           height={240}
           viewBox={`0 0 ${BOARD} ${BOARD}`}
           role="img"
-          aria-label="Detection matching board"
+          aria-label={t.boardLabel}
           style={{
             background: "var(--c-surface)",
             border: "1px solid var(--c-border)",
@@ -126,7 +146,7 @@ export function MatchingDuplicateFpSim({ config }: MatchingDuplicateFpSimProps) 
             cursor: "pointer",
           }}
         >
-          Add duplicate box on the lesion
+          {t.addDuplicate}
         </button>
       </div>
 
@@ -153,7 +173,7 @@ export function MatchingDuplicateFpSim({ config }: MatchingDuplicateFpSimProps) 
         </div>
         <AnimatedMetricBlock
           dataMetric="precision"
-          label="Precision"
+          label={t.precisionLabel}
           value={precision}
           decimals={2}
           tone={counts.fp > 0 ? "warn" : "default"}
@@ -166,8 +186,7 @@ export function MatchingDuplicateFpSim({ config }: MatchingDuplicateFpSimProps) 
             color: "var(--c-text-dim)",
           }}
         >
-          The lesion can match only one box. A second high-overlap box becomes a
-          false positive, so precision drops while recall stays the same.
+          {t.caption}
         </p>
       </div>
     </div>

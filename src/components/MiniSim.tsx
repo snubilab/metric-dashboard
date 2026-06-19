@@ -12,6 +12,7 @@
 
 import type { CSSProperties, ComponentType } from "react";
 import type { MiniSimConfig } from "../types/topic";
+import { useLang } from "../i18n/LanguageContext";
 import DiceOverlapSim from "./minisims/DiceOverlapSim";
 import Hd95StrayFpSim from "./minisims/Hd95StrayFpSim";
 import NsdToleranceSim from "./minisims/NsdToleranceSim";
@@ -68,17 +69,24 @@ const comingSoonStyle: CSSProperties = {
   color: "var(--c-text-dim)",
 };
 
+const L = {
+  ko: { heading: "인터랙티브 데모", comingSoon: "인터랙티브 데모 준비 중" },
+  en: { heading: "Interactive demo", comingSoon: "Interactive demo coming soon" },
+} as const;
+
 export function MiniSim({ config }: MiniSimProps) {
+  const { lang } = useLang();
+  const t = L[lang];
   const Widget = WIDGETS[config.kind];
 
   return (
     <div style={containerStyle}>
-      <h4 style={headingStyle}>Interactive demo</h4>
+      <h4 style={headingStyle}>{t.heading}</h4>
       {Widget ? (
         <Widget config={config} />
       ) : (
         <p role="note" style={comingSoonStyle}>
-          Interactive demo coming soon
+          {t.comingSoon}
         </p>
       )}
     </div>

@@ -9,6 +9,8 @@
  * All visual values come from the design-system token custom properties.
  */
 
+import { useLang } from "../i18n/LanguageContext";
+
 interface UnitsBannerProps {
   /**
    * In-plane pixel spacing as `[row, column]` in millimeters per pixel. When
@@ -16,6 +18,19 @@ interface UnitsBannerProps {
    */
   spacingMm?: [number, number];
 }
+
+const L = {
+  ko: {
+    honesty:
+      "이 캔버스는 2D 슬라이스입니다. 실제 임상에서는 mm 단위로 측정되는 3D 표면입니다.",
+    spacing: "픽셀 간격",
+  },
+  en: {
+    honesty:
+      "This canvas is a 2D slice. In clinical practice these are 3D surfaces measured in millimeters (mm).",
+    spacing: "spacing",
+  },
+} as const;
 
 /** Unicode information glyph (NOT an emoji) used as a subtle inset marker. */
 const INFO_GLYPH = "ⓘ"; // ⓘ CIRCLED LATIN SMALL LETTER I
@@ -51,19 +66,19 @@ function formatMm(value: number): string {
 }
 
 export function UnitsBanner({ spacingMm }: UnitsBannerProps) {
+  const { lang } = useLang();
   return (
     <aside role="note" style={noteStyle}>
       <span aria-hidden="true" style={glyphStyle}>
         {INFO_GLYPH}
       </span>
       <span>
-        This canvas is a 2D slice. In clinical practice these are 3D surfaces
-        measured in millimeters (mm).
+        {L[lang].honesty}
         {spacingMm ? (
           <>
             {" "}
             <span style={spacingStyle}>
-              spacing {formatMm(spacingMm[0])} × {formatMm(spacingMm[1])} mm/px
+              {L[lang].spacing} {formatMm(spacingMm[0])} × {formatMm(spacingMm[1])} mm/px
             </span>
           </>
         ) : null}

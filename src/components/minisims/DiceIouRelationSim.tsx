@@ -15,10 +15,26 @@ import type { Shape } from "../../types/engine";
 import type { MiniSimConfig } from "../../types/topic";
 import { rasterize } from "../../engine/raster/rasterize";
 import { dice, iou } from "../../engine/metrics/overlap";
+import { useLang } from "../../i18n/LanguageContext";
 import { AnimatedMetric } from "../AnimatedMetric";
 import { RelationPlot } from "../charts/RelationPlot";
 import { MetricCell, MetricStrip, Slider, WidgetCard } from "./widgetChrome";
 import { circleShape, gtCircle } from "./seedGeometry";
+
+const L = {
+  ko: {
+    title: "Dice와 IoU: 같은 순위, 다른 척도",
+    caption:
+      "모든 겹침에서 Dice ≥ IoU이며, 둘은 서로에 대해 단조 증가 함수입니다 — 하나의 사례에서 둘은 예측의 순위를 동일하게 매기므로, 어느 쪽을 고르든 어떤 결과가 더 좋아 보이는지는 절대 바뀌지 않습니다.",
+    overlapOffset: "겹침 오프셋 (px)",
+  },
+  en: {
+    title: "Dice and IoU: same ranking, different scale",
+    caption:
+      "Dice ≥ IoU for every overlap, and the two are a strictly increasing function of each other — for a single case they rank predictions identically, so picking one over the other never changes which result looks better.",
+    overlapOffset: "Overlap offset (px)",
+  },
+} as const;
 
 const FALLBACK = { cx: 64, cy: 64, r: 30 };
 const MAX_OFFSET = 60;
@@ -28,6 +44,8 @@ export interface DiceIouRelationSimProps {
 }
 
 export default function DiceIouRelationSim({ config }: DiceIouRelationSimProps) {
+  const { lang } = useLang();
+  const t = L[lang];
   const seed = useMemo(() => gtCircle(config.initialState, FALLBACK), [config]);
   const grid = config.initialState.grid;
   const policy = config.initialState.policy;
@@ -46,10 +64,7 @@ export default function DiceIouRelationSim({ config }: DiceIouRelationSimProps) 
   }, [seed, grid, policy, offset]);
 
   return (
-    <WidgetCard
-      title="Dice and IoU: same ranking, different scale"
-      caption="Dice ≥ IoU for every overlap, and the two are a strictly increasing function of each other — for a single case they rank predictions identically, so picking one over the other never changes which result looks better."
-    >
+    <WidgetCard title={t.title} caption={t.caption}>
       <MetricStrip>
         <MetricCell metricKey="dice">
           <AnimatedMetric value={diceValue} label="Dice" decimals={3} />
@@ -62,7 +77,7 @@ export default function DiceIouRelationSim({ config }: DiceIouRelationSimProps) 
       <RelationPlot current={Number.isNaN(iouValue) ? undefined : iouValue} />
 
       <Slider
-        label="Overlap offset (px)"
+        label={t.overlapOffset}
         value={offset}
         min={0}
         max={MAX_OFFSET}

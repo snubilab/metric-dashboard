@@ -15,10 +15,28 @@
  * All visual values come from the design-system token custom properties.
  */
 
+import { useLang } from "../i18n/LanguageContext";
 import { AnimatedMetric } from "./AnimatedMetric";
 import { detectDisagreements, winner } from "./metrics/detectDisagreements";
 import type { Disagreement, Winner } from "./metrics/detectDisagreements";
 import type { MetricRow } from "./metrics/types";
+
+const L = {
+  ko: {
+    metric: "지표",
+    predictionA: "예측 A",
+    predictionB: "예측 B",
+    rankingDisagreement: "순위 불일치",
+    disagreementMarker: "지표 순위 불일치",
+  },
+  en: {
+    metric: "Metric",
+    predictionA: "Prediction A",
+    predictionB: "Prediction B",
+    rankingDisagreement: "Ranking disagreement",
+    disagreementMarker: "metric ranking disagreement",
+  },
+} as const;
 
 /** Decimal places used for every value cell; metrics here read naturally at 2 dp. */
 const DECIMALS = 2;
@@ -133,6 +151,8 @@ function valueCellStyle(side: Winner, rowWinner: Winner, flagged: boolean): Reac
 }
 
 export function MetricTable({ rows }: MetricTableProps) {
+  const { lang } = useLang();
+  const t = L[lang];
   const disagreements = detectDisagreements(rows);
 
   return (
@@ -142,7 +162,7 @@ export function MetricTable({ rows }: MetricTableProps) {
         <thead>
           <tr>
             <th scope="col" style={headCellBase}>
-              Metric
+              {t.metric}
             </th>
             <th scope="col" style={valueHeadCell("var(--c-pred-a)")}>
               A
@@ -170,7 +190,7 @@ export function MetricTable({ rows }: MetricTableProps) {
                     <span
                       style={markerStyle}
                       role="img"
-                      aria-label="metric ranking disagreement"
+                      aria-label={t.disagreementMarker}
                     >
                       <span aria-hidden="true">{WARN_GLYPH}</span>
                     </span>
@@ -191,15 +211,15 @@ export function MetricTable({ rows }: MetricTableProps) {
       <div style={legendStyle}>
         <span style={legendItemStyle}>
           <span aria-hidden="true" style={swatchStyle("var(--c-pred-a)")} />
-          Prediction A
+          {t.predictionA}
         </span>
         <span style={legendItemStyle}>
           <span aria-hidden="true" style={swatchStyle("var(--c-pred-b)")} />
-          Prediction B
+          {t.predictionB}
         </span>
         <span style={legendItemStyle}>
           <span aria-hidden="true" style={swatchStyle("var(--c-warn)")} />
-          Ranking disagreement
+          {t.rankingDisagreement}
         </span>
       </div>
     </div>

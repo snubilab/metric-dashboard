@@ -15,8 +15,30 @@
 import { useMemo, useState } from "react";
 import type { MiniSimConfig } from "../../types/topic";
 import { averagePrecision } from "../../engine/metrics/detection";
+import { useLang } from "../../i18n/LanguageContext";
 import { PRCurve, type PRPoint } from "../charts/PRCurve";
 import { AnimatedMetricBlock } from "./AnimatedMetricBlock";
+
+const L = {
+  ko: {
+    sortByConfidence: "신뢰도순 정렬",
+    listLabel: "순위 순서로 정렬된 검출 목록",
+    moveUp: (id: string) => `${id} 위로 이동`,
+    moveDown: (id: string) => `${id} 아래로 이동`,
+    apLabel: "Average Precision",
+    caption:
+      "AP는 신뢰도 순위를 보상합니다: 참양성을 거짓양성보다 앞에 두면 곡선이 올라가고 AP가 상승합니다.",
+  },
+  en: {
+    sortByConfidence: "Sort by confidence",
+    listLabel: "Detections in ranking order",
+    moveUp: (id: string) => `Move ${id} up`,
+    moveDown: (id: string) => `Move ${id} down`,
+    apLabel: "Average Precision",
+    caption:
+      "AP rewards confidence ranking: putting the true positives ahead of the false positives lifts the curve and raises AP.",
+  },
+} as const;
 
 interface DetEntry {
   id: string;
@@ -93,6 +115,8 @@ const moveButtonStyle: React.CSSProperties = {
 
 export function ApReorderSim({ config }: ApReorderSimProps) {
   void config;
+  const { lang } = useLang();
+  const t = L[lang];
   const [entries, setEntries] = useState<DetEntry[]>(INITIAL_ENTRIES);
 
   const curve = useMemo(() => curveFromOrder(entries), [entries]);
@@ -135,11 +159,11 @@ export function ApReorderSim({ config }: ApReorderSimProps) {
             cursor: "pointer",
           }}
         >
-          Sort by confidence
+          {t.sortByConfidence}
         </button>
 
         <ol
-          aria-label="Detections in ranking order"
+          aria-label={t.listLabel}
           style={{
             listStyle: "none",
             margin: 0,
@@ -176,7 +200,7 @@ export function ApReorderSim({ config }: ApReorderSimProps) {
               <span style={{ flex: 1 }} aria-hidden="true" />
               <button
                 type="button"
-                aria-label={`Move ${entry.id} up`}
+                aria-label={t.moveUp(entry.id)}
                 onClick={() => moveUp(index)}
                 style={moveButtonStyle}
               >
@@ -184,7 +208,7 @@ export function ApReorderSim({ config }: ApReorderSimProps) {
               </button>
               <button
                 type="button"
-                aria-label={`Move ${entry.id} down`}
+                aria-label={t.moveDown(entry.id)}
                 onClick={() => moveDown(index)}
                 style={moveButtonStyle}
               >
@@ -197,7 +221,7 @@ export function ApReorderSim({ config }: ApReorderSimProps) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
         <PRCurve points={curve} />
-        <AnimatedMetricBlock dataMetric="ap" label="Average Precision" value={ap} decimals={3} />
+        <AnimatedMetricBlock dataMetric="ap" label={t.apLabel} value={ap} decimals={3} />
         <p
           style={{
             maxWidth: "32ch",
@@ -206,8 +230,7 @@ export function ApReorderSim({ config }: ApReorderSimProps) {
             color: "var(--c-text-dim)",
           }}
         >
-          AP rewards confidence ranking: putting the true positives ahead of the
-          false positives lifts the curve and raises AP.
+          {t.caption}
         </p>
       </div>
     </div>

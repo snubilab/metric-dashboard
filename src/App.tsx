@@ -12,7 +12,7 @@
  */
 
 import { useMemo, useState } from "react";
-import type { Topic } from "./types/topic";
+import type { Topic, TopicGroup } from "./types/topic";
 import { TOPICS, orderedTopics } from "./app/topicRegistry";
 import { Sidebar } from "./app/Sidebar";
 import { LearnView } from "./app/LearnView";
@@ -20,8 +20,25 @@ import { ScenariosView } from "./app/ScenariosView";
 import { ThemeToggle } from "./app/ThemeToggle";
 import { LanguageToggle } from "./i18n/LanguageToggle";
 import { useT } from "./i18n/messages";
+import { useLang } from "./i18n/LanguageContext";
 
 type Tab = "learn" | "playground" | "scenarios";
+
+/** Human-readable, bilingual label for each topic group id. */
+const GROUP_LABELS: Record<"ko" | "en", Record<TopicGroup, string>> = {
+  ko: {
+    discriminative: "판별형",
+    generative: "생성형",
+    language: "언어·멀티모달",
+    clinical: "임상 평가",
+  },
+  en: {
+    discriminative: "Discriminative",
+    generative: "Generative",
+    language: "Language & Multimodal",
+    clinical: "Clinical Evaluation",
+  },
+};
 
 /** Tab id paired with the dictionary key for its localized label. */
 const TABS: { id: Tab; labelKey: string }[] = [
@@ -141,13 +158,15 @@ const placeholderTextStyle: React.CSSProperties = {
 /** Calm placeholder for topics not yet implemented. */
 function ComingSoon({ topic }: { topic: Topic }) {
   const t = useT();
+  const { lang } = useLang();
   const title = t(topicTitleKey(topic.id)) || topic.title;
   return (
     <div role="tabpanel" style={placeholderStyle}>
       <h2 style={placeholderTitleStyle}>{t("comingSoon")}</h2>
       <p style={placeholderTextStyle}>
-        The {title} metric family is being prepared. Its learn content,
-        interactive playground, and clinical scenarios will appear here.
+        {lang === "ko"
+          ? `${title} 지표 제품군을 준비하고 있습니다. 학습 콘텐츠, 인터랙티브 플레이그라운드, 임상 시나리오가 이곳에 표시될 예정입니다.`
+          : `The ${title} metric family is being prepared. Its learn content, interactive playground, and clinical scenarios will appear here.`}
       </p>
     </div>
   );
@@ -181,6 +200,7 @@ function App() {
   const [selectedId, setSelectedId] = useState(DEFAULT_TOPIC_ID);
   const [activeTab, setActiveTab] = useState<Tab>("learn");
   const t = useT();
+  const { lang } = useLang();
 
   const topics = useMemo(() => orderedTopics(), []);
   const topic = useMemo(
@@ -198,7 +218,7 @@ function App() {
           <div style={titleRowStyle}>
             <div style={titleGroupStyle}>
               <h1 style={titleStyle}>{title}</h1>
-              <span style={groupTagStyle}>{topic.group}</span>
+              <span style={groupTagStyle}>{GROUP_LABELS[lang][topic.group]}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
               <LanguageToggle />

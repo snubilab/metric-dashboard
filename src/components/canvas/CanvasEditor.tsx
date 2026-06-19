@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { useLang } from "../../i18n/LanguageContext";
 import type { Grid, Shape, Vec2 } from "../../types/engine";
 import {
   addBox,
@@ -23,6 +24,33 @@ import {
 
 /** The three editable overlay layers; A/B mirror the prediction ids. */
 export type Layer = "GT" | "A" | "B";
+
+const L = {
+  ko: {
+    addCircle: "원 추가",
+    addBox: "박스 추가",
+    draw: "그리기",
+    move: "이동",
+    delete: "삭제",
+    canvasTools: "캔버스 도구",
+    activeLayer: "활성 레이어",
+    segmentationEditor: "분할 편집기",
+    predictionA: "예측 A",
+    predictionB: "예측 B",
+  },
+  en: {
+    addCircle: "Add circle",
+    addBox: "Add box",
+    draw: "Draw",
+    move: "Move",
+    delete: "Delete",
+    canvasTools: "Canvas tools",
+    activeLayer: "Active layer",
+    segmentationEditor: "Segmentation editor",
+    predictionA: "Prediction A",
+    predictionB: "Prediction B",
+  },
+} as const;
 
 interface PredictionInput {
   id: "A" | "B";
@@ -44,12 +72,6 @@ const LAYER_COLOR_VAR: Record<Layer, string> = {
   GT: "--c-gt",
   A: "--c-pred-a",
   B: "--c-pred-b",
-};
-
-const LAYER_LABEL: Record<Layer, string> = {
-  GT: "GT",
-  A: "Prediction A",
-  B: "Prediction B",
 };
 
 const ALL_LAYERS: Layer[] = ["GT", "A", "B"];
@@ -148,6 +170,13 @@ export function CanvasEditor({
   onChange,
   showLayers,
 }: CanvasEditorProps) {
+  const { lang } = useLang();
+  const t = L[lang];
+  const layerLabel: Record<Layer, string> = {
+    GT: "GT",
+    A: t.predictionA,
+    B: t.predictionB,
+  };
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<Tool>("circle");
   const dragRef = useRef<{ index: number; lastX: number; lastY: number } | null>(
@@ -299,7 +328,7 @@ export function CanvasEditor({
     >
       <div
         role="toolbar"
-        aria-label="Canvas tools"
+        aria-label={t.canvasTools}
         style={{
           display: "flex",
           flexWrap: "wrap",
@@ -307,20 +336,20 @@ export function CanvasEditor({
           gap: "var(--space-2)",
         }}
       >
-        <ToolButton label="Add circle" onClick={handleAddCircle} />
-        <ToolButton label="Add box" onClick={handleAddBox} />
+        <ToolButton label={t.addCircle} onClick={handleAddCircle} />
+        <ToolButton label={t.addBox} onClick={handleAddBox} />
         <ToolButton
-          label="Draw"
+          label={t.draw}
           pressed={tool === "draw"}
           onClick={() => setTool("draw")}
         />
         <ToolButton
-          label="Move"
+          label={t.move}
           pressed={tool === "move"}
           onClick={() => setTool("move")}
         />
         <ToolButton
-          label="Delete"
+          label={t.delete}
           pressed={tool === "delete"}
           onClick={() => setTool("delete")}
         />
@@ -337,7 +366,7 @@ export function CanvasEditor({
 
         <div
           role="group"
-          aria-label="Active layer"
+          aria-label={t.activeLayer}
           style={{ display: "flex", gap: "var(--space-1)" }}
         >
           {ALL_LAYERS.map((layer) => (
@@ -345,7 +374,7 @@ export function CanvasEditor({
               key={layer}
               type="button"
               aria-pressed={activeLayer === layer}
-              title={LAYER_LABEL[layer]}
+              title={layerLabel[layer]}
               onClick={() => onChange(layer, shapesForLayer(layer, gt, predictions))}
               style={{
                 display: "inline-flex",
@@ -384,7 +413,7 @@ export function CanvasEditor({
         ref={canvasRef}
         width={CANVAS_PX}
         height={CANVAS_PX}
-        aria-label="Segmentation editor"
+        aria-label={t.segmentationEditor}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}

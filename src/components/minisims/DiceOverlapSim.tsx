@@ -16,9 +16,27 @@ import type { Shape } from "../../types/engine";
 import type { MiniSimConfig } from "../../types/topic";
 import { rasterize } from "../../engine/raster/rasterize";
 import { dice } from "../../engine/metrics/overlap";
+import { useLang } from "../../i18n/LanguageContext";
 import { AnimatedMetric } from "../AnimatedMetric";
 import { MetricCell, Slider, WidgetCard } from "./widgetChrome";
 import { circleShape, gtCircle } from "./seedGeometry";
+
+const L = {
+  ko: {
+    title: "Dice: 겹침과 크기",
+    caption:
+      "예측을 정답에서 밀어내며 Dice가 떨어지는 것을 보세요. 그다음 반지름을 줄이고 같은 픽셀만큼 옮기면 — 같은 오프셋인데도 Dice가 훨씬 빠르게 무너집니다. Dice는 작은 구조에서 불안정합니다.",
+    predOffset: "예측 오프셋 (px)",
+    gtRadius: "GT 반지름 (px)",
+  },
+  en: {
+    title: "Dice vs overlap and size",
+    caption:
+      "Slide the prediction off the ground truth and watch Dice fall. Then shrink the radius and move it the same number of pixels — the same offset now collapses Dice much faster. Dice is unstable for small structures.",
+    predOffset: "Pred offset (px)",
+    gtRadius: "GT radius (px)",
+  },
+} as const;
 
 const FALLBACK = { cx: 64, cy: 64, r: 30 };
 const MAX_OFFSET = 60;
@@ -30,6 +48,8 @@ export interface DiceOverlapSimProps {
 }
 
 export default function DiceOverlapSim({ config }: DiceOverlapSimProps) {
+  const { lang } = useLang();
+  const t = L[lang];
   const seed = useMemo(() => gtCircle(config.initialState, FALLBACK), [config]);
   const grid = config.initialState.grid;
   const policy = config.initialState.policy;
@@ -46,16 +66,13 @@ export default function DiceOverlapSim({ config }: DiceOverlapSimProps) {
   }, [seed, grid, policy, offset, radius]);
 
   return (
-    <WidgetCard
-      title="Dice vs overlap and size"
-      caption="Slide the prediction off the ground truth and watch Dice fall. Then shrink the radius and move it the same number of pixels — the same offset now collapses Dice much faster. Dice is unstable for small structures."
-    >
+    <WidgetCard title={t.title} caption={t.caption}>
       <MetricCell metricKey="dice">
         <AnimatedMetric value={diceValue} label="Dice" decimals={3} />
       </MetricCell>
 
       <Slider
-        label="Pred offset (px)"
+        label={t.predOffset}
         value={offset}
         min={0}
         max={MAX_OFFSET}
@@ -63,7 +80,7 @@ export default function DiceOverlapSim({ config }: DiceOverlapSimProps) {
         onChange={setOffset}
       />
       <Slider
-        label="GT radius (px)"
+        label={t.gtRadius}
         value={radius}
         min={MIN_RADIUS}
         max={MAX_RADIUS}

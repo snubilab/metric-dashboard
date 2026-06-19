@@ -15,8 +15,26 @@ import { useMemo, useState } from "react";
 import type { DetBox } from "../../types/engine";
 import type { MiniSimConfig } from "../../types/topic";
 import { frocCurve, luna16Score } from "../../engine/metrics/detection";
+import { useLang } from "../../i18n/LanguageContext";
 import { FROCCurve, type FROCPoint } from "../charts/FROCCurve";
 import { AnimatedMetricBlock } from "./AnimatedMetricBlock";
+
+const L = {
+  ko: {
+    addFalsePositive: "거짓양성 추가",
+    fpAdded: (count: number) => `추가된 거짓양성: ${count}`,
+    luna16Label: "LUNA16 점수",
+    caption:
+      "거짓양성이 추가될 때마다 스캔당 FP 비율이 올라가므로 같은 민감도를 얻는 데 더 큰 예산이 듭니다 — LUNA16 평균은 떨어질 뿐입니다.",
+  },
+  en: {
+    addFalsePositive: "Add false positive",
+    fpAdded: (count: number) => `False positives added: ${count}`,
+    luna16Label: "LUNA16 score",
+    caption:
+      "Each false positive raises the FP/scan rate, so the same sensitivity now costs a bigger budget — the LUNA16 average only falls.",
+  },
+} as const;
 
 interface FrocAddFpSimProps {
   config: MiniSimConfig;
@@ -60,6 +78,8 @@ function cloneScans(scans: DetBox[][]): DetBox[][] {
 
 export function FrocAddFpSim({ config }: FrocAddFpSimProps) {
   void config;
+  const { lang } = useLang();
+  const t = L[lang];
   const [detections, setDetections] = useState<DetBox[][]>(() =>
     cloneScans(INITIAL_DETECTIONS),
   );
@@ -110,14 +130,14 @@ export function FrocAddFpSim({ config }: FrocAddFpSimProps) {
             cursor: "pointer",
           }}
         >
-          Add false positive
+          {t.addFalsePositive}
         </button>
         <span
           style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)", color: "var(--c-text-dim)" }}
         >
-          False positives added: {fpCount}
+          {t.fpAdded(fpCount)}
         </span>
-        <AnimatedMetricBlock dataMetric="luna16" label="LUNA16 score" value={score} decimals={3} />
+        <AnimatedMetricBlock dataMetric="luna16" label={t.luna16Label} value={score} decimals={3} />
 
         <p
           style={{
@@ -127,8 +147,7 @@ export function FrocAddFpSim({ config }: FrocAddFpSimProps) {
             color: "var(--c-text-dim)",
           }}
         >
-          Each false positive raises the FP/scan rate, so the same sensitivity
-          now costs a bigger budget — the LUNA16 average only falls.
+          {t.caption}
         </p>
       </div>
 

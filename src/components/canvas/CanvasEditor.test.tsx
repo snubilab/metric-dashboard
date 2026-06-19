@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { CanvasEditor } from "./CanvasEditor";
+import { LanguageProvider } from "../../i18n/LanguageContext";
 import { makeGrid } from "../../engine/raster/grid";
 import type { Shape } from "../../types/engine";
 
@@ -23,6 +24,24 @@ describe("CanvasEditor", () => {
 
   it("renders the toolbar buttons", () => {
     render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+    expect(screen.getByRole("button", { name: /circle/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /box/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /move/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /delete/i })).toBeInTheDocument();
+  });
+
+  it("renders the toolbar buttons in Korean by default", () => {
+    render(
       <CanvasEditor
         grid={grid}
         gt={[]}
@@ -31,10 +50,11 @@ describe("CanvasEditor", () => {
         onChange={() => {}}
       />,
     );
-    expect(screen.getByRole("button", { name: /circle/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /box/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /move/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /delete/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "원 추가" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "박스 추가" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "이동" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "삭제" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "그리기" })).toBeInTheDocument();
   });
 
   it("renders a layer selector with GT / A / B options", () => {
@@ -56,13 +76,15 @@ describe("CanvasEditor", () => {
     const onChange = vi.fn();
     const existing: Shape[] = [{ kind: "box", x: 1, y: 1, w: 2, h: 2 }];
     render(
-      <CanvasEditor
-        grid={grid}
-        gt={existing}
-        predictions={[]}
-        activeLayer="GT"
-        onChange={onChange}
-      />,
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={existing}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={onChange}
+        />
+      </LanguageProvider>,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /circle/i }));
@@ -78,13 +100,15 @@ describe("CanvasEditor", () => {
   it("appends a box to the active layer when add-box is clicked", () => {
     const onChange = vi.fn();
     render(
-      <CanvasEditor
-        grid={grid}
-        gt={[]}
-        predictions={[{ id: "A", shapes: [] }]}
-        activeLayer="A"
-        onChange={onChange}
-      />,
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[{ id: "A", shapes: [] }]}
+          activeLayer="A"
+          onChange={onChange}
+        />
+      </LanguageProvider>,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /box/i }));
@@ -98,13 +122,15 @@ describe("CanvasEditor", () => {
 
   it("renders a Draw tool button", () => {
     render(
-      <CanvasEditor
-        grid={grid}
-        gt={[]}
-        predictions={[]}
-        activeLayer="GT"
-        onChange={() => {}}
-      />,
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
     );
     expect(screen.getByRole("button", { name: /draw/i })).toBeInTheDocument();
   });
@@ -113,13 +139,15 @@ describe("CanvasEditor", () => {
     const onChange = vi.fn();
     const existing: Shape[] = [{ kind: "circle", cx: 1, cy: 1, r: 1 }];
     render(
-      <CanvasEditor
-        grid={grid}
-        gt={existing}
-        predictions={[]}
-        activeLayer="GT"
-        onChange={onChange}
-      />,
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={existing}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={onChange}
+        />
+      </LanguageProvider>,
     );
 
     // Activate the Draw tool.
@@ -162,13 +190,15 @@ describe("CanvasEditor", () => {
   it("does not append a shape when a freehand drag has too few points", () => {
     const onChange = vi.fn();
     render(
-      <CanvasEditor
-        grid={grid}
-        gt={[]}
-        predictions={[]}
-        activeLayer="GT"
-        onChange={onChange}
-      />,
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={onChange}
+        />
+      </LanguageProvider>,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /draw/i }));

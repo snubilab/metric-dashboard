@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { UnitsBanner } from "./UnitsBanner";
+import { LanguageProvider } from "../i18n/LanguageContext";
 
 describe("UnitsBanner", () => {
   it("renders as a note landmark", () => {
@@ -9,18 +10,35 @@ describe("UnitsBanner", () => {
     expect(screen.getByRole("note")).toBeInTheDocument();
   });
 
-  it("states that the canvas is a 2D slice", () => {
-    render(<UnitsBanner />);
+  it("states that the canvas is a 2D slice in English", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <UnitsBanner />
+      </LanguageProvider>,
+    );
 
     expect(screen.getByRole("note")).toHaveTextContent(/2D slice/i);
   });
 
-  it("states that clinical surfaces are 3D and measured in millimeters", () => {
-    render(<UnitsBanner />);
+  it("states that clinical surfaces are 3D and measured in millimeters in English", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <UnitsBanner />
+      </LanguageProvider>,
+    );
 
     const note = screen.getByRole("note");
     expect(note).toHaveTextContent(/3D/);
     expect(note).toHaveTextContent(/millimeter|mm/i);
+  });
+
+  it("states the honesty note in Korean by default", () => {
+    render(<UnitsBanner />);
+
+    const note = screen.getByRole("note");
+    expect(note).toHaveTextContent(/2D 슬라이스/);
+    expect(note).toHaveTextContent(/3D 표면/);
+    expect(note).toHaveTextContent(/mm/);
   });
 
   it("does not render spacing detail when no spacing is provided", () => {

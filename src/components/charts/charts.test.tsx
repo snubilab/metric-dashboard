@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { LanguageProvider } from "../../i18n/LanguageContext";
 import { PRCurve } from "./PRCurve";
 import { FROCCurve } from "./FROCCurve";
 import { RelationPlot } from "./RelationPlot";
@@ -18,10 +19,24 @@ describe("PRCurve", () => {
     expect(container.querySelector("polyline, path")).toBeInTheDocument();
   });
 
-  it("labels both axes", () => {
-    const { getByText } = render(<PRCurve points={points} />);
+  it("labels both axes in English", () => {
+    const { getByText } = render(
+      <LanguageProvider initialLang="en">
+        <PRCurve points={points} />
+      </LanguageProvider>,
+    );
     expect(getByText("Recall")).toBeInTheDocument();
     expect(getByText("Precision")).toBeInTheDocument();
+  });
+
+  it("labels both axes in Korean", () => {
+    const { getByText } = render(
+      <LanguageProvider initialLang="ko">
+        <PRCurve points={points} />
+      </LanguageProvider>,
+    );
+    expect(getByText("재현율")).toBeInTheDocument();
+    expect(getByText("정밀도")).toBeInTheDocument();
   });
 
   it("draws the raw curve in the Pred-A color token", () => {
@@ -71,10 +86,24 @@ describe("FROCCurve", () => {
     expect(container.querySelector("polyline, path")).toBeInTheDocument();
   });
 
-  it("labels both axes", () => {
-    const { getByText } = render(<FROCCurve points={points} />);
+  it("labels both axes in English", () => {
+    const { getByText } = render(
+      <LanguageProvider initialLang="en">
+        <FROCCurve points={points} />
+      </LanguageProvider>,
+    );
     expect(getByText("False positives per scan")).toBeInTheDocument();
     expect(getByText("Sensitivity")).toBeInTheDocument();
+  });
+
+  it("labels both axes in Korean", () => {
+    const { getByText } = render(
+      <LanguageProvider initialLang="ko">
+        <FROCCurve points={points} />
+      </LanguageProvider>,
+    );
+    expect(getByText("스캔당 거짓양성")).toBeInTheDocument();
+    expect(getByText("민감도")).toBeInTheDocument();
   });
 
   it("draws the curve in the GT color token", () => {

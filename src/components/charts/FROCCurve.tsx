@@ -6,7 +6,21 @@
  * (default: the LUNA16 set) are drawn as vertical guide ticks.
  */
 
+import { useLang } from "../../i18n/LanguageContext";
 import { linearScale, logScale } from "./scale";
+
+const L = {
+  ko: {
+    sensitivity: "민감도",
+    fpPerScan: "스캔당 거짓양성",
+    curveLabel: "FROC 곡선",
+  },
+  en: {
+    sensitivity: "Sensitivity",
+    fpPerScan: "False positives per scan",
+    curveLabel: "FROC curve",
+  },
+} as const;
 
 /** A single point on a FROC curve. */
 export interface FROCPoint {
@@ -42,6 +56,8 @@ export function FROCCurve({
   width = 320,
   height = 280,
 }: FROCCurveProps) {
+  const { lang } = useLang();
+  const t = L[lang];
   const plotW = width - MARGIN.left - MARGIN.right;
   const plotH = height - MARGIN.top - MARGIN.bottom;
 
@@ -66,7 +82,7 @@ export function FROCCurve({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label="FROC curve"
+      aria-label={t.curveLabel}
       style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}
     >
       {/* Axes frame */}
@@ -146,7 +162,7 @@ export function FROCCurve({
         fill="var(--c-text)"
         style={{ fontFamily: "var(--font-ui)" }}
       >
-        False positives per scan
+        {t.fpPerScan}
       </text>
       <text
         x={12}
@@ -156,7 +172,7 @@ export function FROCCurve({
         transform={`rotate(-90 12 ${MARGIN.top + plotH / 2})`}
         style={{ fontFamily: "var(--font-ui)" }}
       >
-        Sensitivity
+        {t.sensitivity}
       </text>
     </svg>
   );

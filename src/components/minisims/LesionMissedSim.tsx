@@ -16,9 +16,29 @@ import type { Shape } from "../../types/engine";
 import type { MiniSimConfig } from "../../types/topic";
 import { rasterize } from "../../engine/raster/rasterize";
 import { lesionWise } from "../../engine/metrics/lesionwise";
+import { useLang } from "../../i18n/LanguageContext";
 import { AnimatedMetric } from "../AnimatedMetric";
 import { MetricCell, MetricStrip, Toggle, WidgetCard } from "./widgetChrome";
 import { circleShape } from "./seedGeometry";
+
+const L = {
+  ko: {
+    title: "복셀 Dice가 놓치는 누락 병변",
+    caption:
+      "정답은 큰 장기 하나와 작은 병변 하나입니다. 예측에서 병변을 빼보세요. 장기가 픽셀 수를 지배하므로 복셀 Dice는 거의 움직이지 않지만, 병변 민감도는 0.5로 떨어집니다 — 두 병변 중 하나를 완전히 놓친 것입니다. 전체 겹침은 임상적으로 치명적인 누락을 가릴 수 있습니다.",
+    voxelDice: "복셀 Dice",
+    lesionSensitivity: "병변 민감도",
+    includeLesion: "예측에 작은 병변 포함",
+  },
+  en: {
+    title: "A missed lesion that voxel Dice ignores",
+    caption:
+      "Ground truth is a large organ plus one tiny lesion. Drop the lesion from the prediction: voxel Dice barely moves because the organ dominates the pixel count, but lesion sensitivity falls to 0.5 — one of the two lesions is missed entirely. Aggregate overlap can hide clinically critical misses.",
+    voxelDice: "Voxel Dice",
+    lesionSensitivity: "Lesion sensitivity",
+    includeLesion: "Include small lesion in prediction",
+  },
+} as const;
 
 const ORGAN = { cx: 44, cy: 64, r: 28 };
 const LESION = { cx: 100, cy: 64, r: 5 };
@@ -30,6 +50,8 @@ export interface LesionMissedSimProps {
 }
 
 export default function LesionMissedSim({ config }: LesionMissedSimProps) {
+  const { lang } = useLang();
+  const t = L[lang];
   const grid = config.initialState.grid;
   const policy = config.initialState.policy;
 
@@ -54,18 +76,15 @@ export default function LesionMissedSim({ config }: LesionMissedSimProps) {
   const lesionTone = includeLesion ? "default" : "warn";
 
   return (
-    <WidgetCard
-      title="A missed lesion that voxel Dice ignores"
-      caption="Ground truth is a large organ plus one tiny lesion. Drop the lesion from the prediction: voxel Dice barely moves because the organ dominates the pixel count, but lesion sensitivity falls to 0.5 — one of the two lesions is missed entirely. Aggregate overlap can hide clinically critical misses."
-    >
+    <WidgetCard title={t.title} caption={t.caption}>
       <MetricStrip>
         <MetricCell metricKey="voxel-dice">
-          <AnimatedMetric value={voxelDice} label="Voxel Dice" decimals={3} />
+          <AnimatedMetric value={voxelDice} label={t.voxelDice} decimals={3} />
         </MetricCell>
         <MetricCell metricKey="lesion-sensitivity">
           <AnimatedMetric
             value={lesionSensitivity}
-            label="Lesion sensitivity"
+            label={t.lesionSensitivity}
             decimals={2}
             tone={lesionTone}
           />
@@ -73,7 +92,7 @@ export default function LesionMissedSim({ config }: LesionMissedSimProps) {
       </MetricStrip>
 
       <Toggle
-        label="Include small lesion in prediction"
+        label={t.includeLesion}
         checked={includeLesion}
         onChange={setIncludeLesion}
       />

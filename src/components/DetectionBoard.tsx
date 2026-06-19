@@ -15,6 +15,8 @@
  */
 
 import { useMemo, useState } from "react";
+import { useLang } from "../i18n/LanguageContext";
+import type { Lang } from "../i18n/LanguageContext";
 import type { DetBox } from "../types/engine";
 import {
   type ApMethod,
@@ -37,11 +39,44 @@ export interface DetectionBoardProps {
   iouThreshold?: number;
 }
 
-const AP_METHODS: { value: ApMethod; label: string }[] = [
-  { value: "voc11", label: "VOC 11-point" },
-  { value: "vocAll", label: "VOC all-points" },
-  { value: "coco101", label: "COCO 101-point" },
-];
+const L = {
+  ko: {
+    confidenceThreshold: "신뢰도 임계값",
+    apInterpolationMethod: "AP 보간 방식",
+    voc11: "VOC 11점",
+    vocAll: "VOC 전체점",
+    coco101: "COCO 101점",
+    f1AtThreshold: "F1 (임계값)",
+    apFixed: "AP (고정)",
+    apRange: "AP@[.5:.95]",
+    precisionAtThr: "정밀도 (임계값)",
+    recallAtThr: "재현율 (임계값)",
+    caption:
+      "임계값은 작동점을 이동시켜 F1, 정밀도, 재현율을 바꾸지만 AP는 곡선 전체를 적분하므로 슬라이드해도 고정됩니다. AP는 보간 방식을 바꿀 때만 변합니다.",
+  },
+  en: {
+    confidenceThreshold: "Confidence threshold",
+    apInterpolationMethod: "AP interpolation method",
+    voc11: "VOC 11-point",
+    vocAll: "VOC all-points",
+    coco101: "COCO 101-point",
+    f1AtThreshold: "F1 (at threshold)",
+    apFixed: "AP (fixed)",
+    apRange: "AP@[.5:.95]",
+    precisionAtThr: "Precision (at thr.)",
+    recallAtThr: "Recall (at thr.)",
+    caption:
+      "The threshold slides the operating point and changes F1, precision, and recall — but AP integrates the whole curve, so it stays fixed as you slide. AP only changes when you switch the interpolation method.",
+  },
+} as const;
+
+function apMethods(t: (typeof L)[Lang]): { value: ApMethod; label: string }[] {
+  return [
+    { value: "voc11", label: t.voc11 },
+    { value: "vocAll", label: t.vocAll },
+    { value: "coco101", label: t.coco101 },
+  ];
+}
 
 /** Predictions whose confidence clears the operating threshold. */
 function aboveThreshold(preds: DetBox[], threshold: number): DetBox[] {
@@ -84,6 +119,9 @@ function Count({ tone, label, value, dataCount }: {
 }
 
 export function DetectionBoard({ gt, preds, iouThreshold = 0.5 }: DetectionBoardProps) {
+  const { lang } = useLang();
+  const t = L[lang];
+  const apMethodOptions = apMethods(t);
   const [threshold, setThreshold] = useState(0);
   const [apMethod, setApMethod] = useState<ApMethod>("coco101");
 
@@ -129,7 +167,7 @@ export function DetectionBoard({ gt, preds, iouThreshold = 0.5 }: DetectionBoard
     >
       <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-6)", alignItems: "flex-end" }}>
         <label style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
-          <span style={labelStyle}>Confidence threshold</span>
+          <span style={labelStyle}>{t.confidenceThreshold}</span>
           <span style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
             <input
               type="range"
@@ -137,7 +175,7 @@ export function DetectionBoard({ gt, preds, iouThreshold = 0.5 }: DetectionBoard
               max={1}
               step={0.01}
               value={threshold}
-              aria-label="Confidence threshold"
+              aria-label={t.confidenceThreshold}
               onChange={(e) => setThreshold(Number(e.target.value))}
             />
             <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)", minWidth: "4ch" }}>
@@ -147,9 +185,9 @@ export function DetectionBoard({ gt, preds, iouThreshold = 0.5 }: DetectionBoard
         </label>
 
         <label style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
-          <span style={labelStyle}>AP interpolation method</span>
+          <span style={labelStyle}>{t.apInterpolationMethod}</span>
           <select
-            aria-label="AP interpolation method"
+            aria-label={t.apInterpolationMethod}
             value={apMethod}
             onChange={(e) => setApMethod(e.target.value as ApMethod)}
             style={{
@@ -162,7 +200,7 @@ export function DetectionBoard({ gt, preds, iouThreshold = 0.5 }: DetectionBoard
               padding: "var(--space-1) var(--space-2)",
             }}
           >
-            {AP_METHODS.map((m) => (
+            {apMethodOptions.map((m) => (
               <option key={m.value} value={m.value}>
                 {m.label}
               </option>
@@ -172,17 +210,17 @@ export function DetectionBoard({ gt, preds, iouThreshold = 0.5 }: DetectionBoard
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-8)" }}>
-        <AnimatedMetricBlock dataMetric="f1" label="F1 (at threshold)" value={f1} decimals={3} />
-        <AnimatedMetricBlock dataMetric="ap" label="AP (fixed)" value={ap} decimals={3} />
-        <AnimatedMetricBlock dataMetric="ap-range" label="AP@[.5:.95]" value={apRange} decimals={3} />
+        <AnimatedMetricBlock dataMetric="f1" label={t.f1AtThreshold} value={f1} decimals={3} />
+        <AnimatedMetricBlock dataMetric="ap" label={t.apFixed} value={ap} decimals={3} />
+        <AnimatedMetricBlock dataMetric="ap-range" label={t.apRange} value={apRange} decimals={3} />
       </div>
 
       <div style={{ display: "flex", gap: "var(--space-8)" }}>
         <Count tone="--c-gt" label="TP" value={counts.tp} dataCount="tp" />
         <Count tone="--c-warn" label="FP" value={counts.fp} dataCount="fp" />
         <Count tone="--c-text-dim" label="FN" value={counts.fn} dataCount="fn" />
-        <AnimatedMetricBlock dataMetric="precision" label="Precision (at thr.)" value={precision} decimals={2} />
-        <AnimatedMetricBlock dataMetric="recall" label="Recall (at thr.)" value={recall} decimals={2} />
+        <AnimatedMetricBlock dataMetric="precision" label={t.precisionAtThr} value={precision} decimals={2} />
+        <AnimatedMetricBlock dataMetric="recall" label={t.recallAtThr} value={recall} decimals={2} />
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-6)" }}>
@@ -198,9 +236,7 @@ export function DetectionBoard({ gt, preds, iouThreshold = 0.5 }: DetectionBoard
           color: "var(--c-text-dim)",
         }}
       >
-        The threshold slides the operating point and changes F1, precision, and
-        recall — but AP integrates the whole curve, so it stays fixed as you
-        slide. AP only changes when you switch the interpolation method.
+        {t.caption}
       </p>
     </div>
   );

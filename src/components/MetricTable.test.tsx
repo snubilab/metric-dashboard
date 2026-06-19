@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { LanguageProvider } from "../i18n/LanguageContext";
 import { MetricTable } from "./MetricTable";
 import type { MetricRow } from "./metrics/types";
 
@@ -28,7 +29,11 @@ describe("MetricTable", () => {
   });
 
   it("flags the HD95 row with a disagreement marker when it opposes Dice", () => {
-    render(<MetricTable rows={opposingRows} />);
+    render(
+      <LanguageProvider initialLang="en">
+        <MetricTable rows={opposingRows} />
+      </LanguageProvider>,
+    );
 
     const marker = screen.getByLabelText(/metric ranking disagreement/i);
     expect(marker).toBeInTheDocument();
@@ -38,14 +43,37 @@ describe("MetricTable", () => {
     expect(within(hd95Row as HTMLElement).getByLabelText(/metric ranking disagreement/i)).toBeInTheDocument();
   });
 
+  it("flags the HD95 row with a Korean disagreement marker", () => {
+    render(
+      <LanguageProvider initialLang="ko">
+        <MetricTable rows={opposingRows} />
+      </LanguageProvider>,
+    );
+
+    expect(screen.getByLabelText("지표 순위 불일치")).toBeInTheDocument();
+  });
+
   it("does not flag the reference Dice row", () => {
-    render(<MetricTable rows={opposingRows} />);
+    render(
+      <LanguageProvider initialLang="en">
+        <MetricTable rows={opposingRows} />
+      </LanguageProvider>,
+    );
 
     const diceRow = screen.getByText("Dice").closest("tr");
     expect(diceRow).not.toBeNull();
     expect(
       within(diceRow as HTMLElement).queryByLabelText(/metric ranking disagreement/i),
     ).not.toBeInTheDocument();
+  });
+
+  it("renders the legend and header in Korean by default", () => {
+    render(<MetricTable rows={opposingRows} />);
+
+    expect(screen.getByText("지표")).toBeInTheDocument();
+    expect(screen.getByText("예측 A")).toBeInTheDocument();
+    expect(screen.getByText("예측 B")).toBeInTheDocument();
+    expect(screen.getByText("순위 불일치")).toBeInTheDocument();
   });
 
   it("colors the A and B column headers with the prediction tokens", () => {

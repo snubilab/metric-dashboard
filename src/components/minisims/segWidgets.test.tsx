@@ -1,13 +1,25 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 import type { EngineState } from "../../types/engine";
 import type { MiniSimConfig } from "../../types/topic";
 import { makeGrid } from "../../engine/raster/grid";
+import { LanguageProvider } from "../../i18n/LanguageContext";
 import DiceOverlapSim from "./DiceOverlapSim";
 import Hd95StrayFpSim from "./Hd95StrayFpSim";
 import NsdToleranceSim from "./NsdToleranceSim";
 import LesionMissedSim from "./LesionMissedSim";
 import DiceIouRelationSim from "./DiceIouRelationSim";
+
+/**
+ * Render a widget with the UI language forced to English so the assertions below
+ * can keep matching the English labels. Korean is the app default; the widgets
+ * translate via the i18n LanguageContext, so the English provider preserves the
+ * original assertions.
+ */
+function renderEn(ui: ReactElement) {
+  return render(<LanguageProvider initialLang="en">{ui}</LanguageProvider>);
+}
 
 const POLICY = { emptyDice: "one", emptyDistance: "undefined" } as const;
 
@@ -31,7 +43,7 @@ const NUMERAL = /^\d+(\.\d+)?$/;
 
 describe("DiceOverlapSim", () => {
   it("renders with a Dice metric and an overlap slider", () => {
-    render(<DiceOverlapSim config={config("dice-overlap", "dice")} />);
+    renderEn(<DiceOverlapSim config={config("dice-overlap", "dice")} />);
 
     expect(screen.getByText("Dice")).toBeInTheDocument();
     expect(screen.getByLabelText(/pred offset/i)).toBeInTheDocument();
@@ -39,7 +51,7 @@ describe("DiceOverlapSim", () => {
   });
 
   it("lowers Dice as the prediction is moved away", () => {
-    const { container } = render(<DiceOverlapSim config={config("dice-overlap", "dice")} />);
+    const { container } = renderEn(<DiceOverlapSim config={config("dice-overlap", "dice")} />);
     const before = readNumeral(container, "dice");
 
     fireEvent.change(screen.getByLabelText(/pred offset/i), { target: { value: "40" } });
@@ -51,7 +63,7 @@ describe("DiceOverlapSim", () => {
 
 describe("Hd95StrayFpSim", () => {
   it("renders Dice, HD, and HD95 side by side", () => {
-    render(<Hd95StrayFpSim config={config("hd95-stray-fp", "hd95")} />);
+    renderEn(<Hd95StrayFpSim config={config("hd95-stray-fp", "hd95")} />);
 
     expect(screen.getByText("Dice")).toBeInTheDocument();
     expect(screen.getByText("HD")).toBeInTheDocument();
@@ -60,7 +72,7 @@ describe("Hd95StrayFpSim", () => {
   });
 
   it("raises HD far more than Dice when a far stray blob is added", () => {
-    const { container } = render(<Hd95StrayFpSim config={config("hd95-stray-fp", "hd95")} />);
+    const { container } = renderEn(<Hd95StrayFpSim config={config("hd95-stray-fp", "hd95")} />);
 
     fireEvent.change(screen.getByLabelText(/stray fp distance/i), { target: { value: "0" } });
     const hdNear = readNumeral(container, "hd");
@@ -74,7 +86,7 @@ describe("Hd95StrayFpSim", () => {
 
 describe("NsdToleranceSim", () => {
   it("renders an NSD metric and shows the tolerance in mm", () => {
-    const { container } = render(
+    const { container } = renderEn(
       <NsdToleranceSim config={config("nsd-tolerance", "nsd", { nsdToleranceMm: 2 })} />,
     );
 
@@ -87,7 +99,7 @@ describe("NsdToleranceSim", () => {
   });
 
   it("does not lower NSD when the tolerance is loosened", () => {
-    const { container } = render(
+    const { container } = renderEn(
       <NsdToleranceSim config={config("nsd-tolerance", "nsd", { nsdToleranceMm: 2 })} />,
     );
 
@@ -103,7 +115,7 @@ describe("NsdToleranceSim", () => {
 
 describe("LesionMissedSim", () => {
   it("renders voxel Dice and lesion sensitivity side by side", () => {
-    const { container } = render(<LesionMissedSim config={config("lesion-missed", "lesionSensitivity")} />);
+    const { container } = renderEn(<LesionMissedSim config={config("lesion-missed", "lesionSensitivity")} />);
 
     const voxelCell = container.querySelector('[data-metric="voxel-dice"]') as HTMLElement;
     const lesionCell = container.querySelector('[data-metric="lesion-sensitivity"]') as HTMLElement;
@@ -113,7 +125,7 @@ describe("LesionMissedSim", () => {
   });
 
   it("drops lesion sensitivity to 0.5 while voxel Dice stays high when the lesion is excluded", () => {
-    const { container } = render(<LesionMissedSim config={config("lesion-missed", "lesionSensitivity")} />);
+    const { container } = renderEn(<LesionMissedSim config={config("lesion-missed", "lesionSensitivity")} />);
 
     const toggle = screen.getByLabelText(/include small lesion/i);
     // Default seeds the lesion in; turn it off to exclude the lesion.
@@ -124,9 +136,24 @@ describe("LesionMissedSim", () => {
   });
 });
 
+describe("Korean is the default UI language", () => {
+  it("renders the Korean slider labels for DiceOverlapSim by default", () => {
+    render(<DiceOverlapSim config={config("dice-overlap", "dice")} />);
+
+    expect(screen.getByLabelText("예측 오프셋 (px)")).toBeInTheDocument();
+    expect(screen.getByLabelText("GT 반지름 (px)")).toBeInTheDocument();
+  });
+
+  it("renders the Korean lesion toggle for LesionMissedSim by default", () => {
+    render(<LesionMissedSim config={config("lesion-missed", "lesionSensitivity")} />);
+
+    expect(screen.getByLabelText("예측에 작은 병변 포함")).toBeInTheDocument();
+  });
+});
+
 describe("DiceIouRelationSim", () => {
   it("renders Dice and IoU plus the relation plot", () => {
-    const { container } = render(<DiceIouRelationSim config={config("dice-iou", "iou")} />);
+    const { container } = renderEn(<DiceIouRelationSim config={config("dice-iou", "iou")} />);
 
     // "Dice"/"IoU" also appear as RelationPlot axis labels, so scope to the cells.
     const diceCell = container.querySelector('[data-metric="dice"]') as HTMLElement;
@@ -138,7 +165,7 @@ describe("DiceIouRelationSim", () => {
   });
 
   it("keeps Dice greater than or equal to IoU for any overlap", () => {
-    const { container } = render(<DiceIouRelationSim config={config("dice-iou", "iou")} />);
+    const { container } = renderEn(<DiceIouRelationSim config={config("dice-iou", "iou")} />);
 
     fireEvent.change(screen.getByLabelText(/overlap/i), { target: { value: "20" } });
 

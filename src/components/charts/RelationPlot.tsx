@@ -6,7 +6,17 @@
  * color. Both axes span the [0, 1] unit interval.
  */
 
+import { useLang } from "../../i18n/LanguageContext";
 import { linearScale, niceTicks } from "./scale";
+
+const L = {
+  ko: {
+    relationLabel: "Dice 대 IoU 관계",
+  },
+  en: {
+    relationLabel: "Dice versus IoU relation",
+  },
+} as const;
 
 interface RelationPlotProps {
   /** Optional current IoU in [0, 1]; highlighted with a dot. */
@@ -32,6 +42,8 @@ export function RelationPlot({
   width = 320,
   height = 280,
 }: RelationPlotProps) {
+  const { lang } = useLang();
+  const t = L[lang];
   const plotW = width - MARGIN.left - MARGIN.right;
   const plotH = height - MARGIN.top - MARGIN.bottom;
   const x = linearScale([0, 1], [MARGIN.left, MARGIN.left + plotW]);
@@ -50,7 +62,7 @@ export function RelationPlot({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label="Dice versus IoU relation"
+      aria-label={t.relationLabel}
       style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}
     >
       {/* Axes frame */}

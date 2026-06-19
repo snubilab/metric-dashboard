@@ -1,11 +1,23 @@
 import { render, screen, fireEvent, within } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 import type { MiniSimConfig } from "../../types/topic";
 import type { EngineState } from "../../types/engine";
+import { LanguageProvider } from "../../i18n/LanguageContext";
 import { ApReorderSim } from "./ApReorderSim";
 import { FrocAddFpSim } from "./FrocAddFpSim";
 import { MatchingDuplicateFpSim } from "./MatchingDuplicateFpSim";
 import { DetectionBoard } from "../DetectionBoard";
+
+/**
+ * Render with the UI language forced to English so the assertions below keep
+ * matching the English labels. Korean is the app default; the widgets translate
+ * via the i18n LanguageContext, so the English provider preserves the original
+ * assertions (e.g. "Sort by confidence", "Recall").
+ */
+function renderEn(ui: ReactElement) {
+  return render(<LanguageProvider initialLang="en">{ui}</LanguageProvider>);
+}
 
 const baseState: EngineState = {
   grid: { width: 256, height: 256, spacingMm: [1, 1] },
@@ -25,7 +37,7 @@ const config: MiniSimConfig = {
 
 describe("ApReorderSim", () => {
   it("renders a PR curve, an AP metric, and the detection list", () => {
-    const { container } = render(<ApReorderSim config={config} />);
+    const { container } = renderEn(<ApReorderSim config={config} />);
 
     expect(container.querySelector("svg")).toBeInTheDocument();
     expect(screen.getByText(/Average Precision|^AP$/i)).toBeInTheDocument();
@@ -35,7 +47,7 @@ describe("ApReorderSim", () => {
   });
 
   it("recomputes the AP when the list is sorted by confidence", () => {
-    const { container } = render(<ApReorderSim config={config} />);
+    const { container } = renderEn(<ApReorderSim config={config} />);
 
     const apBefore = container.querySelector('[data-metric="ap"]')?.textContent;
     fireEvent.click(screen.getByRole("button", { name: /sort by confidence/i }));
@@ -48,14 +60,14 @@ describe("ApReorderSim", () => {
 
 describe("FrocAddFpSim", () => {
   it("renders a FROC curve and the LUNA16 score", () => {
-    const { container } = render(<FrocAddFpSim config={config} />);
+    const { container } = renderEn(<FrocAddFpSim config={config} />);
 
     expect(container.querySelector("svg")).toBeInTheDocument();
     expect(container.querySelector('[data-metric="luna16"]')).toBeInTheDocument();
   });
 
   it("lowers the LUNA16 score after adding a false positive", () => {
-    const { container } = render(<FrocAddFpSim config={config} />);
+    const { container } = renderEn(<FrocAddFpSim config={config} />);
 
     const before = Number(
       container.querySelector('[data-metric="luna16"]')?.textContent,
@@ -71,7 +83,7 @@ describe("FrocAddFpSim", () => {
 
 describe("MatchingDuplicateFpSim", () => {
   it("renders the TP/FP/FN counts and a precision metric", () => {
-    const { container } = render(<MatchingDuplicateFpSim config={config} />);
+    const { container } = renderEn(<MatchingDuplicateFpSim config={config} />);
 
     expect(container.querySelector('[data-count="tp"]')).toBeInTheDocument();
     expect(container.querySelector('[data-count="fp"]')).toBeInTheDocument();
@@ -80,7 +92,7 @@ describe("MatchingDuplicateFpSim", () => {
   });
 
   it("turns the duplicate into a false positive and drops precision", () => {
-    const { container } = render(<MatchingDuplicateFpSim config={config} />);
+    const { container } = renderEn(<MatchingDuplicateFpSim config={config} />);
 
     const fpBefore = Number(container.querySelector('[data-count="fp"]')?.textContent);
     fireEvent.click(
@@ -89,6 +101,25 @@ describe("MatchingDuplicateFpSim", () => {
     const fpAfter = Number(container.querySelector('[data-count="fp"]')?.textContent);
 
     expect(fpAfter).toBe(fpBefore + 1);
+  });
+});
+
+describe("Korean is the default UI language", () => {
+  it("renders the Korean control labels for the detection sims by default", () => {
+    render(<ApReorderSim config={config} />);
+    expect(
+      screen.getByRole("button", { name: "신뢰도순 정렬" }),
+    ).toBeInTheDocument();
+
+    render(<FrocAddFpSim config={config} />);
+    expect(
+      screen.getByRole("button", { name: "거짓양성 추가" }),
+    ).toBeInTheDocument();
+
+    render(<MatchingDuplicateFpSim config={config} />);
+    expect(
+      screen.getByRole("button", { name: "병변에 중복 박스 추가" }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -106,7 +137,7 @@ describe("DetectionBoard", () => {
   ];
 
   it("renders both the PR and FROC curves", () => {
-    const { container } = render(<DetectionBoard gt={gt} preds={preds} />);
+    const { container } = renderEn(<DetectionBoard gt={gt} preds={preds} />);
 
     expect(screen.getByText("Recall")).toBeInTheDocument();
     expect(screen.getByText("False positives per scan")).toBeInTheDocument();
@@ -114,7 +145,7 @@ describe("DetectionBoard", () => {
   });
 
   it("shows F1, AP, and AP@[.5:.95] metrics", () => {
-    const { container } = render(<DetectionBoard gt={gt} preds={preds} />);
+    const { container } = renderEn(<DetectionBoard gt={gt} preds={preds} />);
 
     expect(container.querySelector('[data-metric="f1"]')).toBeInTheDocument();
     expect(container.querySelector('[data-metric="ap"]')).toBeInTheDocument();
@@ -122,7 +153,7 @@ describe("DetectionBoard", () => {
   });
 
   it("changes F1 when the confidence threshold slider moves", () => {
-    const { container } = render(<DetectionBoard gt={gt} preds={preds} />);
+    const { container } = renderEn(<DetectionBoard gt={gt} preds={preds} />);
 
     const f1Before = container.querySelector('[data-metric="f1"]')?.textContent;
     const slider = screen.getByRole("slider", { name: /confidence/i });
@@ -134,7 +165,7 @@ describe("DetectionBoard", () => {
   });
 
   it("switches the displayed AP value when the interpolation method changes", () => {
-    const { container } = render(<DetectionBoard gt={gt} preds={preds} />);
+    const { container } = renderEn(<DetectionBoard gt={gt} preds={preds} />);
 
     const select = screen.getByRole("combobox", { name: /interpolation|ap method/i });
     const apVoc11 = (() => {
@@ -148,7 +179,7 @@ describe("DetectionBoard", () => {
   });
 
   it("keeps AP fixed across threshold changes (AP ignores the operating point)", () => {
-    const { container } = render(<DetectionBoard gt={gt} preds={preds} />);
+    const { container } = renderEn(<DetectionBoard gt={gt} preds={preds} />);
 
     const apBefore = container.querySelector('[data-metric="ap"]')?.textContent;
     const slider = screen.getByRole("slider", { name: /confidence/i });
@@ -159,7 +190,7 @@ describe("DetectionBoard", () => {
   });
 
   it("renders the live TP/FP/FN counts", () => {
-    const { container } = render(<DetectionBoard gt={gt} preds={preds} />);
+    const { container } = renderEn(<DetectionBoard gt={gt} preds={preds} />);
     const counts = within(container as HTMLElement);
 
     expect(counts.getByText(/TP/)).toBeInTheDocument();

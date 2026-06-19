@@ -19,10 +19,22 @@ import { DetectionBoard } from "../components/DetectionBoard";
 import { MetricTable } from "../components/MetricTable";
 import { useEngineMetrics } from "../components/metrics/useEngineMetrics";
 import { useLang } from "../i18n/LanguageContext";
+import type { Lang } from "../i18n/LanguageContext";
 
 interface ScenariosViewProps {
   topic: Topic;
 }
+
+const L = {
+  ko: {
+    teachingPoint: "핵심",
+    empty: "이 주제에 대한 시나리오가 아직 없습니다.",
+  },
+  en: {
+    teachingPoint: "Teaching point",
+    empty: "No scenarios available for this topic yet.",
+  },
+} as const;
 
 const galleryStyle: React.CSSProperties = {
   display: "grid",
@@ -98,13 +110,13 @@ function ScenarioPreview({ scenario }: { scenario: Scenario }) {
   return <MetricTablePreview state={scenario.state} />;
 }
 
-function ScenarioCard({ scenario }: { scenario: Scenario }) {
+function ScenarioCard({ scenario, lang }: { scenario: Scenario; lang: Lang }) {
   return (
     <article style={cardStyle}>
       <h3 style={cardTitleStyle}>{scenario.title}</h3>
       <ClinicalContext context={scenario.clinical} />
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-        <h4 style={teachingLabelStyle}>Teaching point</h4>
+        <h4 style={teachingLabelStyle}>{L[lang].teachingPoint}</h4>
         <p style={teachingStyle}>{scenario.teachingPoint}</p>
       </div>
       {scenario.reference && <p style={referenceStyle}>{scenario.reference}</p>}
@@ -120,12 +132,12 @@ export function ScenariosView({ topic }: ScenariosViewProps) {
   const scenarios =
     (lang === "ko" && topic.scenariosKo ? topic.scenariosKo : topic.scenarios) ?? [];
   if (scenarios.length === 0) {
-    return <p style={emptyStyle}>No scenarios available for this topic yet.</p>;
+    return <p style={emptyStyle}>{L[lang].empty}</p>;
   }
   return (
     <div style={galleryStyle}>
       {scenarios.map((scenario) => (
-        <ScenarioCard key={scenario.id} scenario={scenario} />
+        <ScenarioCard key={scenario.id} scenario={scenario} lang={lang} />
       ))}
     </div>
   );
