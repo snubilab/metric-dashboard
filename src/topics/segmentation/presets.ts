@@ -25,6 +25,26 @@ const POLICY: DegeneratePolicy = { emptyDice: "one", emptyDistance: "undefined" 
 /** Shared NSD tolerance for every preset, in millimeters. */
 const NSD_TOLERANCE_MM = 2;
 
+/** A bilingual string pair (Korean / English) for a single piece of UI text. */
+export interface Bilingual {
+  ko: string;
+  en: string;
+}
+
+/**
+ * A short, human-readable descriptor for one prediction in a preset scene.
+ *
+ * `name` is the prediction's short label (e.g. "예측 A" / "Prediction A").
+ * `role` is a brief phrase for what the prediction does in this specific scene
+ * (e.g. "정확 추적" / "accurate"), used to anchor the otherwise abstract A/B.
+ */
+export interface PredictionMeta {
+  /** Short prediction name, e.g. "예측 A" / "Prediction A". */
+  name: Bilingual;
+  /** One-phrase role for this prediction in the scene, e.g. "과다분할" / "over-segmentation". */
+  role: Bilingual;
+}
+
 /** A named, one-click Playground starting point. */
 export interface SegPreset {
   /** Stable identifier, used as a React key and for the active-preset highlight. */
@@ -37,6 +57,10 @@ export interface SegPreset {
   description: string;
   /** Korean explanation, shown when the UI language is Korean. */
   descriptionKo: string;
+  /** Bilingual short name + scene role for prediction A. */
+  predictionA: PredictionMeta;
+  /** Bilingual short name + scene role for prediction B. */
+  predictionB: PredictionMeta;
   /** The full engine state this preset loads into the Playground. */
   state: EngineState;
 }
@@ -56,6 +80,14 @@ export const SEG_PRESETS: SegPreset[] = [
     descriptionKo:
       "A는 병변을 정확히 추적하고, B는 훨씬 큰 원을 칠합니다 — 민감도는 높지만 " +
       "정밀도가 무너지고 부피 오차가 큽니다.",
+    predictionA: {
+      name: { ko: "예측 A", en: "Prediction A" },
+      role: { ko: "정확 추적", en: "accurate" },
+    },
+    predictionB: {
+      name: { ko: "예측 B", en: "Prediction B" },
+      role: { ko: "과다분할", en: "over-segmentation" },
+    },
     state: {
       grid: GRID,
       gt: [{ kind: "circle", cx: 110, cy: 128, r: 38 }],
@@ -77,6 +109,14 @@ export const SEG_PRESETS: SegPreset[] = [
     descriptionKo:
       "A와 B 모두 정답과 잘 겹쳐서 Dice는 거의 동점이지만 — B가 멀리 떨어진 곳에 " +
       "작은 덩어리 하나를 더 내놓아 B의 HD95가 폭발합니다.",
+    predictionA: {
+      name: { ko: "예측 A", en: "Prediction A" },
+      role: { ko: "깔끔한 일치", en: "clean match" },
+    },
+    predictionB: {
+      name: { ko: "예측 B", en: "Prediction B" },
+      role: { ko: "멀리 떨어진 거짓양성", en: "distant false positive" },
+    },
     state: {
       grid: GRID,
       gt: [{ kind: "circle", cx: 110, cy: 128, r: 40 }],
@@ -104,6 +144,14 @@ export const SEG_PRESETS: SegPreset[] = [
     descriptionKo:
       "A는 거의 완벽하고, B는 크기는 같지만 위치가 어긋나서 Dice는 높게 유지되는데 " +
       "HD95와 ASSD는 올라갑니다 — 겹침과 경계가 서로 다른 말을 합니다.",
+    predictionA: {
+      name: { ko: "예측 A", en: "Prediction A" },
+      role: { ko: "정밀 정렬", en: "well aligned" },
+    },
+    predictionB: {
+      name: { ko: "예측 B", en: "Prediction B" },
+      role: { ko: "경계 어긋남", en: "shifted boundary" },
+    },
     state: {
       grid: GRID,
       gt: [{ kind: "circle", cx: 128, cy: 128, r: 45 }],
@@ -125,6 +173,14 @@ export const SEG_PRESETS: SegPreset[] = [
     descriptionKo:
       "정답에는 큰 병변과 아주 작은 병변이 있습니다. A는 둘 다 찾고, B는 작은 병변을 " +
       "놓쳐서 픽셀 Dice는 거의 떨어지지 않지만 HD95는 치솟습니다.",
+    predictionA: {
+      name: { ko: "예측 A", en: "Prediction A" },
+      role: { ko: "둘 다 검출", en: "finds both" },
+    },
+    predictionB: {
+      name: { ko: "예측 B", en: "Prediction B" },
+      role: { ko: "작은 병변 놓침", en: "misses tiny lesion" },
+    },
     state: {
       grid: GRID,
       gt: [
@@ -155,6 +211,14 @@ export const SEG_PRESETS: SegPreset[] = [
     descriptionKo:
       "A는 잘 정렬된 정밀한 일치이고, B는 너무 크고 위치가 어긋난 느슨한 원입니다 — " +
       "모든 겹침·경계 지표가 둘을 구분해 냅니다.",
+    predictionA: {
+      name: { ko: "예측 A", en: "Prediction A" },
+      role: { ko: "정밀한 일치", en: "tight match" },
+    },
+    predictionB: {
+      name: { ko: "예측 B", en: "Prediction B" },
+      role: { ko: "느슨한 일치", en: "loose match" },
+    },
     state: {
       grid: GRID,
       gt: [{ kind: "circle", cx: 128, cy: 128, r: 42 }],
