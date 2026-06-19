@@ -1,0 +1,1064 @@
+## Basic Information
+
+| Item | Content |
+| --- | --- |
+| Topic | Evaluation metrics by task |
+| Main area | Image Segmentation + Image Detection |
+| Leading | Juhui Lee, Ph.D. student |
+| Presentation | Yehyun Ko, Researcher |
+| Main reference | Metrics Reloaded: recommendations for image analysis validation |
+| Additional examples | Medical Segmentation Decathlon, KiTS23, MRBrainS, BraTS, LUNA16, CAMELYON16, DeepLesion, RSNA Pneumonia Detection Challenge |
+
+---
+
+## Purpose of This Presentation
+
+This presentation introduces commonly used evaluation metrics for **image segmentation** and **object detection**, with examples from medical imaging studies and challenges.
+
+---
+
+## Overall Structure
+
+| Part | Topic |
+| --- | --- |
+| Part 1 | Task taxonomy |
+| Part 2 | Segmentation metrics |
+| Part 3 | Segmentation metric combinations in medical imaging |
+| Part 4 | Object detection metrics |
+| Part 5 | Detection metric combinations in medical imaging |
+| Part 6 | Instance segmentation |
+| Part 7 | Summary |
+
+---
+
+# 1. Task Taxonomy
+
+Evaluation metrics depend on the type of output produced by the model.
+
+| **Task** | **Prediction output** | **Ground truth** | **Main evaluation focus** |
+| --- | --- | --- | --- |
+| **Semantic segmentation** | **class mask** | **class mask** | **region overlap, boundary agreement** |
+| **Object detection** | **bounding box, point, candidate + confidence score** | **object location** | **localization + confidence** |
+| **Instance segmentation** | **object-wise mask** | **object-wise mask** | **object matching + mask quality** |
+
+---
+
+## 1.1 Semantic Segmentation
+
+Semantic segmentation answers:
+
+> **Which pixels or voxels belong to the target class?**
+> 
+
+**Examples** in medical imaging
+
+:  liver, kidney , tumor segmenation, vessel, brain tissue 
+
+Main evaluation focus:
+
+- How much does the predicted mask overlap with the ground-truth mask?
+- How accurate is the boundary?
+- Does the model miss small structures?
+- Does the model over-segment into the background?
+
+---
+
+## 1.2 Object Detection
+
+Object detection answers:
+
+> **Where is the object, and how confident is the model?**
+> 
+
+**Examples** in medical imaging
+
+: lung nodule, pneumonia opacity, metastasis, general lesion 
+
+Main evaluation focus:
+
+- Was the lesion detected?
+- Was the predicted location close enough to the ground truth?
+- How many false positive detections were produced?
+- How does performance change across confidence thresholds?
+
+---
+
+## 1.3 Instance Segmentation
+
+Instance segmentation **combines detection and segmentation.**
+
+It answers:
+
+> **Where is each object, and what is the mask for each object?**
+> 
+
+**Examples:**
+
+- segmenting each brain metastasis separately
+- separating multiple lesions
+- instance-level tumor segmentation
+
+Main evaluation focus:
+
+- Did the model find each object?
+- Did the model separate individual objects correctly?
+- Is each object mask accurate?
+
+---
+
+# 2. Main Reference: Metrics Reloaded
+
+## Main Paper
+
+**Metrics Reloaded: recommendations for image analysis validation (Nature Methods, 2024)**
+
+## What the Paper Covers
+
+Metrics Reloaded discusses validation metrics for several image analysis tasks.
+
+| Level | Task |
+| --- | --- |
+| Object level | object detection |
+| Pixel / voxel level | semantic segmentation |
+| Object + pixel level | instance segmentation |
+
+## Relevant Point for This Presentation
+
+The paper organizes metric selection according to:
+
+| Factor | Meaning |
+| --- | --- |
+| Problem category | segmentation, detection, instance segmentation |
+| Domain interest | what type of error matters in the target task |
+| Target structure | large organ, small lesion, tubular structure, multiple lesions |
+| Dataset property | class imbalance, empty cases, multiple objects |
+| Algorithm output | mask, probability map, bounding box, confidence score |
+
+In this presentation, we use this framework to organize metrics for:
+
+1. Image segmentation
+2. Object detection
+3. Instance segmentation
+4. Medical imaging benchmark examples
+
+---
+
+# 3. Segmentation Metrics: Overlap-based Metrics
+
+**Overlap-based metrics compare the predicted mask with the ground-truth mask.**
+
+## 3.1 Main Metrics
+
+| 약자 | 풀이 | 분할에서의 의미 |
+| --- | --- | --- |
+| TP (True Positive, 참 양성) | 맞게 맞힌 양성 | 실제 목표인데 모델도 목표라고 한 픽셀 |
+| **FP** (False Positive, 거짓 양성) | 헛짚은 양성 | 실제는 배경인데 모델이 목표라고 한 픽셀 (과분할) |
+| **FN** (False Negative, 거짓 음성) | 놓친 양성 | 실제는 목표인데 모델이 배경이라고 한 픽셀 (놓침) |
+| TN (True Negative, 참 음성) | 맞게 맞힌 음성 | 실제 배경인데 모델도 배경이라고 한 픽셀 |
+
+| **Metric** | **Formula** | **Meaning** | **Main feature** |
+| --- | --- | --- | --- |
+| **Dice coefficient / DSC** | **$\frac{2TP}{2TP + FP + FN}$** | **overlap between prediction and ground truth** | **most common in medical segmentation** |
+| **IoU / Jaccard index** | **$\frac{TP}{TP + FP + FN}$** | **intersection divided by union** | **common in computer vision** |
+| **Sensitivity / Recall** | **$\frac{TP}{TP + FN}$** | **proportion of true positive voxels detected** | **focuses on false negatives** |
+| **Precision / PPV** | **$\frac{TP}{TP + FP}$** | **proportion of predicted positive voxels that are correct** | **focuses on false positives** |
+
+---
+
+## 3.2 Dice Coefficient
+
+$$
+Dice = \frac{2TP}{2TP + FP + FN}
+$$
+
+### Meaning
+
+Dice measures how much the predicted mask overlaps with the ground-truth mask.
+
+### Features
+
+- Widely used in medical image segmentation.
+- Easy to interpret.
+- Applicable to binary and multi-class segmentation.
+- Often reported as class-wise Dice or mean Dice.
+
+### Points to remember
+
+- Dice summarizes region overlap.
+- Dice does not directly measure boundary error.
+- Dice can be unstable for very small structures.
+- A large structure can have high Dice even when part of the boundary is inaccurate.
+
+!image.png
+
+---
+
+## 3.3 IoU / Jaccard Index
+
+$$
+IoU = \frac{TP}{TP + FP + FN}
+$$
+
+### Meaning
+
+IoU measures the intersection between prediction and ground truth divided by their union.
+
+### Features
+
+- **Common in general computer vision, object detection to define box overlap.**
+- **Similar to Dice, but numerically lower for the same prediction.**
+
+### Relationship Between Dice and IoU
+
+$$
+Dice = \frac{2IoU}{1 + IoU}
+$$
+
+---
+
+## 3.4 Sensitivity / Recall
+
+$$
+Sensitivity = Recall = \frac{TP}{TP + FN}
+$$
+
+### Meaning
+
+**Sensitivity measures how much of the actual target region was detected.**
+
+### Features
+
+- Useful when missing a structure is important.
+- Important for small lesions, vessels, and screening-related segmentation tasks.
+
+### Points to remember
+
+- High sensitivity means fewer false negatives.
+- Sensitivity alone does not show false positive burden.
+- A model can increase sensitivity by over-segmenting.
+
+---
+
+## 3.5 Precision / PPV
+
+$$
+Precision = PPV = \frac{TP}{TP + FP}
+$$
+
+### Meaning
+
+Precision measures how much of the predicted positive region is actually correct.
+
+### Features
+
+- Useful for checking over-segmentation.
+- Low precision means many false positive voxels or regions.
+
+### Points to remember
+
+- High precision means fewer false positives.
+- A conservative model may have high precision but low sensitivity.
+- Precision and sensitivity are often interpreted together.
+
+# 4. Segmentation Metrics: Boundary- and Surface-based Metrics
+
+Overlap metrics evaluate region agreement.
+
+Boundary- and surface-based metrics evaluate spatial boundary error.
+
+## 4.1 Main Metrics
+
+| **Metric** | **Meaning** | **Main feature** |
+| --- | --- | --- |
+| **Hausdorff Distance, HD** | **maximum boundary distance between prediction and ground truth** | **captures worst-case boundary error** |
+| **HD95** | **95th percentile of boundary distances** | **less sensitive to extreme outliers than HD** |
+| **Average Surface Distance, ASD** | **average distance between surfaces** | **captures average boundary mismatch** |
+| Average Symmetric Surface Distance, ASSD | average bidirectional surface distance | considers both prediction-to-GT and GT-to-prediction distances |
+| Surface Dice | proportion of surface points within tolerance | uses a predefined distance tolerance |
+| **Normalized Surface Dice, NSD** | **normalized surface agreement within tolerance** | **used in several medical segmentation benchmarks** |
+
+---
+
+## 4.2 Hausdorff Distance
+
+Let $A$ and $B$ be the boundary point sets of the prediction and ground truth.
+
+$$
+HD(A,B) = \max \left\{ \sup_{a \in A} d(a,B), \sup_{b \in B} d(b,A) \right\}
+$$
+
+### Meaning
+
+Hausdorff Distance measures **the largest distance from one boundary to the other boundary.**
+
+### Features
+
+- **Captures worst-case boundary mismatch.**
+- Useful when a large local boundary error is important.
+
+### Points to remember
+
+- **Very sensitive to outliers.**
+- A single isolated false positive region can make HD very large.
+
+---
+
+## 4.3 HD95
+
+$$
+HD95 = P_{95}({d(a,B)}∪{d(b,A)})
+$$
+
+### Meaning
+
+HD95 uses the **95th percentile of boundary distances** instead of the maximum distance.
+
+### Features
+
+- More robust than standard HD.
+- Commonly reported together with Dice in medical segmentation papers.
+- Useful for evaluating boundary error while reducing the effect of extreme outliers.
+
+### Important detail
+
+For 3D CT or MRI, distance metrics should be calculated in physical units, usually millimeters, not simply voxel counts.
+
+!image.png
+
+---
+
+## 4.4 ASD / ASSD
+
+### ASD
+
+Average Surface Distance measures **the average distance from one surface to the other.**
+
+### ASSD
+
+Average Symmetric Surface Distance considers **both directions:**
+
+- prediction surface to ground-truth surface
+- ground-truth surface to prediction surface
+
+### Features
+
+- Captures average boundary mismatch.
+- Less dominated by a single extreme point than HD.
+
+### Points to remember
+
+- A local large error can be diluted by averaging.
+- ASSD is useful when overall boundary agreement is more relevant than a single worst point.
+
+---
+
+## 4.5 Surface Dice / NSD
+
+### Meaning
+
+Surface Dice measures **the proportion of surface points that lie within a predefined tolerance distance.**
+
+For example, if the tolerance is 2 mm, surface points within 2 mm of the reference surface are considered acceptable.
+
+### Features
+
+- Allows task-specific tolerance.
+- Useful when small boundary deviations are clinically acceptable.
+- Often easier to interpret than raw HD or ASSD.
+
+### Points to remember
+
+- The tolerance value must be defined carefully.
+- The tolerance may differ by organ, lesion type, imaging modality, or clinical use.
+
+---
+
+# 5. Segmentation Metric Combinations in Medical Imaging
+
+Medical segmentation benchmarks often combine overlap metrics with boundary, surface, volume, or lesion-wise metrics.
+
+## 5.1 Benchmark Examples
+
+| **Benchmark / Challenge** | **Task** | **Metric combination** | **Evaluation perspective** |
+| --- | --- | --- | --- |
+| **Medical Segmentation Decathlon** | **multi-organ and multi-task segmentation** | **Dice + Normalized Surface Distance** | **overlap + surface agreement** |
+| **KiTS23** | **kidney, tumor, cyst segmentation** | **Dice + Surface Dice** | **region overlap + surface quality** |
+| **MRBrainS** | **brain tissue segmentation** | **Dice + HD95 + volume-related metric** | **overlap + boundary + volume agreement** |
+| **BraTS 2023** | **brain tumor segmentation** | **lesion-wise Dice + lesion-wise HD95** | **lesion-level overlap + lesion-level boundary** |
+| **BraTS-METS 2023** | **brain metastasis segmentation** | **lesion-wise Dice + lesion-wise HD95 + FP/FN penalty** | **multiple lesion evaluation** |
+
+---
+
+## 5.2 Medical Segmentation Decathlon
+
+### Task
+
+Multiple segmentation tasks across different organs, lesions, modalities, and datasets.
+
+### Metrics
+
+- Dice Score
+- Normalized Surface Distance
+
+### Interpretation
+
+- Dice evaluates region overlap.
+- NSD evaluates surface agreement within a defined tolerance.
+
+---
+
+## 5.3 KiTS23
+
+### Task
+
+Kidney, kidney tumor, and cyst segmentation.
+
+### Metrics
+
+- Sørensen-Dice
+- Surface Dice
+
+### Interpretation
+
+- Dice evaluates overall region overlap.
+- Surface Dice evaluates surface-level agreement.
+- Final ranking combines both metrics.
+
+---
+
+## 5.4 MRBrainS
+
+### Task
+
+Brain tissue segmentation.
+
+### Metrics
+
+- Dice coefficient
+- 95th percentile Hausdorff distance
+- volume-related metric
+
+### Interpretation
+
+- Dice: overlap
+- HD95: boundary distance
+- Volume-related metric: agreement in predicted tissue volume
+
+---
+
+## 5.5 BraTS 2023 / BraTS-METS 2023
+
+### Task
+
+Brain tumor or brain metastasis segmentation.
+
+### Metrics
+
+- lesion-wise Dice
+- lesion-wise HD95
+- FP/FN lesion penalties in some challenge settings
+
+### Interpretation
+
+Voxel-wise Dice can be dominated by large lesions.
+
+Lesion-wise metrics evaluate segmentation performance at the individual lesion level.
+
+---
+
+# 6. Segmentation Metric Combinations by Task
+
+## 6.1 Task-wise Summary
+
+| Task | Basic metric | Additional metric | Reason |
+| --- | --- | --- | --- |
+| Large organ segmentation | Dice, IoU | HD95, ASSD, NSD | evaluate both region overlap and boundary error |
+| Tumor segmentation | Dice, IoU | HD95, volume difference | evaluate overlap, margin, and volume |
+| Small lesion segmentation | Dice, sensitivity | lesion-wise Dice, lesion-wise HD95 | detect missed small lesions |
+| Multiple lesion segmentation | lesion-wise Dice | lesion-wise HD95, lesion-level sensitivity | evaluate each lesion separately |
+| Vessel / tubular structure segmentation | Dice, IoU | clDice, centerline Dice, HD95 | evaluate connectivity and centerline preservation |
+| Multi-class segmentation | class-wise Dice | macro average, per-class sensitivity | handle class imbalance |
+
+---
+
+## 6.2 Large Organ Segmentation
+
+### Example targets
+
+- liver
+- lung
+- kidney
+- spleen
+
+### Common metrics
+
+- Dice
+- IoU
+- HD95
+- ASSD
+- NSD
+
+### Explanation
+
+Large organs often produce high Dice values because the target volume is large.
+
+However, a high Dice score does not always mean that the boundary is accurate.
+
+Therefore, surface or distance metrics are often reported together.
+
+---
+
+## 6.3 Tumor Segmentation
+
+### Example targets
+
+- brain tumor
+- liver tumor
+- kidney tumor
+- metastasis
+
+### Common metrics
+
+- Dice
+- HD95
+- volume difference
+- lesion-wise Dice, when multiple tumors exist
+
+### Explanation
+
+Tumor segmentation often requires both region-level and boundary-level evaluation.
+
+If tumor volume is clinically relevant, a volume-related metric may also be useful.
+
+---
+
+## 6.4 Small Lesion Segmentation
+
+### Example targets
+
+- small metastasis
+- small nodule
+- small ischemic lesion
+- small hemorrhagic lesion
+
+### Common metrics
+
+- Dice
+- sensitivity
+- lesion-wise Dice
+- lesion-wise HD95
+- lesion-level false negative count
+
+### Explanation
+
+Small lesions have few voxels.
+
+Therefore, Dice can change substantially with only a small number of voxel errors.
+
+Also, voxel-wise average performance can hide missed small lesions.
+
+Lesion-wise metrics help evaluate each lesion as an individual object.
+
+---
+
+## 6.5 Vessel / Tubular Structure Segmentation
+
+### Example targets
+
+- artery
+- vein
+- airway
+- duct
+- nerve
+
+### Common metrics
+
+- Dice
+- IoU
+- HD95
+- clDice
+- centerline Dice
+- branch-level recall, depending on task
+
+### clDice concept
+
+clDice is designed for tubular structures by considering skeleton or centerline overlap.
+
+$$
+clDice = \frac{2 \times T_{prec} \times T_{sens}}{T_{prec} + T_{sens}}
+$$
+
+Here:
+
+- $T_{prec}$: topology precision
+- $T_{sens}$: topology sensitivity
+
+### Explanation
+
+For tubular structures, connectivity can be important.
+
+A segmentation can have a reasonable Dice score but still have broken branches or disconnected centerlines.
+
+Therefore, centerline or topology-aware metrics may be used in addition to Dice.
+
+---
+
+## 6.6 Multi-class Segmentation
+
+### Example targets
+
+- brain tissue classes
+- tumor subregions
+- abdominal multi-organ segmentation
+
+### Common metrics
+
+- class-wise Dice
+- mean Dice
+- macro average
+- per-class sensitivity
+- per-class HD95
+
+### Explanation
+
+In multi-class segmentation, class imbalance is common.
+
+Large classes can dominate the average score.
+
+Therefore, class-wise reporting is important.
+
+# 7. Object Detection Metrics: Matching and IoU
+
+Detection metrics start with **defining whether a prediction matches the ground truth.**
+
+## 7.1 Detection Output
+
+Object detection prediction usually includes:
+
+| Output | Meaning |
+| --- | --- |
+| **Class label** | predicted object category |
+| **Location** | bounding box, point, or candidate location |
+| **Confidence score** | model confidence |
+
+---
+
+## 7.2 What Must Be Defined Before Computing Detection Metrics?
+
+| Item | Meaning |
+| --- | --- |
+| Localization criterion | how close the prediction must be to the ground truth |
+| IoU threshold | overlap threshold for box-based detection |
+| Distance threshold | distance-based criterion for point/candidate detection |
+| Confidence threshold | score threshold for positive predictions |
+| Matching rule | how predictions and ground-truth objects are paired |
+| Evaluation unit | lesion-level, image-level, or scan-level |
+
+---
+
+## 7.3 IoU for Bounding Boxes
+
+For predicted box $A$ and ground-truth box $B$:
+
+$$
+IoU = \frac{|A \cap B|}{|A \cup B|}
+$$
+
+If the IoU threshold is 0.5:
+
+| Condition | Result |
+| --- | --- |
+| IoU ≥ 0.5 | true positive |
+| IoU < 0.5 | false positive or unmatched prediction |
+
+---
+
+## 7.4 One-to-one Matching
+
+In most object detection evaluations:
+
+- one ground-truth object can be matched to only one prediction
+- the highest-scoring or best-overlapping prediction is counted as TP
+- duplicate predictions for the same object are counted as FP
+
+---
+
+## 7.5 Why Threshold Matters
+
+| Threshold type | Interpretation |
+| --- | --- |
+| Lower IoU threshold, e.g., AP50 | easier localization criterion; approximate localization may be counted as correct |
+| Higher IoU threshold, e.g., AP75 | stricter localization criterion; requires more accurate box placement |
+
+---
+
+# 8. Object Detection Metrics: Precision, Recall, AP, mAP
+
+## 8.1 Main Detection Metrics
+
+| Metric | Meaning | Main feature |
+| --- | --- | --- |
+| Precision | proportion of predictions that are correct | sensitive to false positives |
+| Recall / Sensitivity | proportion of ground-truth objects detected | sensitive to false negatives |
+| F1 score | harmonic mean of precision and recall | threshold-dependent summary |
+| AP | area under precision-recall curve | summarizes performance across confidence thresholds |
+| mAP | mean AP | average across classes or IoU thresholds |
+| AP50 | AP at IoU threshold 0.50 | relatively loose localization criterion |
+| AP75 | AP at IoU threshold 0.75 | stricter localization criterion |
+| AP@[.50:.95] | AP averaged across IoU thresholds from 0.50 to 0.95 | evaluates localization quality across thresholds |
+
+---
+
+## 8.2 Precision
+
+$$
+Precision = \frac{TP}{TP + FP}
+$$
+
+### Meaning
+
+Precision measures **how many predicted objects are correct.**
+
+### Interpretation
+
+Low precision means many false positive detections.
+
+---
+
+## 8.3 Recall / Sensitivity
+
+$$
+Recall = Sensitivity = \frac{TP}{TP + FN}
+$$
+
+### Meaning
+
+Recall measures how many ground-truth objects are detected.
+
+### Interpretation
+
+Low recall means many missed objects.
+
+---
+
+## 8.4 F1 Score
+
+$$
+F1 = \frac{2 \times Precision \times Recall}{Precision + Recall}
+$$
+
+### Meaning
+
+F1 summarizes precision and recall at a fixed threshold.
+
+### Limitation
+
+F1 depends on the selected confidence threshold.
+
+It does not summarize model behavior across all thresholds.
+
+---
+
+## 8.5 Average Precision, AP
+
+Conceptually:
+
+$$
+AP = \int_0^1 p(r)dr
+$$
+
+where:
+
+- $p(r)$: precision at recall $r$
+
+### Meaning
+
+AP summarizes the precision-recall curve across confidence thresholds.
+
+### Features
+
+- Commonly used in object detection benchmarks.
+- Combines confidence ranking and localization correctness.
+- Depends on the IoU threshold or localization criterion.
+
+---
+
+## 8.6 mAP
+
+mAP means mean Average Precision.
+
+It can be averaged over:
+
+1. multiple object classes
+2. multiple IoU thresholds
+3. both classes and thresholds
+
+### AP50 vs AP75
+
+| Metric | Meaning |
+| --- | --- |
+| AP50 | AP when IoU threshold is 0.50 |
+| AP75 | AP when IoU threshold is 0.75 |
+| AP@[.50:.95] | AP averaged over multiple IoU thresholds |
+
+### Interpretation
+
+If AP50 is high but AP75 is low, the model may detect the approximate object location but have less precise localization.
+
+---
+
+# 9. Medical Detection Metrics: FROC and Fixed False Positives
+
+Medical lesion detection often evaluates sensitivity together with the number of false positive detections.
+
+## 9.1 Main Medical Detection Metrics
+
+| Metric | x-axis or condition | y-axis or output | Common use |
+| --- | --- | --- | --- |
+| FROC | false positives per image or scan | sensitivity | lesion-level detection / CAD |
+| Sensitivity at fixed FP/image | predefined FP/image | sensitivity | lesion detection in 2D images or whole-slide images |
+| Sensitivity at fixed FP/scan | predefined FP/scan | sensitivity | CT/MRI scan-level lesion detection |
+| Average sensitivity | average over several FP levels | sensitivity summary | challenge ranking |
+
+---
+
+## 9.2 FROC (Free-response ROC)
+
+: Free-response Receiver Operating Characteristic
+
+FROC curve shows:
+
+$$
+y = Sensitivity
+$$
+
+$$
+x = False\ Positives\ per\ Image\ or\ Scan
+$$
+
+### Meaning
+
+FROC evaluates lesion-level sensitivity while also showing the false positive burden.
+
+### Features
+
+- Common in medical lesion detection.
+- Useful when one image or scan can contain multiple lesions.
+- Allows reporting sensitivity at fixed false positive levels
+
+---
+
+## 9.3 Sensitivity at Fixed FP/Image or FP/Scan
+
+### Meaning
+
+This metric reports lesion detection sensitivity when the false positive burden is fixed.
+
+### Features
+
+- Directly shows performance under a fixed false-positive condition.
+- Common in lesion detection and CAD evaluation.
+- Easier to interpret than a single threshold-free summary score in some medical detection tasks.
+
+---
+
+# 10. Detection Metric Combinations in Medical Imaging
+
+## 10.1 Benchmark Examples
+
+| Benchmark / Paper | Task | Metric combination | Evaluation perspective |
+| --- | --- | --- | --- |
+| RSNA Pneumonia Detection Challenge | pneumonia bounding box detection | mAP across IoU thresholds | localization + confidence |
+| LUNA16 | lung nodule detection | FROC, average sensitivity at fixed FP/scan | lesion sensitivity + false positive burden |
+| CAMELYON16 | metastasis detection in whole-slide images | FROC, sensitivity vs FP/image | lesion-level detection |
+| DeepLesion | universal lesion detection in CT | sensitivity at fixed FP/image | lesion detection under FP constraint |
+
+---
+
+## 10.2 RSNA Pneumonia Detection Challenge
+
+### Task
+
+Pneumonia opacity detection on chest X-ray using bounding boxes.
+
+### Metric
+
+- mean Average Precision across IoU thresholds
+
+### Interpretation
+
+This is close to standard object detection evaluation.
+
+It evaluates whether predicted boxes match ground-truth boxes under localization criteria.
+
+---
+
+## 10.3 LUNA16
+
+### Task
+
+Lung nodule detection in CT.
+
+### Metric
+
+- FROC
+- average sensitivity at predefined false positives per scan
+
+### Predefined FP/scan levels
+
+- 1/8
+- 1/4
+- 1/2
+- 1
+- 2
+- 4
+- 8
+
+### Interpretation
+
+The final score averages sensitivity at these false-positive levels.
+
+---
+
+## 10.4 CAMELYON16
+
+### Task
+
+Metastasis detection in whole-slide images.
+
+### Metric
+
+- FROC
+- sensitivity versus average false positives per image
+
+### Interpretation
+
+This evaluates lesion-level detection while accounting for false-positive findings per image.
+
+---
+
+## 10.5 DeepLesion
+
+### Task
+
+Universal lesion detection in CT.
+
+### Metric
+
+- sensitivity at fixed false positives per image
+
+### Example
+
+The paper reports sensitivity at 5 false positives per image.
+
+---
+
+# 11. Instance Segmentation: Detection + Segmentation
+
+## 11.1 Why Instance Segmentation Is Different
+
+Instance segmentation combines object detection and mask segmentation.
+
+The model must answer both:
+
+1. Did it find each object?
+2. Is the mask for each object accurate?
+
+---
+
+## 11.2 Metric Components
+
+| Evaluation component | Possible metrics |
+| --- | --- |
+| Object detection | recall, precision, AP, FROC |
+| Mask overlap | Dice, IoU |
+| Boundary quality | HD95, Surface Dice, NSD |
+| Instance-level performance | lesion-wise Dice, lesion-wise HD95, instance-level AP |
+| False positive objects | precision, FP/image, FROC |
+
+---
+
+## 11.3 Semantic Segmentation vs Instance Segmentation
+
+| **Item** | **Semantic segmentation** | **Instance segmentation** |
+| --- | --- | --- |
+| **Output** | **class-wise mask** | **object-wise mask** |
+| **Object separation** | **not required** | **required** |
+| **Example** | **total tumor region** | **each tumor lesion** |
+| **Common metrics** | **Dice, IoU, HD95** | **AP, Dice, lesion-wise metrics** |
+
+---
+
+## 11.4 Example: Multiple Lesion Segmentation
+
+For multiple lesions, evaluation can include:
+
+- lesion detection: was each lesion found?
+- lesion segmentation: was each lesion mask accurate?
+- false positive lesion count
+- false negative lesion count
+- lesion-wise Dice
+- lesion-wise HD95
+
+---
+
+# 12. Final Summary
+
+## 12.1 Task-wise Metric Combination Summary
+
+| Task | Common metric combination | Example |
+| --- | --- | --- |
+| General organ segmentation | Dice + NSD / HD95 / ASSD | Medical Segmentation Decathlon |
+| Kidney / tumor segmentation | Dice + Surface Dice | KiTS23 |
+| Brain tissue segmentation | Dice + HD95 + volume-related metric | MRBrainS |
+| Multi-lesion segmentation | lesion-wise Dice + lesion-wise HD95 | BraTS 2023 / BraTS-METS |
+| Vessel / tubular structure segmentation | Dice + HD95 / ASSD + clDice / centerline metric | tubular structure segmentation |
+| Bounding-box detection | AP / mAP + AP at different IoU thresholds | RSNA Pneumonia Detection |
+| Lung nodule detection | FROC + sensitivity at fixed FP/scan | LUNA16 |
+| Pathology lesion detection | FROC + sensitivity at fixed FP/image | CAMELYON16 |
+| Universal lesion detection | sensitivity at fixed FP/image | DeepLesion |
+
+---
+
+## 12.2 Summary Points
+
+- Segmentation metrics can be grouped into overlap-based, boundary-based, surface-based, volume-based, and lesion-wise metrics.
+- Dice and IoU are common overlap metrics.
+- HD95, ASSD, Surface Dice, and NSD are used to evaluate boundary or surface agreement.
+- Lesion-wise metrics are useful when multiple lesions exist.
+    - Tubular structures may require centerline or topology-aware metrics.
+- Detection metrics depend on localization criteria, confidence scores, and matching rules.
+- AP and mAP are common object detection metrics.
+- FROC and sensitivity at fixed FP/image or FP/scan are commonly used in medical lesion detection.
+
+---
+
+## Closing Sentence
+
+This presentation reviewed task-wise evaluation metrics for segmentation and detection, and summarized examples of metric combinations used in medical imaging benchmarks.
+
+---
+
+# References
+
+## Main Reference
+
+1. Maier-Hein L, Reinke A, Godau P, et al. **Metrics Reloaded: recommendations for image analysis validation.** Nature Methods. 2024.
+
+## Segmentation Metrics and Benchmarks
+
+1. Taha AA, Hanbury A. **Metrics for evaluating 3D medical image segmentation: analysis, selection, and tool.** BMC Medical Imaging. 2015.
+2. Antonelli M, Reinke A, Bakas S, et al. **The Medical Segmentation Decathlon.** Nature Communications. 2022.
+3. KiTS23. **The 2023 Kidney Tumor Segmentation Challenge.**
+4. MRBrainS. **Grand Challenge on MR Brain Segmentation.**
+5. BraTS 2023 Metrics. **Lesion-wise Dice and lesion-wise HD95.**
+6. BraTS-METS 2023. **Brain Metastasis Segmentation Challenge.**
+7. Shit S, Paetzold JC, Sekuboyina A, et al. **clDice: a topology-preserving loss function for tubular structure segmentation.** CVPR. 2021.
+
+## Detection Metrics and Benchmarks
+
+1. RSNA Pneumonia Detection Challenge.
+2. Setio AAA, Traverso A, de Bel T, et al. **Validation, comparison, and combination of algorithms for automatic detection of pulmonary nodules in CT images: the LUNA16 challenge.** Medical Image Analysis. 2017.
+3. CAMELYON16. **Cancer Metastases in Lymph Nodes Challenge.**
+4. Ehteshami Bejnordi B, Veta M, van Diest PJ, et al. **Diagnostic assessment of deep learning algorithms for detection of lymph node metastases in women with breast cancer.** JAMA. 2017.
+5. Yan K, Wang X, Lu L, Summers RM. **DeepLesion: automated mining of large-scale lesion annotations and universal lesion detection with deep learning.** Journal of Medical Imaging. 2018.
