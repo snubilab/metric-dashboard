@@ -14,6 +14,7 @@
 
 import type { MetricRow } from "../metrics/types";
 import { detectDisagreements } from "../metrics/detectDisagreements";
+import { localizedMetricLabel } from "../metrics/metricLabel";
 import { useLang } from "../../i18n/LanguageContext";
 
 interface MetricBarChartProps {
@@ -110,7 +111,7 @@ export function MetricBarChart({ rows, width = 420 }: MetricBarChartProps) {
               fill={labelColor}
               style={{ fontWeight: flagged ? 600 : 400 }}
             >
-              {row.label}
+              {localizedMetricLabel(row.key, row.label, lang)}
             </text>
             <text
               x={SIDE_PAD}

@@ -15,6 +15,7 @@
 
 import type { MetricRow } from "./metrics/types";
 import { detectDisagreements, winner } from "./metrics/detectDisagreements";
+import { localizedMetricLabel } from "./metrics/metricLabel";
 import { useLang } from "../i18n/LanguageContext";
 
 interface DisagreementInsightProps {
@@ -72,13 +73,15 @@ export function DisagreementInsight({ rows }: DisagreementInsightProps) {
   const flagByKey = new Map(flags.map((f) => [f.key, f]));
   const referenceRow = rows[0];
 
-  // Metrics that flip the verdict or show a large gap, excluding the reference.
+  // Only RANK FLIPS make the verdict genuinely disagree (a metric whose winner
+  // opposes the reference's). Large gaps where the same side keeps winning are
+  // shown visually in the bar chart, not narrated here — that keeps the
+  // sentence to the metrics that actually flip the conclusion.
   const flagged = rows.filter((row, index) => {
     if (index === 0) {
       return false;
     }
-    const flag = flagByKey.get(row.key);
-    return flag !== undefined && (flag.rankFlip || flag.largeGap);
+    return flagByKey.get(row.key)?.rankFlip === true;
   });
 
   if (flagged.length === 0) {
@@ -91,12 +94,12 @@ export function DisagreementInsight({ rows }: DisagreementInsightProps) {
 
   const referenceWinner = winner(referenceRow);
   const referenceSide = referenceWinner === "tie" ? "A" : referenceWinner;
-  const lead = t.referenceWins(referenceSide, referenceRow.label);
+  const lead = t.referenceWins(referenceSide, localizedMetricLabel(referenceRow.key, referenceRow.label, lang));
 
   const clauses = flagged.map((row) => {
     const rowWinner = winner(row);
     const side = rowWinner === "tie" ? "A" : rowWinner;
-    return t.flaggedWin(row.label, side);
+    return t.flaggedWin(localizedMetricLabel(row.key, row.label, lang), side);
   });
 
   const sentence = `${lead} ${clauses.join(", ")} ${t.verdictFlips}`;
