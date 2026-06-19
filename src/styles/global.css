@@ -1,0 +1,116 @@
+/**
+ * Global base styles and reset.
+ *
+ * Depends on the token custom properties from tokens.css for all visual values.
+ * Honors prefers-reduced-motion by zeroing transition/animation durations
+ * globally (the workstation feel comes from precision, not movement).
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100svh;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+h1 {
+  font-size: var(--text-2xl);
+}
+h2 {
+  font-size: var(--text-xl);
+}
+h3 {
+  font-size: var(--text-lg);
+}
+
+p {
+  line-height: 1.5;
+}
+
+a {
+  color: var(--c-pred-a);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--c-pred-a);
+  outline-offset: 2px;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-size: 1em;
+}
+
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Screen-reader-only utility: visible to assistive tech, hidden visually. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

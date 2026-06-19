@@ -1,0 +1,65 @@
+/**
+ * Design-system token contract.
+ *
+ * Dark is the default theme (:root). A light override lives under
+ * [data-theme="light"]. Only neutrals change between themes; the Okabe-Ito data
+ * colors are theme-invariant so GT / Pred-A / Pred-B / disagreement read
+ * identically in canvas fills, tables, charts, and legends across both themes.
+ *
+ * All visual values in components MUST come from these custom properties.
+ */
+
+:root {
+  /* Data colors — colorblind-safe Okabe-Ito (theme-invariant) */
+  --c-gt: #009e73; /* ground truth — bluish green */
+  --c-pred-a: #0072b2; /* prediction A — blue */
+  --c-pred-b: #e69f00; /* prediction B — orange */
+  --c-warn: #d55e00; /* disagreement / HD95 spikes — vermillion */
+
+  /* Neutrals — dark (default) */
+  --c-bg: #0d1117;
+  --c-surface: #161b22;
+  --c-surface-2: #1c232c;
+  --c-border: #2d333b;
+  --c-text: #e6edf3;
+  --c-text-dim: #8b949e;
+
+  /* Fonts (metric numerals use mono so digits align) */
+  --font-ui: system-ui, Inter, sans-serif;
+  --font-mono: ui-monospace, JetBrains Mono, SFMono-Regular, monospace;
+
+  /* Type scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+
+  /* Space (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+}
+
+[data-theme="light"] {
+  /* Neutrals — light override (data colors unchanged) */
+  --c-bg: #ffffff;
+  --c-surface: #f6f8fa;
+  --c-surface-2: #ffffff;
+  --c-border: #d0d7de;
+  --c-text: #1f2328;
+  --c-text-dim: #656d76;
+}
