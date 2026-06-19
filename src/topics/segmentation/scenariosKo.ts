@@ -38,14 +38,14 @@ export const segmentationScenariosKo: Scenario[] = [
         "치료하지 않은 전이는 다음 검사 전에 커지거나 출혈하거나 추가로 파종될 수 " +
         "있습니다.",
       consequence:
-        "픽셀 Dice는 훌륭해 보이고 리포트는 검토를 통과하지만, 치료 가능한 병변이 " +
+        "복셀 Dice는 훌륭해 보이고 리포트는 검토를 통과하지만, 치료 가능한 병변이 " +
         "끝내 표시되지 않았습니다.",
     },
     state: stateFor("missed-met"),
     teachingPoint:
-      "큰 병변이 픽셀 수를 지배하므로 픽셀 Dice는 0.85 이상으로 유지되지만, 병변 단위 " +
+      "큰 병변이 복셀 수를 지배하므로 복셀 Dice는 0.85 이상으로 유지되지만, 병변 단위 " +
       "민감도는 0.5에 불과합니다 — 두 병변 중 하나만 찾았기 때문입니다. 병변 단위 " +
-      "지표는 픽셀 Dice가 숨긴, 놓친 전이를 드러냅니다.",
+      "지표는 복셀 Dice가 숨긴, 놓친 전이를 드러냅니다.",
     reference: "BraTS-METS 2023 (lesion-wise Dice + lesion-wise HD95 + FP/FN penalty).",
   },
   {
@@ -79,8 +79,8 @@ export const segmentationScenariosKo: Scenario[] = [
         "칠하면서 건강한 조직까지 집어삼킵니다.",
       modality: "뇌 MRI (종양 분할)",
       atStake:
-        "이 마스크가 방사선 치료 계획을 좌우한다면, 과도하게 그려진 절제연 안의 건강한 " +
-        "뇌까지 방사선이 조사됩니다.",
+        "이 마스크가 방사선 치료 계획을 좌우한다면, 과도하게 그려진 표적 윤곽(과대 " +
+        "윤곽화) 안의 건강한 뇌까지 방사선이 조사됩니다.",
       consequence:
         "민감도는 거의 완벽하지만 정밀도는 무너집니다 — 예측 픽셀 대부분이 " +
         "위양성입니다.",
@@ -194,7 +194,7 @@ export const segmentationScenariosKo: Scenario[] = [
     },
     state: stateFor("broken-vessel-topology"),
     teachingPoint:
-      "예측 A는 혈관 가운데에 작은 틈을 떨어뜨립니다. 픽셀 Dice는 거의 영향을 받지 않지만, " +
+      "예측 A는 혈관 가운데에 작은 틈을 떨어뜨립니다. 복셀 Dice는 거의 영향을 받지 않지만, " +
       "구조는 이제 끊어진 두 조각입니다. clDice / 중심선 Dice 같은 위상 인식(topology-aware) " +
       "지표는 겹침 지표가 놓치는 바로 이 단절을 잡아내기 위해 설계되었습니다.",
     reference: "Shit et al., clDice (CVPR 2021) — topology-preserving tubular metric.",

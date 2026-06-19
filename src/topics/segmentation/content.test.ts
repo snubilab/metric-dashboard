@@ -23,6 +23,7 @@ describe("segmentationLearn content", () => {
       "nsd",
       "volume",
       "lesionwise",
+      "cldice",
     ]) {
       expect(ids).toContain(required);
     }

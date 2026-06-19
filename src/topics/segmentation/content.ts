@@ -96,7 +96,7 @@ export const segmentationLearn: LearnContent = {
       features: [
         "Common in general computer vision and detection to define box overlap.",
         "Similar to Dice, but numerically lower for the same prediction.",
-        "Related to Dice by Dice = 2·IoU / (1 + IoU), so the two rank predictions identically.",
+        "Related to Dice by Dice = 2·IoU / (1 + IoU), so the two rank predictions identically for a single case; dataset means of Dice and IoU can rank two models differently.",
       ],
       caveats: [
         "Because IoU is always ≤ Dice for the same mask, never compare an IoU against a Dice directly.",
@@ -183,6 +183,7 @@ export const segmentationLearn: LearnContent = {
       ],
       caveats: [
         "For 3D CT or MRI, distances must be computed in physical units (mm), not voxel counts.",
+        "Here 1 px = 1 mm on a single 2D slice; in clinical practice these are 3D surfaces measured in mm.",
         "Still rises sharply when a stray false-positive blob lands far from the true boundary.",
       ],
       figure: "hd",
@@ -217,9 +218,12 @@ export const segmentationLearn: LearnContent = {
       formula:
         "\\mathrm{NSD} = \\frac{\\lvert\\{a : d(a,B) \\le \\tau\\}\\rvert + \\lvert\\{b : d(b,A) \\le \\tau\\}\\rvert}{\\lvert A \\rvert + \\lvert B \\rvert}",
       meaning:
-        "Surface Dice measures the proportion of surface points lying within a " +
-        "predefined tolerance distance τ of the other surface. With a 2mm " +
-        "tolerance, boundary points within 2mm of the reference are acceptable.",
+        "Surface Dice measures the proportion of both surfaces' points that lie " +
+        "within a predefined tolerance distance τ of the other surface — a " +
+        "symmetric fraction over prediction-to-GT and GT-to-prediction together " +
+        "(matching the formula). With a 2mm tolerance, boundary points within 2mm " +
+        "of the other surface are acceptable. (Here 1 px = 1 mm on a single 2D " +
+        "slice; in clinical practice these are 3D surfaces measured in mm.)",
       features: [
         "Allows a task-specific tolerance.",
         "Useful when small boundary deviations are clinically acceptable.",
@@ -241,13 +245,14 @@ export const segmentationLearn: LearnContent = {
       formula: "\\mathrm{RVD} = \\frac{V_{pred} - V_{gt}}{V_{gt}}",
       meaning:
         "Volume difference compares the predicted target volume against the " +
-        "ground-truth volume — reported as an absolute difference or as a " +
-        "relative (signed) ratio. It is the agreement-in-volume metric used in " +
-        "brain-tissue benchmarks such as MRBrainS.",
+        "ground-truth volume — reported as a signed relative difference, or as a " +
+        "volumetric-similarity score 1 − |Vp − Vg| / (Vp + Vg). A volume-difference " +
+        "/ volumetric-similarity metric is used in brain-tissue benchmarks such as " +
+        "MRBrainS (which scores volumetric similarity).",
       features: [
         "Direct measure of whether the model under- or over-estimates volume.",
         "Signed relative volume difference shows the direction of the error.",
-        "Reported alongside Dice and HD95 when tissue volume is clinically relevant.",
+        "A volume-difference / volumetric-similarity metric is reported alongside Dice and HD95 when tissue volume is clinically relevant.",
       ],
       caveats: [
         "Volume agreement does not imply spatial agreement: a shifted mask can match in volume yet miss spatially.",
@@ -265,11 +270,14 @@ export const segmentationLearn: LearnContent = {
         "metrics split GT and prediction into connected components, match them " +
         "one-to-one, and evaluate Dice and HD95 per lesion — surfacing missed " +
         "small lesions and false-positive lesions that voxel averages hide. " +
+        "Crucially, lesion-wise Dice and HD95 include a penalty for missed (FN) " +
+        "and spurious (FP) lesions: each unmatched lesion is counted as Dice 0 " +
+        "and a worst-case distance, so they drag the per-lesion average down. " +
         "This is the BraTS / BraTS-METS evaluation perspective.",
       features: [
         "Evaluates segmentation at the individual-lesion level.",
         "Adds lesion-level sensitivity and precision plus TP/FP/FN lesion counts.",
-        "BraTS-METS adds explicit FP/FN lesion penalties.",
+        "Missed (FN) and spurious (FP) lesions are penalized as Dice 0 / worst-case distance (BraTS-METS semantics).",
       ],
       caveats: [
         "A high voxel Dice can hide a completely missed small lesion (low lesion sensitivity).",
@@ -279,6 +287,30 @@ export const segmentationLearn: LearnContent = {
       complements:
         "Report with voxel Dice: voxel averages let large structures hide missed small lesions.",
       miniSim: miniSim("lesionwise-missed", "lesionSensitivity", missedMetState()),
+    },
+    {
+      id: "cldice",
+      title: "clDice / centerline Dice",
+      formula:
+        "\\mathrm{clDice} = \\frac{2\\,T_{prec}\\,T_{sens}}{T_{prec} + T_{sens}}",
+      meaning:
+        "clDice is a topology- and connectivity-aware overlap measure for tubular " +
+        "structures such as vessels and airways. It harmonizes topology precision " +
+        "(predicted centerline inside the GT mask) and topology sensitivity (GT " +
+        "centerline inside the predicted mask), so a vessel can have high Dice yet " +
+        "score poorly when its centerline is broken.",
+      features: [
+        "Sensitive to connectivity: rewards an unbroken centerline, not just voxel overlap.",
+        "Designed for tubular, tree-like structures (vessels, airways, neurons).",
+        "Pairs naturally with Dice as a topology-aware complement.",
+      ],
+      caveats: [
+        "Centerline extraction (skeletonization) can be sensitive to small mask changes.",
+        "It targets connectivity, so it is not a substitute for region-overlap or boundary metrics.",
+        "Less meaningful for blob-like (non-tubular) structures.",
+      ],
+      complements:
+        "Pairs with Dice: Dice is blind to broken connectivity.",
     },
   ],
   complementarity: {

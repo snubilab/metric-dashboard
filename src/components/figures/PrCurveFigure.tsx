@@ -1,8 +1,10 @@
 /**
  * PrCurveFigure (v2) — average precision (AP), shown in two panels.
  *
- * Panel 1 (typical): an example precision-recall curve with the area under it
- * shaded in the Pred-A token, since AP is exactly that area.
+ * Panel 1 (typical): a raw precision-recall sample drawn as a faint saw-tooth,
+ * with the COCO-style max-interpolated monotone envelope laid on top. The shaded
+ * area follows the envelope (Pred-A token), since AP is computed by the engine as
+ * the area under the *interpolated* curve, not the raw wiggly samples.
  *
  * Panel 2 (misleading): two PR curves with nearly the same AP (area) but very
  * different usable behavior — one holds high precision across recall, the other
@@ -24,7 +26,7 @@ const L = {
     aria: "평균 정밀도(AP)는 PR 곡선 아래 면적이라는 개념과, AP가 비슷해도 실제 운용 성능은 다를 수 있다는 오해 사례를 함께 보여주는 그림.",
     typicalTag: "정상 예시",
     misleadingTag: "오해 사례",
-    typicalCaption: "AP = PR 곡선 아래 면적",
+    typicalCaption: "AP ≈ 보간된 PR 곡선 아래 면적",
     good: "운용 양호",
     bad: "운용 불량",
     misleadingCaption: "AP가 비슷해도 실제 운용점 성능은 다를 수 있음",
@@ -33,22 +35,51 @@ const L = {
     aria: "Average precision (AP) as the area under the PR curve, plus a misleading case where two curves share a similar AP but behave very differently in use.",
     typicalTag: "typical",
     misleadingTag: "misleading",
-    typicalCaption: "AP = area under the PR curve",
+    typicalCaption: "AP ≈ area under the INTERPOLATED PR curve",
     good: "usable",
     bad: "poor in use",
     misleadingCaption: "Similar AP can hide very different operating-point behavior",
   },
 } as const;
 
-/** A static, monotonically-stepping-down sample PR curve. */
+/**
+ * A static RAW precision-recall sample that wiggles (saw-tooth): precision does
+ * not fall monotonically as recall grows, exactly the messy shape a real scan of
+ * confidence thresholds produces.
+ */
 const SAMPLE_POINTS: PRPoint[] = [
   { recall: 0, precision: 1 },
-  { recall: 0.2, precision: 0.97 },
-  { recall: 0.4, precision: 0.92 },
-  { recall: 0.6, precision: 0.83 },
+  { recall: 0.1, precision: 0.85 },
+  { recall: 0.2, precision: 0.95 },
+  { recall: 0.3, precision: 0.78 },
+  { recall: 0.4, precision: 0.88 },
+  { recall: 0.5, precision: 0.7 },
+  { recall: 0.6, precision: 0.8 },
+  { recall: 0.7, precision: 0.6 },
   { recall: 0.8, precision: 0.68 },
-  { recall: 1, precision: 0.45 },
+  { recall: 0.9, precision: 0.45 },
+  { recall: 1, precision: 0.5 },
 ];
+
+/**
+ * COCO-style max interpolation: at each recall, precision is the maximum over all
+ * raw points with recall >= the current one. Sweeping from the right yields the
+ * monotone non-increasing envelope the AP engine actually integrates.
+ */
+function maxInterpolate(points: PRPoint[]): PRPoint[] {
+  let runningMax = 0;
+  const reversed = [...points]
+    .slice()
+    .reverse()
+    .map((p) => {
+      runningMax = Math.max(runningMax, p.precision);
+      return { recall: p.recall, precision: runningMax };
+    });
+  return reversed.reverse();
+}
+
+/** The max-interpolated monotone envelope that the AP area follows. */
+const ENVELOPE_POINTS: PRPoint[] = maxInterpolate(SAMPLE_POINTS);
 
 /** Curve A: high precision held across most of the recall range (usable). */
 const GOOD_POINTS: PRPoint[] = [
@@ -91,9 +122,20 @@ export function PrCurveFigure() {
   const { lang } = useLang();
   const t = L[lang];
 
+  const plotW = CHART_W - MARGIN.left - MARGIN.right;
+  const plotH = CHART_H - MARGIN.top - MARGIN.bottom;
+  const xScale = linearScale([0, 1], [MARGIN.left, MARGIN.left + plotW]);
+  const yScale = linearScale([0, 1], [MARGIN.top + plotH, MARGIN.top]);
+  const envelopePolyline = ENVELOPE_POINTS.map(
+    (p) => `${xScale(p.recall)},${yScale(p.precision)}`,
+  ).join(" ");
+
   const typical = (
     <div style={{ position: "relative", display: "inline-block" }}>
-      <PRCurve points={SAMPLE_POINTS} width={CHART_W} height={CHART_H} />
+      {/* Base chart draws the raw saw-tooth sample; faded so the envelope reads. */}
+      <div style={{ opacity: 0.4 }}>
+        <PRCurve points={SAMPLE_POINTS} width={CHART_W} height={CHART_H} />
+      </div>
       <svg
         data-role="auc-overlay"
         width={CHART_W}
@@ -102,12 +144,21 @@ export function PrCurveFigure() {
         style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
         aria-hidden="true"
       >
+        {/* AP = area under the max-interpolated envelope, not the raw samples. */}
         <path
           data-role="auc-area"
-          d={buildAreaPath(SAMPLE_POINTS)}
+          d={buildAreaPath(ENVELOPE_POINTS)}
           fill="var(--c-pred-a)"
           fillOpacity={0.2}
           stroke="none"
+        />
+        {/* The monotone envelope drawn crisply on top of the faded saw-tooth. */}
+        <polyline
+          data-role="interp-envelope"
+          points={envelopePolyline}
+          fill="none"
+          stroke="var(--c-pred-a)"
+          strokeWidth={2}
         />
       </svg>
       <figcaption

@@ -23,6 +23,22 @@ describe("lesionwise", () => {
     const r = lesionWise(g, gt, pred, { criterion: "iou", threshold: 0.1 });
     expect(r.lesionSensitivity).toBeCloseTo(0.5);
     expect(r.voxelDice).toBeGreaterThan(0.9);
+    // The single matched lesion is segmented near-perfectly, but the missed
+    // small lesion contributes a Dice=0 FN, so lesion-wise Dice is penalized to
+    // roughly half of the matched lesion's Dice.
+    const matchedDice = r.voxelDice;
+    expect(r.lesionWiseDice).toBeLessThan(matchedDice - 0.1);
+    expect(r.lesionWiseDice).toBeGreaterThan(0.4);
+    expect(r.lesionWiseDice).toBeLessThan(0.6);
+  });
+
+  it("two diagonally-adjacent blobs are one component under 8-connectivity", () => {
+    const g = makeGrid(10, 10, [1, 1]);
+    const m = rasterize(g, [
+      { kind: "box", x: 1, y: 1, w: 1, h: 1 },
+      { kind: "box", x: 2, y: 2, w: 1, h: 1 },
+    ]);
+    expect(connectedComponents(g, m).length).toBe(1);
   });
 
   it("disjoint lesions do not match at iou threshold 0", () => {

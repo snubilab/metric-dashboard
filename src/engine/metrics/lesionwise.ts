@@ -1,4 +1,5 @@
 import type { DegeneratePolicy, Grid, Mask } from "../../types/engine";
+import { diagonalMm } from "../raster/grid";
 import { hd95 } from "./boundary";
 import { dice } from "./overlap";
 
@@ -37,7 +38,10 @@ export interface LesionWiseResult {
 const DEFAULT_POLICY: DegeneratePolicy = { emptyDice: "one", emptyDistance: "undefined" };
 
 /**
- * Extract connected foreground components via 4-connectivity flood fill.
+ * Extract connected foreground components via 8-connectivity flood fill.
+ *
+ * BraTS 2D convention uses 8-connectivity, so diagonally-touching lesions are
+ * treated as a single component.
  *
  * @param g - Grid describing dimensions.
  * @param mask - Binary mask (values 0|1).
@@ -61,10 +65,18 @@ export function connectedComponents(g: Grid, mask: Mask): Component[] {
       componentMask[i] = 1;
       const x = i % width;
       const y = (i - x) / width;
-      if (x > 0) pushNeighbor(i - 1, mask, visited, stack);
-      if (x < width - 1) pushNeighbor(i + 1, mask, visited, stack);
-      if (y > 0) pushNeighbor(i - width, mask, visited, stack);
-      if (y < height - 1) pushNeighbor(i + width, mask, visited, stack);
+      const hasLeft = x > 0;
+      const hasRight = x < width - 1;
+      const hasUp = y > 0;
+      const hasDown = y < height - 1;
+      if (hasLeft) pushNeighbor(i - 1, mask, visited, stack);
+      if (hasRight) pushNeighbor(i + 1, mask, visited, stack);
+      if (hasUp) pushNeighbor(i - width, mask, visited, stack);
+      if (hasDown) pushNeighbor(i + width, mask, visited, stack);
+      if (hasUp && hasLeft) pushNeighbor(i - width - 1, mask, visited, stack);
+      if (hasUp && hasRight) pushNeighbor(i - width + 1, mask, visited, stack);
+      if (hasDown && hasLeft) pushNeighbor(i + width - 1, mask, visited, stack);
+      if (hasDown && hasRight) pushNeighbor(i + width + 1, mask, visited, stack);
     }
     components.push({ pixels, mask: componentMask });
   }
@@ -210,7 +222,14 @@ function meanOrNaN(values: number[]): number {
  *
  * GT and Pred are split into connected components and matched one-to-one
  * greedily by IoU (criterion "iou") or by centroid distance (criterion
- * "centroid"). Lesion-wise Dice/HD95 average over matched component pairs.
+ * "centroid").
+ *
+ * Following BraTS-METS lesion-wise scoring, missed (FN) and spurious (FP)
+ * lesions are penalized: lesion-wise Dice averages each matched pair's Dice
+ * together with a 0 for every unmatched GT/Pred lesion, and lesion-wise HD95
+ * averages each matched pair's HD95 together with a worst-case penalty of the
+ * grid diagonal (in millimeters) for every unmatched GT/Pred lesion. When there
+ * are no lesions at all, both lesion-wise scores are NaN.
  *
  * @param g - Grid describing dimensions and spacing.
  * @param gt - Ground-truth binary mask.
@@ -225,6 +244,11 @@ export function lesionWise(g: Grid, gt: Mask, pred: Mask, opts: LesionWiseOption
   const candidates = buildCandidates(g, gtComponents, predComponents, opts);
   const matches = greedyMatch(candidates);
 
+  const totalGt = gtComponents.length;
+  const totalPred = predComponents.length;
+  const tpLesions = matches.length;
+  const unmatchedLesions = totalGt - tpLesions + (totalPred - tpLesions);
+
   const matchedDice = matches.map((m) =>
     dice(gtComponents[m.gtIndex].mask, predComponents[m.predIndex].mask, policy),
   );
@@ -232,15 +256,15 @@ export function lesionWise(g: Grid, gt: Mask, pred: Mask, opts: LesionWiseOption
     hd95(g, gtComponents[m.gtIndex].mask, predComponents[m.predIndex].mask, policy),
   );
 
-  const totalGt = gtComponents.length;
-  const totalPred = predComponents.length;
-  const tpLesions = matches.length;
+  const worstCaseHd95 = diagonalMm(g);
+  const penalizedDice = [...matchedDice, ...Array<number>(unmatchedLesions).fill(0)];
+  const penalizedHd95 = [...matchedHd95, ...Array<number>(unmatchedLesions).fill(worstCaseHd95)];
 
   return {
     lesionSensitivity: totalGt === 0 ? 0 : tpLesions / totalGt,
     lesionPrecision: totalPred === 0 ? 0 : tpLesions / totalPred,
-    lesionWiseDice: meanOrNaN(matchedDice),
-    lesionWiseHd95: meanOrNaN(matchedHd95),
+    lesionWiseDice: meanOrNaN(penalizedDice),
+    lesionWiseHd95: meanOrNaN(penalizedHd95),
     voxelDice: dice(gt, pred, policy),
     tpLesions,
     fpLesions: totalPred - tpLesions,

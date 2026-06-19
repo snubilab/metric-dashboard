@@ -68,6 +68,7 @@ export const detectionLearn: LearnContent = {
       ],
       caveats: [
         "Duplicate boxes on one object earn no extra credit — they become false positives.",
+        "Non-Maximum Suppression (NMS) is the standard step that removes these duplicate detections on one object before evaluation, so they are not counted as FPs.",
         "A single ground-truth object cannot be split across two true positives.",
         "Changing the IoU threshold changes which predictions count as matched, and therefore every downstream metric.",
       ],
@@ -150,8 +151,9 @@ export const detectionLearn: LearnContent = {
         "Depends on the IoU threshold (or localization criterion) used for matching.",
       ],
       caveats: [
+        "AP is the area under the PRECISION ENVELOPE — precision made monotonically non-increasing by taking, at each recall, the maximum precision at any recall >= that recall — NOT the raw saw-toothed PR area. This smooths the zig-zags before integrating.",
         "AP depends on the IoU threshold — quote AP50, AP75, or AP@[.5:.95] explicitly.",
-        "Interpolation differs (VOC 11-point, all-points, COCO 101-point), so the method must be stated.",
+        "The interpolation convention (VOC 11-point, all-points, COCO 101-point) must be stated because each gives a different number.",
         "AP integrates the whole curve, so it is invariant to a single operating threshold.",
       ],
       figure: "pr-curve",
@@ -255,9 +257,12 @@ export const detectionLearn: LearnContent = {
         "Handles multiple lesions per image or scan.",
         "Lets you read off sensitivity at any chosen false-positive level.",
         "Used for whole-slide pathology too — CAMELYON16 scores metastasis " +
-          "detection by FROC, plotting sensitivity against FP/image.",
+          "detection by FROC, plotting sensitivity against FP per whole-slide " +
+          "image (a whole-slide image is effectively a scan, so this is not the " +
+          "same unit as DeepLesion's per-2D-image FP).",
       ],
       caveats: [
+        "FROC is NOT ROC: the x-axis is an unbounded false-positive COUNT per scan/image (usually on a log scale), not a false-positive rate in [0, 1], so there is no ROC-style AUC.",
         "Adding more candidate detections raises sensitivity but also raises FP/scan.",
         "A curve must be reported alongside any single sensitivity number.",
         "FP/image and FP/scan are different units — do not conflate them.",
@@ -279,13 +284,15 @@ export const detectionLearn: LearnContent = {
         "levels {1/8, 1/4, 1/2, 1, 2, 4, 8}; DeepLesion reports sensitivity at " +
         "5 false positives per image; and CAMELYON16 scores whole-slide " +
         "metastasis detection by FROC, reading sensitivity against the average " +
-        "false positives per image.",
+        "false positives per whole-slide image (a whole-slide image is " +
+        "effectively a scan, so its FP unit is not DeepLesion's per-2D-image FP).",
       features: [
         "Directly states performance under a clinically meaningful FP budget.",
         "Easier to interpret than a single threshold-free summary in CAD settings.",
         "Averaging several FP levels gives a single challenge-ranking score.",
-        "Spans modalities: LUNA16 (CT, FP/scan), DeepLesion (CT, FP/image), and " +
-          "CAMELYON16 (whole-slide pathology, FP/image).",
+        "Spans modalities: LUNA16 (CT, FP/scan), DeepLesion (CT, FP per 2D image), " +
+          "and CAMELYON16 (whole-slide pathology, FP per whole-slide image, " +
+          "effectively a scan).",
       ],
       caveats: [
         "The chosen FP budget must match the clinical workflow it represents.",
@@ -364,10 +371,11 @@ export const detectionLearn: LearnContent = {
       {
         name: "CAMELYON16",
         task: "Whole-slide metastasis detection in pathology",
-        combination: "FROC — sensitivity vs FP/image",
+        combination: "FROC — sensitivity vs FP per whole-slide image (a scan)",
         perspective:
-          "Makes the false-positive burden per slide explicit alongside " +
-          "metastasis sensitivity.",
+          "Makes the false-positive burden per whole-slide image explicit " +
+          "alongside metastasis sensitivity — its FP unit is the whole-slide " +
+          "image (effectively a scan), not DeepLesion's per-2D-image FP.",
       },
       {
         name: "DeepLesion",
