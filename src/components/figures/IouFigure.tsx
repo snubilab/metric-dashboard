@@ -8,6 +8,7 @@
  */
 
 import { useLang } from "../../i18n/LanguageContext";
+import { SvgPanelCaption } from "./detPanels";
 
 const L = {
   ko: {
@@ -27,17 +28,18 @@ const L = {
     intersection: "intersection",
     union: "union",
     caption: "IoU = intersection / union",
-    trap: "IoU가 높아도 경계 오차는 드러나지 않음",
+    trap: "High IoU still hides boundary error",
     bad: "bad edge",
   },
 } as const;
 
 const WIDTH = 360;
-const HEIGHT = 210;
+const HEIGHT = 234;
 const PANEL_W = WIDTH / 2;
 const PANEL_CX = PANEL_W / 2;
 const TAG_Y = 22;
 const CAPTION_Y = HEIGHT - 12;
+const CAPTION_MAX_W = PANEL_W - 12;
 
 export default function IouFigure() {
   const { lang } = useLang();
@@ -81,9 +83,7 @@ export default function IouFigure() {
           {t.union}
         </text>
       </g>
-      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
-        {t.caption}
-      </text>
+      <SvgPanelCaption text={t.caption} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-text-dim)" />
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
@@ -115,9 +115,7 @@ export default function IouFigure() {
             {t.bad}
           </text>
         </g>
-        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
-          {t.trap}
-        </text>
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
       </g>
     </svg>
   );

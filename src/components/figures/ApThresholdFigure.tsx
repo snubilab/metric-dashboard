@@ -36,7 +36,7 @@ const L = {
     fp75: "AP75: FP",
     ap50: "AP50 0.82",
     ap75: "AP75 0.31",
-    misleadingCaption: "High AP50 but low AP75 — localization is loose",
+    misleadingCaption: "AP50 high but AP75 low — loose localization",
   },
 } as const;
 

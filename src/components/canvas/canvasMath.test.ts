@@ -5,9 +5,10 @@ import {
   moveShape,
   addCircle,
   addBox,
+  pathToPolygon,
 } from "./canvasMath";
 import { makeGrid } from "../../engine/raster/grid";
-import type { Shape } from "../../types/engine";
+import type { Shape, Vec2 } from "../../types/engine";
 
 const rect = { left: 0, top: 0, width: 100, height: 100 } as DOMRect;
 
@@ -138,5 +139,94 @@ describe("shape factories", () => {
       w: 3,
       h: 4,
     });
+  });
+});
+
+describe("pathToPolygon", () => {
+  it("builds a polygon shape from a square-ish path of >= 3 points", () => {
+    const path: Vec2[] = [
+      [0, 0],
+      [4, 0],
+      [4, 4],
+      [0, 4],
+    ];
+    expect(pathToPolygon(path)).toEqual({ kind: "polygon", points: path });
+  });
+
+  it("returns null for a 2-point path (below default minPoints)", () => {
+    const path: Vec2[] = [
+      [0, 0],
+      [4, 0],
+    ];
+    expect(pathToPolygon(path)).toBeNull();
+  });
+
+  it("returns null for an empty path", () => {
+    expect(pathToPolygon([])).toBeNull();
+  });
+
+  it("honors a custom minPoints threshold", () => {
+    const path: Vec2[] = [
+      [0, 0],
+      [4, 0],
+      [4, 4],
+    ];
+    expect(pathToPolygon(path, { minPoints: 4 })).toBeNull();
+  });
+
+  it("downsamples consecutive duplicate points before counting", () => {
+    const path: Vec2[] = [
+      [0, 0],
+      [0, 0],
+      [4, 0],
+      [4, 0],
+      [4, 4],
+      [4, 4],
+    ];
+    expect(pathToPolygon(path)).toEqual({
+      kind: "polygon",
+      points: [
+        [0, 0],
+        [4, 0],
+        [4, 4],
+      ],
+    });
+  });
+
+  it("drops the path when too few points survive de-duplication", () => {
+    const path: Vec2[] = [
+      [2, 2],
+      [2, 2],
+      [2, 2],
+    ];
+    expect(pathToPolygon(path)).toBeNull();
+  });
+
+  it("simplifies points within simplifyEps as near-duplicates", () => {
+    const path: Vec2[] = [
+      [0, 0],
+      [0.4, 0.3],
+      [4, 0],
+      [4, 4],
+    ];
+    expect(pathToPolygon(path, { simplifyEps: 1 })).toEqual({
+      kind: "polygon",
+      points: [
+        [0, 0],
+        [4, 0],
+        [4, 4],
+      ],
+    });
+  });
+
+  it("does not mutate the input path", () => {
+    const path: Vec2[] = [
+      [0, 0],
+      [4, 0],
+      [4, 4],
+    ];
+    const snapshot = JSON.parse(JSON.stringify(path));
+    pathToPolygon(path);
+    expect(path).toEqual(snapshot);
   });
 });

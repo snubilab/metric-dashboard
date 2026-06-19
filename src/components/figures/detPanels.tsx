@@ -15,6 +15,128 @@
 
 import type { CSSProperties, ReactNode } from "react";
 
+/**
+ * Approximate the rendered width (in px) of one character at `fontSize`.
+ *
+ * CJK glyphs are roughly full-em wide, Latin/mono glyphs roughly 0.6 em. The
+ * estimate only needs to be good enough to decide line breaks for the SEG
+ * figure captions, so a two-bucket model is plenty.
+ */
+function charWidth(ch: string, fontSize: number): number {
+  // Hangul, CJK ideographs and fullwidth punctuation occupy a full em.
+  const isWide = /[ᄀ-ᇿ　-鿿가-힣＀-￯]/.test(ch);
+  return fontSize * (isWide ? 1 : 0.62);
+}
+
+/** Estimated rendered width of an entire string at `fontSize`. */
+function textWidth(text: string, fontSize: number): number {
+  let total = 0;
+  for (const ch of text) {
+    total += charWidth(ch, fontSize);
+  }
+  return total;
+}
+
+/**
+ * Break `text` into lines that each fit within `maxWidth` at `fontSize`.
+ *
+ * Words (whitespace-delimited) are kept whole when possible; a single word that
+ * is itself wider than `maxWidth` is split on character boundaries so it can
+ * never overflow the panel half-width.
+ */
+function wrapToWidth(text: string, maxWidth: number, fontSize: number): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+
+  const pushChunked = (word: string) => {
+    let chunk = "";
+    for (const ch of word) {
+      if (chunk && textWidth(chunk + ch, fontSize) > maxWidth) {
+        lines.push(chunk);
+        chunk = ch;
+      } else {
+        chunk += ch;
+      }
+    }
+    current = chunk;
+  };
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (!current) {
+      if (textWidth(word, fontSize) > maxWidth) {
+        pushChunked(word);
+      } else {
+        current = word;
+      }
+    } else if (textWidth(candidate, fontSize) <= maxWidth) {
+      current = candidate;
+    } else {
+      lines.push(current);
+      if (textWidth(word, fontSize) > maxWidth) {
+        current = "";
+        pushChunked(word);
+      } else {
+        current = word;
+      }
+    }
+  }
+  if (current) {
+    lines.push(current);
+  }
+  return lines.length > 0 ? lines : [text];
+}
+
+const CAPTION_LINE_PX = 12;
+const CAPTION_MIN_FONT = 9;
+const CAPTION_MAX_FONT = 11;
+const CAPTION_MAX_LINES = 2;
+
+interface SvgPanelCaptionProps {
+  /** The caption text (already localized). */
+  text: string;
+  /** Horizontal center of the caption within the figure's own coordinate space. */
+  x: number;
+  /** Baseline y of the LAST caption line; extra lines stack upward from here. */
+  y: number;
+  /** Maximum width the caption may occupy — the panel half-width. */
+  maxWidth: number;
+  /** Fill token for the text (e.g. "var(--c-text-dim)" or "var(--c-warn)"). */
+  fill: string;
+}
+
+/**
+ * Render a panel caption centered at `x`, constrained to `maxWidth`.
+ *
+ * The text wraps onto at most two lines; if it still does not fit, the
+ * font-size is reduced (down to a floor) so it never spills past the panel's
+ * half-width and never collides with the neighbouring panel's caption. Lines
+ * stack UPWARD from the `y` baseline so the block never grows past the figure
+ * bottom. Width estimation is approximate but conservative.
+ */
+export function SvgPanelCaption({ text, x, y, maxWidth, fill }: SvgPanelCaptionProps) {
+  let fontSize = CAPTION_MAX_FONT;
+  let lines = wrapToWidth(text, maxWidth, fontSize);
+  while (lines.length > CAPTION_MAX_LINES && fontSize > CAPTION_MIN_FONT) {
+    fontSize -= 1;
+    lines = wrapToWidth(text, maxWidth, fontSize);
+  }
+
+  const lineHeight = Math.max(CAPTION_LINE_PX, fontSize + 1);
+  const topY = y - (lines.length - 1) * lineHeight;
+
+  return (
+    <text x={x} y={topY} fill={fill} textAnchor="middle" fontSize={fontSize}>
+      {lines.map((line, i) => (
+        <tspan key={i} x={x} dy={i === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
 /** Localized chrome strings, resolved by the caller via useLang(). */
 export interface PanelStrings {
   /** Root aria-label — must mention the concept AND the misleading case. */
@@ -78,11 +200,14 @@ const bodyStyle: CSSProperties = {
 
 const captionStyle: CSSProperties = {
   margin: 0,
+  width: "100%",
   fontFamily: "var(--font-ui)",
   fontSize: "var(--text-xs)",
   lineHeight: 1.3,
   textAlign: "center",
   color: "var(--c-warn)",
+  overflowWrap: "anywhere",
+  wordBreak: "break-word",
 };
 
 /**

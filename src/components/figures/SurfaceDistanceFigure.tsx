@@ -9,6 +9,7 @@
  */
 
 import { useLang } from "../../i18n/LanguageContext";
+import { SvgPanelCaption } from "./detPanels";
 
 const L = {
   ko: {
@@ -28,17 +29,18 @@ const L = {
     gt: "GT",
     pred: "Pred",
     caption: "ASSD = average of boundary distances",
-    trap: "평균이 큰 국소 오차를 희석",
+    trap: "Averaging dilutes a large local error",
     spike: "local error",
   },
 } as const;
 
 const WIDTH = 360;
-const HEIGHT = 210;
+const HEIGHT = 234;
 const PANEL_W = WIDTH / 2;
 const PANEL_CX = PANEL_W / 2;
 const TAG_Y = 22;
 const CAPTION_Y = HEIGHT - 12;
+const CAPTION_MAX_W = PANEL_W - 12;
 
 /** Panel-local x range for the boundary curves. */
 const X0 = -78;
@@ -117,9 +119,7 @@ export default function SurfaceDistanceFigure() {
           {t.pred}
         </text>
       </g>
-      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
-        {t.caption}
-      </text>
+      <SvgPanelCaption text={t.caption} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-text-dim)" />
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
@@ -153,9 +153,7 @@ export default function SurfaceDistanceFigure() {
             {t.spike}
           </text>
         </g>
-        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
-          {t.trap}
-        </text>
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
       </g>
     </svg>
   );

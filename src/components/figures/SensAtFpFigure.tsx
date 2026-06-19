@@ -40,7 +40,7 @@ const L = {
     same: "sensitivity 0.8",
     lowFp: "@ FP=0.5",
     highFp: "@ FP=8",
-    misleadingCaption: "A sensitivity reported without its FP level is meaningless",
+    misleadingCaption: "A sensitivity number is meaningless without its FP level",
   },
 } as const;
 

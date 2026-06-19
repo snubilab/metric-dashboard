@@ -40,7 +40,7 @@ const L = {
     recall: "recall = TP/(TP+FN)",
     p: "precision 1.0",
     r: "recall 0.25",
-    misleadingCaption: "Conservative -> precision up, recall down; F1 depends on the threshold",
+    misleadingCaption: "Conservative: precision up, recall down — F1 depends on threshold",
   },
 } as const;
 

@@ -33,7 +33,7 @@ const L = {
     misleadingTag: "misleading",
     typicalCaption: "sensitivity vs FP per scan",
     label: "sensitivity 1.0 @ FP=8",
-    misleadingCaption: "Sensitivity 1.0 is only reached by allowing huge false positives",
+    misleadingCaption: "Sensitivity 1.0 only by allowing a huge false-positive rate",
   },
 } as const;
 

@@ -36,7 +36,7 @@ const L = {
     typicalCaption: "AP = area under the PR curve",
     good: "usable",
     bad: "poor in use",
-    misleadingCaption: "Similar AP can still mean different real operating-point performance",
+    misleadingCaption: "Similar AP can hide very different operating-point behavior",
   },
 } as const;
 

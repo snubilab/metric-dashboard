@@ -28,6 +28,9 @@ const FIGURES: { name: string; Figure: ComponentType }[] = [
 
 const LANGS: Lang[] = ["ko", "en"];
 
+/** Hangul syllables / jamo — used to detect Korean leaking into English mode. */
+const HANGUL = /[ᄀ-ᇿ가-힣]/;
+
 /** True when any element under `root` paints with the --c-warn token. */
 function hasWarnElement(root: ParentNode): boolean {
   const all = root.querySelectorAll("*");
@@ -39,6 +42,12 @@ function hasWarnElement(root: ParentNode): boolean {
     }
   }
   return false;
+}
+
+/** All text rendered inside the misleading panel (joined for content checks). */
+function misleadingText(container: ParentNode): string {
+  const panel = container.querySelector('[data-role="misleading"]');
+  return panel?.textContent ?? "";
 }
 
 describe("SEG figures (two-panel)", () => {
@@ -66,5 +75,34 @@ describe("SEG figures (two-panel)", () => {
         expect(hasWarnElement(container)).toBe(true);
       });
     }
+  }
+
+  // The misleading "trap" captions used to be hardcoded Korean in both modes.
+  // They must now follow the active language.
+  for (const { name, Figure } of FIGURES) {
+    it(`${name} localizes its misleading caption (no Korean leaks into en)`, () => {
+      const ko = misleadingText(
+        render(
+          <LanguageProvider initialLang="ko">
+            <Figure />
+          </LanguageProvider>,
+        ).container,
+      );
+      const en = misleadingText(
+        render(
+          <LanguageProvider initialLang="en">
+            <Figure />
+          </LanguageProvider>,
+        ).container,
+      );
+
+      expect(ko.length).toBeGreaterThan(0);
+      expect(en.length).toBeGreaterThan(0);
+      // English mode must contain real English text, not the Korean trap string.
+      expect(HANGUL.test(en)).toBe(false);
+      // Korean mode still shows Korean; the two languages differ.
+      expect(HANGUL.test(ko)).toBe(true);
+      expect(ko).not.toBe(en);
+    });
   }
 });

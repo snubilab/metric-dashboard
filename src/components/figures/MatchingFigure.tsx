@@ -41,7 +41,7 @@ const L = {
     iouLow: "IoU 0.49",
     fpNear: "FP (below threshold)",
     fpDup: "FP (duplicate)",
-    misleadingCaption: "A near-perfect box just under the threshold is still a false positive",
+    misleadingCaption: "A good box just under the IoU threshold is still counted FP",
   },
 } as const;
 

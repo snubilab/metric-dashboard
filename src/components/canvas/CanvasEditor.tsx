@@ -11,12 +11,13 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import type { Grid, Shape } from "../../types/engine";
+import type { Grid, Shape, Vec2 } from "../../types/engine";
 import {
   addBox,
   addCircle,
   hitTestShape,
   moveShape,
+  pathToPolygon,
   screenToGrid,
 } from "./canvasMath";
 
@@ -56,7 +57,10 @@ const FILL_ALPHA = 0.4;
 /** Canvas backing-store size in device pixels (independent of CSS layout). */
 const CANVAS_PX = 480;
 
-type Tool = "circle" | "box" | "move" | "delete";
+type Tool = "circle" | "box" | "move" | "delete" | "draw";
+
+/** Drop drag-path points whose grid cell duplicates their predecessor. */
+const DRAW_SIMPLIFY_EPS = 0;
 
 function shapesForLayer(
   layer: Layer,
@@ -116,6 +120,26 @@ function paintShape(
   ctx.stroke();
 }
 
+/** Stroke an in-progress freehand path (no fill) in the supplied color. */
+function paintStroke(
+  ctx: CanvasRenderingContext2D,
+  points: Vec2[],
+  color: string,
+  scaleX: number,
+  scaleY: number,
+): void {
+  ctx.beginPath();
+  points.forEach(([px, py], i) => {
+    const sx = (px + 0.5) * scaleX;
+    const sy = (py + 0.5) * scaleY;
+    if (i === 0) ctx.moveTo(sx, sy);
+    else ctx.lineTo(sx, sy);
+  });
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
 export function CanvasEditor({
   grid,
   gt,
@@ -129,6 +153,9 @@ export function CanvasEditor({
   const dragRef = useRef<{ index: number; lastX: number; lastY: number } | null>(
     null,
   );
+  /** Live freehand path in grid coordinates while the Draw tool is dragging. */
+  const drawPathRef = useRef<Vec2[] | null>(null);
+  const [drawPath, setDrawPath] = useState<Vec2[] | null>(null);
 
   const visibleLayers = showLayers ?? ALL_LAYERS;
   const activeShapes = shapesForLayer(activeLayer, gt, predictions);
@@ -150,7 +177,18 @@ export function CanvasEditor({
         paintShape(ctx, shape, color, scaleX, scaleY);
       }
     }
-  }, [grid, gt, predictions, visibleLayers]);
+
+    // Live freehand preview, drawn on top in the active layer's color.
+    if (drawPath && drawPath.length > 0) {
+      paintStroke(
+        ctx,
+        drawPath,
+        resolveColor(canvas, LAYER_COLOR_VAR[activeLayer]),
+        scaleX,
+        scaleY,
+      );
+    }
+  }, [grid, gt, predictions, visibleLayers, drawPath, activeLayer]);
 
   const emitActive = (next: Shape[]) => onChange(activeLayer, next);
 
@@ -181,6 +219,15 @@ export function CanvasEditor({
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const { x, y } = screenToGrid(e.clientX, e.clientY, rect, grid);
+
+    if (tool === "draw") {
+      const start: Vec2[] = [[x, y]];
+      drawPathRef.current = start;
+      setDrawPath(start);
+      canvas.setPointerCapture?.(e.pointerId);
+      return;
+    }
+
     const hit = topHitIndex(x, y);
     if (hit < 0) return;
 
@@ -195,22 +242,45 @@ export function CanvasEditor({
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const drag = dragRef.current;
     const canvas = canvasRef.current;
-    if (!drag || !canvas || tool !== "move") return;
+    if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const { x, y } = screenToGrid(e.clientX, e.clientY, rect, grid);
+
+    if (tool === "draw") {
+      const path = drawPathRef.current;
+      if (!path) return;
+      const last = path[path.length - 1];
+      if (last && last[0] === x && last[1] === y) return;
+      const next: Vec2[] = [...path, [x, y]];
+      drawPathRef.current = next;
+      setDrawPath(next);
+      return;
+    }
+
+    const drag = dragRef.current;
+    if (!drag || tool !== "move") return;
     const dx = x - drag.lastX;
     const dy = y - drag.lastY;
     if (dx === 0 && dy === 0) return;
-    const next = activeShapes.map((s, i) =>
+    const nextShapes = activeShapes.map((s, i) =>
       i === drag.index ? moveShape(s, dx, dy) : s,
     );
     dragRef.current = { index: drag.index, lastX: x, lastY: y };
-    emitActive(next);
+    emitActive(nextShapes);
   };
 
   const endDrag = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (tool === "draw" && drawPathRef.current) {
+      const polygon = pathToPolygon(drawPathRef.current, {
+        simplifyEps: DRAW_SIMPLIFY_EPS,
+      });
+      drawPathRef.current = null;
+      setDrawPath(null);
+      canvasRef.current?.releasePointerCapture?.(e.pointerId);
+      if (polygon) emitActive([...activeShapes, polygon]);
+      return;
+    }
     if (dragRef.current) {
       canvasRef.current?.releasePointerCapture?.(e.pointerId);
       dragRef.current = null;
@@ -239,6 +309,11 @@ export function CanvasEditor({
       >
         <ToolButton label="Add circle" onClick={handleAddCircle} />
         <ToolButton label="Add box" onClick={handleAddBox} />
+        <ToolButton
+          label="Draw"
+          pressed={tool === "draw"}
+          onClick={() => setTool("draw")}
+        />
         <ToolButton
           label="Move"
           pressed={tool === "move"}

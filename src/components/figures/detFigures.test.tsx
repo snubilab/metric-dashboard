@@ -29,6 +29,9 @@ const FIGURES: Array<[string, ComponentType]> = [
 
 const LANGS: Lang[] = ["ko", "en"];
 
+/** Hangul syllables / jamo — used to detect Korean leaking into English mode. */
+const HANGUL = /[ᄀ-ᇿ가-힣]/;
+
 describe("DET figures (v2, two-panel)", () => {
   for (const [name, Figure] of FIGURES) {
     for (const lang of LANGS) {
@@ -57,6 +60,21 @@ describe("DET figures (v2, two-panel)", () => {
         expect(stroke).toContain("--c-warn");
       });
     }
+
+    it(`${name} localizes its misleading caption (no Korean leaks into en)`, () => {
+      const koPanel = renderFigure(Figure, "ko").container.querySelector('[data-role="misleading"]');
+      const enPanel = renderFigure(Figure, "en").container.querySelector('[data-role="misleading"]');
+      const ko = koPanel?.textContent ?? "";
+      const en = enPanel?.textContent ?? "";
+
+      expect(ko.length).toBeGreaterThan(0);
+      expect(en.length).toBeGreaterThan(0);
+      // English mode must not render the Korean trap string.
+      expect(HANGUL.test(en)).toBe(false);
+      // Korean mode still shows Korean; the two languages differ.
+      expect(HANGUL.test(ko)).toBe(true);
+      expect(ko).not.toBe(en);
+    });
   }
 
   it("MatchingFigure aria-label differs between ko and en", () => {

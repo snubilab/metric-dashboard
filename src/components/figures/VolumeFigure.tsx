@@ -8,6 +8,7 @@
  */
 
 import { useLang } from "../../i18n/LanguageContext";
+import { SvgPanelCaption } from "./detPanels";
 
 const L = {
   ko: {
@@ -29,17 +30,18 @@ const L = {
     pred: "Pred",
     delta: "Δ volume",
     caption: "Volume diff = |GT − pred|",
-    trap: "부피 차이는 0이지만 위치가 완전히 다름",
+    trap: "Volume difference is 0 yet the location is completely wrong",
     same: "equal volume",
   },
 } as const;
 
 const WIDTH = 360;
-const HEIGHT = 210;
+const HEIGHT = 234;
 const PANEL_W = WIDTH / 2;
 const PANEL_CX = PANEL_W / 2;
 const TAG_Y = 22;
 const CAPTION_Y = HEIGHT - 12;
+const CAPTION_MAX_W = PANEL_W - 12;
 
 export default function VolumeFigure() {
   const { lang } = useLang();
@@ -92,9 +94,7 @@ export default function VolumeFigure() {
           {t.pred}
         </text>
       </g>
-      <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-text-dim)" textAnchor="middle">
-        {t.caption}
-      </text>
+      <SvgPanelCaption text={t.caption} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-text-dim)" />
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
@@ -119,9 +119,7 @@ export default function VolumeFigure() {
             {t.same}
           </text>
         </g>
-        <text x={PANEL_CX} y={CAPTION_Y} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
-          {t.trap}
-        </text>
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
       </g>
     </svg>
   );
