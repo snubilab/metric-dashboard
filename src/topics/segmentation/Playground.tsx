@@ -8,10 +8,9 @@
  * disagreements (rank flips, large gaps) surface immediately.
  *
  * The layout is verdict-first: an identity legend (what A/B/GT are) and the
- * auto-generated disagreement verdict lead, a compact three-metric table follows,
- * and the full eight-metric table plus bar chart sit behind a progressive
- * "show all metrics" expander. A dismissible first-visit banner frames the A/B
- * comparison on first arrival.
+ * auto-generated disagreement verdict lead, then the full A-vs-B metric table
+ * (all metrics shown at once) and the bar chart. A dismissible first-visit
+ * banner frames the A/B comparison on first arrival.
  *
  * All visual values come from the design-system token custom properties; no
  * color or font is hardcoded.
@@ -38,7 +37,6 @@ import { useEngineMetrics } from "../../components/metrics/useEngineMetrics";
 import { useFirstVisit } from "../../components/useFirstVisit";
 import { useLang } from "../../i18n/LanguageContext";
 import type { Lang } from "../../i18n/LanguageContext";
-import type { MetricRow } from "../../components/metrics/types";
 import { SEG_PRESETS, DEFAULT_PRESET_ID } from "./presets";
 import type { SegPreset } from "./presets";
 
@@ -48,13 +46,6 @@ const DEFAULT_VISIBLE_LAYERS: Layer[] = ["GT", "A", "B"];
 /** localStorage key for the first-visit guide banner's dismissed flag. */
 const GUIDE_SEEN_KEY = "md-playground-guide-seen";
 
-/**
- * The fixed core metrics shown in the compact, verdict-first table — overlap,
- * a boundary distance, and detection. The full eight-metric table lives behind
- * the progressive-disclosure expander.
- */
-const CORE_METRIC_KEYS: readonly string[] = ["dice", "hd95", "sensitivity"];
-
 /** Bilingual copy for the editing-action row and the new framing affordances. */
 const L = {
   ko: {
@@ -63,9 +54,7 @@ const L = {
     reset: "초기화",
     clearLayer: "레이어 비우기",
     verdict: "결론",
-    coreMetrics: "핵심 지표",
-    showAll: "모든 지표 보기",
-    hideAll: "지표 접기",
+    allMetrics: "지표 (A 대 B)",
     chart: "지표 막대 비교",
     dragHint: "도형을 드래그하면 지표가 실시간으로 갱신됩니다",
     guide:
@@ -81,9 +70,7 @@ const L = {
     reset: "Reset",
     clearLayer: "Clear layer",
     verdict: "Verdict",
-    coreMetrics: "Core metrics",
-    showAll: "Show all metrics",
-    hideAll: "Hide metrics",
+    allMetrics: "Metrics (A vs B)",
     chart: "Metric bar comparison",
     dragHint: "Drag a shape — the metrics update live.",
     guide:
@@ -341,20 +328,6 @@ const helpButtonStyle: CSSProperties = {
   textDecoration: "underline",
 };
 
-const expanderSummaryStyle: CSSProperties = {
-  fontFamily: "var(--font-ui)",
-  fontSize: "var(--text-sm)",
-  color: "var(--c-text)",
-  cursor: "pointer",
-};
-
-const expanderBodyStyle: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-4)",
-  marginTop: "var(--space-3)",
-};
-
 /** Unicode info / dismiss glyphs (NOT emoji). */
 const INFO_GLYPH = "ⓘ"; // ⓘ CIRCLED LATIN SMALL LETTER I
 const DISMISS_GLYPH = "✕"; // ✕ MULTIPLICATION X
@@ -367,11 +340,6 @@ function presetLabel(preset: SegPreset, lang: Lang): string {
 /** Pick a preset's description for the active language. */
 function presetDescription(preset: SegPreset, lang: Lang): string {
   return lang === "ko" ? preset.descriptionKo : preset.description;
-}
-
-/** Filter the engine rows down to the fixed core keys, preserving their order. */
-function coreRows(rows: MetricRow[]): MetricRow[] {
-  return rows.filter((row) => CORE_METRIC_KEYS.includes(row.key));
 }
 
 /**
@@ -449,7 +417,6 @@ export default function Playground() {
   const { rows } = useEngineMetrics(state);
   const { seen, markSeen, reset: resetGuide } = useFirstVisit(GUIDE_SEEN_KEY);
 
-  const compactRows = coreRows(rows);
   const legend = legendItems(activePresetId, lang, t);
 
   /** Push the current state onto the undo history before mutating it. */
@@ -664,20 +631,14 @@ export default function Playground() {
           </section>
 
           <section style={panelStyle}>
-            <h3 style={headingStyle}>{t.coreMetrics}</h3>
-            <MetricTable rows={compactRows} showRelativeCue />
+            <h3 style={headingStyle}>{t.allMetrics}</h3>
+            <MetricTable rows={rows} showRelativeCue />
           </section>
 
-          <details style={panelStyle}>
-            <summary style={expanderSummaryStyle}>{t.showAll}</summary>
-            <div style={expanderBodyStyle}>
-              <MetricTable rows={rows} showRelativeCue />
-              <section>
-                <h3 style={headingStyle}>{t.chart}</h3>
-                <MetricBarChart rows={rows} />
-              </section>
-            </div>
-          </details>
+          <section style={panelStyle}>
+            <h3 style={headingStyle}>{t.chart}</h3>
+            <MetricBarChart rows={rows} />
+          </section>
         </div>
       </div>
     </div>

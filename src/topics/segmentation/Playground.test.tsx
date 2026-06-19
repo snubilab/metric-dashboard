@@ -148,10 +148,10 @@ describe("Playground", () => {
 
   // ---- U3: verdict-first + progressive disclosure ----
 
-  it("shows only the core metrics in the compact table, with the verdict before it", () => {
+  it("shows all metrics at once, with the verdict before the table", () => {
     const { container } = renderPlayground();
 
-    // The insight (verdict) is rendered and precedes the first metric table in DOM.
+    // The insight (verdict) is rendered and precedes the metric table in DOM.
     const insight = container.querySelector('[data-role="insight"]');
     expect(insight).toBeInTheDocument();
     const firstTable = container.querySelector("table");
@@ -160,44 +160,30 @@ describe("Playground", () => {
       insight!.compareDocumentPosition(firstTable!) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
 
-    // The compact table shows exactly the three core metric rows.
-    const compact = within(firstTable as HTMLElement);
-    expect(compact.getByRole("rowheader", { name: /Dice/ })).toBeInTheDocument();
-    expect(compact.getByRole("rowheader", { name: /HD95/ })).toBeInTheDocument();
-    expect(compact.getByRole("rowheader", { name: /Sensitivity/ })).toBeInTheDocument();
-    // Non-core metrics stay hidden behind the expander.
-    expect(compact.queryByRole("rowheader", { name: /IoU/ })).not.toBeInTheDocument();
-    expect(compact.queryByRole("rowheader", { name: /ASSD/ })).not.toBeInTheDocument();
+    // Every metric is visible immediately — no progressive disclosure / expander.
+    const table = within(firstTable as HTMLElement);
+    // /^Dice/ avoids also matching the "Surface Dice (NSD)" row.
+    expect(table.getByRole("rowheader", { name: /^Dice/ })).toBeInTheDocument();
+    expect(table.getByRole("rowheader", { name: /HD95/ })).toBeInTheDocument();
+    expect(table.getByRole("rowheader", { name: /Sensitivity/ })).toBeInTheDocument();
+    expect(table.getByRole("rowheader", { name: /IoU/ })).toBeInTheDocument();
+    expect(table.getByRole("rowheader", { name: /ASSD/ })).toBeInTheDocument();
+    // No collapsed <details> expander remains.
+    expect(container.querySelector("details")).not.toBeInTheDocument();
   });
 
-  it("renders a relative-cue chip on the compact metric rows", () => {
+  it("renders a relative-cue chip on the metric rows", () => {
     renderPlayground();
-    // U2: the compact table opts into the relative cue (A leads / B leads / tie).
+    // U2: the table opts into the relative cue (A leads / B leads / tie).
     const cues = screen.getAllByText(/^(A leads|B leads|tie|n\/a)$/);
     expect(cues.length).toBeGreaterThan(0);
   });
 
-  it("keeps the full metric table and bar chart inside a collapsed expander", async () => {
-    const user = userEvent.setup();
-    const { container } = renderPlayground();
-
-    // The expander is a closed <details> until the user opens it.
-    const expander = container.querySelector("details") as HTMLDetailsElement;
-    expect(expander).toBeInTheDocument();
-    expect(expander.open).toBe(false);
-
-    // The full-only metrics (IoU/ASSD) and the bar chart live inside it — not in
-    // the always-visible compact table above.
-    const within$ = within(expander);
-    expect(within$.getByRole("rowheader", { name: /IoU/ })).toBeInTheDocument();
-    expect(within$.getByRole("rowheader", { name: /ASSD/ })).toBeInTheDocument();
+  it("shows the bar chart inline, not hidden behind an expander", () => {
+    renderPlayground();
     expect(
-      within$.getByRole("img", { name: "Per-metric A vs B bar comparison" }),
+      screen.getByRole("img", { name: "Per-metric A vs B bar comparison" }),
     ).toBeInTheDocument();
-
-    // Clicking the summary opens the expander to reveal them.
-    await user.click(screen.getByText("Show all metrics"));
-    expect(expander.open).toBe(true);
   });
 
   // ---- U5: first-visit banner ----
