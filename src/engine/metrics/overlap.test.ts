@@ -25,4 +25,10 @@ describe("overlap", () => {
     expect(dice(e, e, policy)).toBe(1);
     expect(iou(e, e, policy)).toBe(1);
   });
+  it("sensitivity focuses on false negatives, precision on false positives", () => {
+    const gt =   new Uint8Array([1, 1, 1, 0]);
+    const pred = new Uint8Array([1, 0, 1, 1]); // TP=2, FN=1, FP=1
+    expect(sensitivity(gt, pred, policy)).toBeCloseTo(2 / 3); // TP/(TP+FN)
+    expect(precision(gt, pred, policy)).toBeCloseTo(2 / 3); // TP/(TP+FP)
+  });
 });
