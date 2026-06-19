@@ -2,22 +2,32 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import App from "./App";
+import { LanguageProvider } from "./i18n/LanguageContext";
+
+/** Render the App in a deterministic English language context. */
+function renderApp() {
+  return render(
+    <LanguageProvider initialLang="en">
+      <App />
+    </LanguageProvider>,
+  );
+}
 
 describe("App shell", () => {
   it("renders the sidebar with Image Segmentation", () => {
-    render(<App />);
+    renderApp();
     const sidebar = screen.getByRole("navigation", { name: /topics/i });
     expect(within(sidebar).getByText("Image Segmentation")).toBeInTheDocument();
   });
 
   it("shows the Learn tab by default", () => {
-    render(<App />);
+    renderApp();
     const learnTab = screen.getByRole("tab", { name: /learn/i });
     expect(learnTab).toHaveAttribute("aria-selected", "true");
   });
 
   it("renders the playground region when the Playground tab is clicked", async () => {
-    render(<App />);
+    renderApp();
     await userEvent.click(screen.getByRole("tab", { name: /playground/i }));
     expect(screen.getByRole("tabpanel")).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /playground/i })).toHaveAttribute(
@@ -27,7 +37,7 @@ describe("App shell", () => {
   });
 
   it("switches the active topic when Image Detection is selected", async () => {
-    render(<App />);
+    renderApp();
     const sidebar = screen.getByRole("navigation", { name: /topics/i });
     await userEvent.click(within(sidebar).getByRole("button", { name: /Image Detection/ }));
 

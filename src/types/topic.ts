@@ -47,6 +47,10 @@ export interface Topic {
   title: string;
   status: TopicStatus;
   learn?: LearnContent;
+  /** Korean Learn content; selected when the UI language is Korean. */
+  learnKo?: LearnContent;
   Playground?: FC;
   scenarios?: Scenario[];
+  /** Korean scenarios; selected when the UI language is Korean. */
+  scenariosKo?: Scenario[];
 }

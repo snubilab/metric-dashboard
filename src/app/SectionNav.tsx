@@ -13,6 +13,7 @@
  */
 
 import type { CSSProperties } from "react";
+import { useT } from "../i18n/messages";
 
 interface SectionNavItem {
   id: string;
@@ -72,12 +73,13 @@ function itemStyle(isActive: boolean): CSSProperties {
 }
 
 export function SectionNav({ sections, activeId, onJump }: SectionNavProps) {
+  const t = useT();
   if (sections.length === 0) {
     return null;
   }
   return (
     <nav aria-label="Section navigation" style={navStyle}>
-      <h2 style={headingStyle}>On this page</h2>
+      <h2 style={headingStyle}>{t("onThisPage")}</h2>
       <ul style={listStyle}>
         {sections.map((section) => {
           const isActive = section.id === activeId;

@@ -18,6 +18,7 @@ import { ClinicalContext } from "../components/ClinicalContext";
 import { DetectionBoard } from "../components/DetectionBoard";
 import { MetricTable } from "../components/MetricTable";
 import { useEngineMetrics } from "../components/metrics/useEngineMetrics";
+import { useLang } from "../i18n/LanguageContext";
 
 interface ScenariosViewProps {
   topic: Topic;
@@ -115,7 +116,9 @@ function ScenarioCard({ scenario }: { scenario: Scenario }) {
 }
 
 export function ScenariosView({ topic }: ScenariosViewProps) {
-  const scenarios = topic.scenarios ?? [];
+  const { lang } = useLang();
+  const scenarios =
+    (lang === "ko" && topic.scenariosKo ? topic.scenariosKo : topic.scenarios) ?? [];
   if (scenarios.length === 0) {
     return <p style={emptyStyle}>No scenarios available for this topic yet.</p>;
   }

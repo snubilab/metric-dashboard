@@ -25,6 +25,8 @@ import type { Layer } from "../../components/canvas/CanvasEditor";
 import { UnitsBanner } from "../../components/UnitsBanner";
 import { MetricTable } from "../../components/MetricTable";
 import { useEngineMetrics } from "../../components/metrics/useEngineMetrics";
+import { useLang } from "../../i18n/LanguageContext";
+import type { Lang } from "../../i18n/LanguageContext";
 import { SEG_PRESETS, DEFAULT_PRESET_ID } from "./presets";
 import type { SegPreset } from "./presets";
 
@@ -160,19 +162,35 @@ const presetDescriptionStyle: CSSProperties = {
   color: "var(--c-text-dim)",
 };
 
+/** Pick a preset's label for the active language. */
+function presetLabel(preset: SegPreset, lang: Lang): string {
+  return lang === "ko" ? preset.labelKo : preset.label;
+}
+
+/** Pick a preset's description for the active language. */
+function presetDescription(preset: SegPreset, lang: Lang): string {
+  return lang === "ko" ? preset.descriptionKo : preset.description;
+}
+
 /** A labeled row of one-click presets; clicking one loads its full state. */
 function PresetBar({
   activeId,
   onSelect,
+  lang,
 }: {
   activeId: string;
   onSelect: (preset: SegPreset) => void;
+  lang: Lang;
 }) {
   const active = SEG_PRESETS.find((p) => p.id === activeId);
   return (
     <section style={panelStyle}>
-      <h3 style={headingStyle}>Presets</h3>
-      <div style={presetRowStyle} role="group" aria-label="Segmentation presets">
+      <h3 style={headingStyle}>{lang === "ko" ? "프리셋" : "Presets"}</h3>
+      <div
+        style={presetRowStyle}
+        role="group"
+        aria-label={lang === "ko" ? "분할 프리셋" : "Segmentation presets"}
+      >
         {SEG_PRESETS.map((preset) => {
           const isActive = preset.id === activeId;
           return (
@@ -183,17 +201,18 @@ function PresetBar({
               style={isActive ? presetButtonActiveStyle : presetButtonBaseStyle}
               onClick={() => onSelect(preset)}
             >
-              {preset.label}
+              {presetLabel(preset, lang)}
             </button>
           );
         })}
       </div>
-      {active ? <p style={presetDescriptionStyle}>{active.description}</p> : null}
+      {active ? <p style={presetDescriptionStyle}>{presetDescription(active, lang)}</p> : null}
     </section>
   );
 }
 
 export default function Playground() {
+  const { lang } = useLang();
   const [state, setState] = useState<EngineState>(() => cloneState(DEFAULT_PRESET.state));
   const [activePresetId, setActivePresetId] = useState<string>(DEFAULT_PRESET.id);
   const [activeLayer, setActiveLayer] = useState<Layer>("GT");
@@ -230,7 +249,7 @@ export default function Playground() {
 
   return (
     <div style={pageStyle}>
-      <PresetBar activeId={activePresetId} onSelect={selectPreset} />
+      <PresetBar activeId={activePresetId} onSelect={selectPreset} lang={lang} />
 
       <div style={splitStyle}>
         <div style={columnStyle}>
@@ -246,16 +265,17 @@ export default function Playground() {
 
         <div style={columnStyle}>
           <section style={panelStyle}>
-            <h3 style={headingStyle}>A vs B metrics</h3>
+            <h3 style={headingStyle}>{lang === "ko" ? "A 대 B 지표" : "A vs B metrics"}</h3>
             <MetricTable rows={rows} />
           </section>
 
           <section style={panelStyle}>
-            <h3 style={headingStyle}>Controls</h3>
+            <h3 style={headingStyle}>{lang === "ko" ? "컨트롤" : "Controls"}</h3>
             <div style={controlsRowStyle}>
               <label style={fieldStyle}>
                 <span style={labelStyle}>
-                  NSD tolerance <span style={valueBadgeStyle}>{tolerance.toFixed(1)} mm</span>
+                  {lang === "ko" ? "NSD 허용 오차" : "NSD tolerance"}{" "}
+                  <span style={valueBadgeStyle}>{tolerance.toFixed(1)} mm</span>
                 </span>
                 <input
                   type="range"
@@ -269,7 +289,9 @@ export default function Playground() {
               </label>
 
               <label style={fieldStyle}>
-                <span style={labelStyle}>Empty Dice policy</span>
+                <span style={labelStyle}>
+                  {lang === "ko" ? "빈 Dice 정책" : "Empty Dice policy"}
+                </span>
                 <select
                   style={selectStyle}
                   value={state.policy.emptyDice}
@@ -285,7 +307,9 @@ export default function Playground() {
               </label>
 
               <label style={fieldStyle}>
-                <span style={labelStyle}>Empty distance policy</span>
+                <span style={labelStyle}>
+                  {lang === "ko" ? "빈 거리 정책" : "Empty distance policy"}
+                </span>
                 <select
                   style={selectStyle}
                   value={state.policy.emptyDistance}

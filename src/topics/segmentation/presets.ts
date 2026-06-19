@@ -29,10 +29,14 @@ const NSD_TOLERANCE_MM = 2;
 export interface SegPreset {
   /** Stable identifier, used as a React key and for the active-preset highlight. */
   id: string;
-  /** Short button label. */
+  /** Short button label (English). */
   label: string;
-  /** One-sentence explanation of the contrast the preset demonstrates. */
+  /** Short button label (Korean), shown when the UI language is Korean. */
+  labelKo: string;
+  /** One-sentence explanation of the contrast the preset demonstrates (English). */
   description: string;
+  /** Korean explanation, shown when the UI language is Korean. */
+  descriptionKo: string;
   /** The full engine state this preset loads into the Playground. */
   state: EngineState;
 }
@@ -45,9 +49,13 @@ export const SEG_PRESETS: SegPreset[] = [
   {
     id: "good-vs-over",
     label: "Good vs over-segmentation",
+    labelKo: "정상 분할 대 과다 분할",
     description:
       "A tracks the lesion accurately; B paints a much larger circle — high " +
       "sensitivity but collapsing precision and a large volume error.",
+    descriptionKo:
+      "A는 병변을 정확히 추적하고, B는 훨씬 큰 원을 칠합니다 — 민감도는 높지만 " +
+      "정밀도가 무너지고 부피 오차가 큽니다.",
     state: {
       grid: GRID,
       gt: [{ kind: "circle", cx: 110, cy: 128, r: 38 }],
@@ -62,9 +70,13 @@ export const SEG_PRESETS: SegPreset[] = [
   {
     id: "stray-fp",
     label: "Stray FP wrecks HD95",
+    labelKo: "떨어진 위양성이 HD95를 망친다",
     description:
       "A and B both overlap GT well, so their Dice nearly ties — but B fires " +
       "an extra small blob far away, so B's HD95 explodes.",
+    descriptionKo:
+      "A와 B 모두 정답과 잘 겹쳐서 Dice는 거의 동점이지만 — B가 멀리 떨어진 곳에 " +
+      "작은 덩어리 하나를 더 내놓아 B의 HD95가 폭발합니다.",
     state: {
       grid: GRID,
       gt: [{ kind: "circle", cx: 110, cy: 128, r: 40 }],
@@ -85,9 +97,13 @@ export const SEG_PRESETS: SegPreset[] = [
   {
     id: "boundary-error-high-dice",
     label: "Boundary error, high Dice",
+    labelKo: "경계 오차, 높은 Dice",
     description:
       "A is near-perfect; B has the same size but is shifted, so Dice stays " +
       "high while HD95 and ASSD climb — overlap and boundary disagree.",
+    descriptionKo:
+      "A는 거의 완벽하고, B는 크기는 같지만 위치가 어긋나서 Dice는 높게 유지되는데 " +
+      "HD95와 ASSD는 올라갑니다 — 겹침과 경계가 서로 다른 말을 합니다.",
     state: {
       grid: GRID,
       gt: [{ kind: "circle", cx: 128, cy: 128, r: 45 }],
@@ -102,9 +118,13 @@ export const SEG_PRESETS: SegPreset[] = [
   {
     id: "small-lesion-sensitivity",
     label: "Small lesion sensitivity",
+    labelKo: "작은 병변 민감도",
     description:
       "GT has a big lesion plus a tiny one. A finds both; B misses the tiny " +
       "lesion, so its voxel Dice barely drops but its HD95 jumps.",
+    descriptionKo:
+      "정답에는 큰 병변과 아주 작은 병변이 있습니다. A는 둘 다 찾고, B는 작은 병변을 " +
+      "놓쳐서 픽셀 Dice는 거의 떨어지지 않지만 HD95는 치솟습니다.",
     state: {
       grid: GRID,
       gt: [
@@ -128,9 +148,13 @@ export const SEG_PRESETS: SegPreset[] = [
   {
     id: "tight-vs-loose",
     label: "Tight vs loose match",
+    labelKo: "정밀한 일치 대 느슨한 일치",
     description:
       "A is a tight, well-aligned match; B is a loose, oversized and offset " +
       "circle — every overlap and boundary metric separates the two.",
+    descriptionKo:
+      "A는 잘 정렬된 정밀한 일치이고, B는 너무 크고 위치가 어긋난 느슨한 원입니다 — " +
+      "모든 겹침·경계 지표가 둘을 구분해 냅니다.",
     state: {
       grid: GRID,
       gt: [{ kind: "circle", cx: 128, cy: 128, r: 42 }],

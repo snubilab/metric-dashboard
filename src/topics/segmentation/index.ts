@@ -7,7 +7,9 @@
 
 import type { Topic } from "../../types/topic";
 import { segmentationLearn } from "./content";
+import { segmentationLearnKo } from "./contentKo";
 import { segmentationScenarios } from "./scenarios";
+import { segmentationScenariosKo } from "./scenariosKo";
 import Playground from "./Playground";
 
 const segmentationTopic: Topic = {
@@ -16,8 +18,10 @@ const segmentationTopic: Topic = {
   title: "Image Segmentation",
   status: "available",
   learn: segmentationLearn,
+  learnKo: segmentationLearnKo,
   Playground,
   scenarios: segmentationScenarios,
+  scenariosKo: segmentationScenariosKo,
 };
 
 export default segmentationTopic;

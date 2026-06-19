@@ -16,6 +16,7 @@ import "katex/dist/katex.min.css";
 import type { MetricSection, Topic } from "../types/topic";
 import { MiniSim } from "../components/MiniSim";
 import { SectionNav } from "./SectionNav";
+import { useLang } from "../i18n/LanguageContext";
 
 interface LearnViewProps {
   topic: Topic;
@@ -192,7 +193,8 @@ function jumpToSection(id: string): void {
 }
 
 export function LearnView({ topic }: LearnViewProps) {
-  const learn = topic.learn;
+  const { lang } = useLang();
+  const learn = lang === "ko" && topic.learnKo ? topic.learnKo : topic.learn;
   const sections = learn?.sections ?? [];
   const activeId = useActiveSection(sections.map((section) => section.id));
 

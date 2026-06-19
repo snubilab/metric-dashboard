@@ -15,6 +15,7 @@
 import type { CSSProperties } from "react";
 import type { DetBox } from "../../types/engine";
 import { DetectionBoard } from "../../components/DetectionBoard";
+import { useLang } from "../../i18n/LanguageContext";
 
 /** Three ground-truth lesion boxes for the seeded scene. */
 const SEED_GT: DetBox[] = [
@@ -53,15 +54,22 @@ const introStyle: CSSProperties = {
 };
 
 export function DetectionPlayground() {
+  const { lang } = useLang();
   return (
     <div style={rootStyle}>
       <p style={introStyle}>
-        Three ground-truth lesions and four predicted boxes — three real
-        detections plus one stray false positive. Drag the confidence threshold
-        to slide the operating point: precision, recall, and F1 move with it,
-        while AP integrates the entire curve and stays fixed (changing only when
-        you switch the interpolation method). The PR and FROC charts make the
-        tradeoff visible.
+        {lang === "ko"
+          ? "정답 병변 3개와 예측 박스 4개 — 실제 검출 3개에 엉뚱한 거짓양성 1개가 " +
+            "더해진 장면입니다. 신뢰도 임계값을 드래그하면 운영점이 이동합니다. " +
+            "정밀도, 재현율, F1은 임계값을 따라 움직이지만, AP는 곡선 전체를 " +
+            "적분하므로 고정된 채로 남아 있습니다(보간 방식을 바꿀 때만 변합니다). " +
+            "PR 곡선과 FROC 곡선이 이 절충을 눈으로 보여줍니다."
+          : "Three ground-truth lesions and four predicted boxes — three real " +
+            "detections plus one stray false positive. Drag the confidence " +
+            "threshold to slide the operating point: precision, recall, and F1 " +
+            "move with it, while AP integrates the entire curve and stays fixed " +
+            "(changing only when you switch the interpolation method). The PR and " +
+            "FROC charts make the tradeoff visible."}
       </p>
       <DetectionBoard gt={SEED_GT} preds={SEED_PREDS} iouThreshold={0.5} />
     </div>

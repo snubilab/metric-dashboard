@@ -18,14 +18,22 @@ import { Sidebar } from "./app/Sidebar";
 import { LearnView } from "./app/LearnView";
 import { ScenariosView } from "./app/ScenariosView";
 import { ThemeToggle } from "./app/ThemeToggle";
+import { LanguageToggle } from "./i18n/LanguageToggle";
+import { useT } from "./i18n/messages";
 
 type Tab = "learn" | "playground" | "scenarios";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "learn", label: "Learn" },
-  { id: "playground", label: "Playground" },
-  { id: "scenarios", label: "Scenarios" },
+/** Tab id paired with the dictionary key for its localized label. */
+const TABS: { id: Tab; labelKey: string }[] = [
+  { id: "learn", labelKey: "tab.learn" },
+  { id: "playground", labelKey: "tab.playground" },
+  { id: "scenarios", labelKey: "tab.scenarios" },
 ];
+
+/** Dictionary key for a topic's localized title, falling back to topic.title. */
+function topicTitleKey(id: string): string {
+  return `topicTitle.${id}`;
+}
 
 const DEFAULT_TOPIC_ID = "segmentation";
 
@@ -132,11 +140,13 @@ const placeholderTextStyle: React.CSSProperties = {
 
 /** Calm placeholder for topics not yet implemented. */
 function ComingSoon({ topic }: { topic: Topic }) {
+  const t = useT();
+  const title = t(topicTitleKey(topic.id)) || topic.title;
   return (
     <div role="tabpanel" style={placeholderStyle}>
-      <h2 style={placeholderTitleStyle}>Coming soon</h2>
+      <h2 style={placeholderTitleStyle}>{t("comingSoon")}</h2>
       <p style={placeholderTextStyle}>
-        The {topic.title} metric family is being prepared. Its learn content,
+        The {title} metric family is being prepared. Its learn content,
         interactive playground, and clinical scenarios will appear here.
       </p>
     </div>
@@ -170,13 +180,15 @@ function TopicBody({ topic, tab }: { topic: Topic; tab: Tab }) {
 function App() {
   const [selectedId, setSelectedId] = useState(DEFAULT_TOPIC_ID);
   const [activeTab, setActiveTab] = useState<Tab>("learn");
+  const t = useT();
 
   const topics = useMemo(() => orderedTopics(), []);
   const topic = useMemo(
-    () => TOPICS.find((t) => t.id === selectedId) ?? topics[0],
+    () => TOPICS.find((candidate) => candidate.id === selectedId) ?? topics[0],
     [selectedId, topics],
   );
   const isAvailable = topic.status === "available";
+  const title = t(topicTitleKey(topic.id)) || topic.title;
 
   return (
     <div style={shellStyle}>
@@ -185,10 +197,13 @@ function App() {
         <header style={headerStyle}>
           <div style={titleRowStyle}>
             <div style={titleGroupStyle}>
-              <h1 style={titleStyle}>{topic.title}</h1>
+              <h1 style={titleStyle}>{title}</h1>
               <span style={groupTagStyle}>{topic.group}</span>
             </div>
-            <ThemeToggle />
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+              <LanguageToggle />
+              <ThemeToggle />
+            </div>
           </div>
           <div role="tablist" aria-label="Topic views" style={tabBarStyle}>
             {TABS.map((tab) => {
@@ -203,7 +218,7 @@ function App() {
                   onClick={() => setActiveTab(tab.id)}
                   style={tabStyle(isActive, isAvailable)}
                 >
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </button>
               );
             })}

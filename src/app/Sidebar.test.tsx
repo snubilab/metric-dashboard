@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import type { ReactElement } from "react";
 import type { Topic } from "../types/topic";
 import { Sidebar } from "./Sidebar";
+import { LanguageProvider } from "../i18n/LanguageContext";
 
 const topics: Topic[] = [
   { id: "segmentation", group: "discriminative", title: "Image Segmentation", status: "available" },
@@ -10,9 +12,14 @@ const topics: Topic[] = [
   { id: "synthesis", group: "generative", title: "Image Synthesis", status: "coming-soon" },
 ];
 
+/** Render a node in a deterministic English language context. */
+function renderEn(node: ReactElement) {
+  return render(<LanguageProvider initialLang="en">{node}</LanguageProvider>);
+}
+
 describe("Sidebar", () => {
   it("renders group headers and topic titles", () => {
-    render(<Sidebar topics={topics} activeId="segmentation" onSelect={() => {}} />);
+    renderEn(<Sidebar topics={topics} activeId="segmentation" onSelect={() => {}} />);
 
     expect(screen.getByText("Discriminative (classical)")).toBeInTheDocument();
     expect(screen.getByText("Generative")).toBeInTheDocument();
@@ -22,7 +29,7 @@ describe("Sidebar", () => {
   });
 
   it("disables coming-soon topics", () => {
-    render(<Sidebar topics={topics} activeId="segmentation" onSelect={() => {}} />);
+    renderEn(<Sidebar topics={topics} activeId="segmentation" onSelect={() => {}} />);
 
     const comingSoon = screen.getByRole("button", { name: /Image Classification/ });
     expect(comingSoon).toBeDisabled();
@@ -30,7 +37,7 @@ describe("Sidebar", () => {
 
   it("calls onSelect with the id when an available topic is clicked", async () => {
     const onSelect = vi.fn();
-    render(<Sidebar topics={topics} activeId="classification" onSelect={onSelect} />);
+    renderEn(<Sidebar topics={topics} activeId="classification" onSelect={onSelect} />);
 
     await userEvent.click(screen.getByRole("button", { name: /Image Segmentation/ }));
 

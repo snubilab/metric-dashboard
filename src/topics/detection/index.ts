@@ -7,8 +7,10 @@
 
 import type { Topic } from "../../types/topic";
 import { detectionLearn } from "./content";
+import { detectionLearnKo } from "./contentKo";
 import DetectionPlayground from "./Playground";
 import { detectionScenarios } from "./scenarios";
+import { detectionScenariosKo } from "./scenariosKo";
 
 export const detectionTopic: Topic = {
   id: "detection",
@@ -16,8 +18,10 @@ export const detectionTopic: Topic = {
   title: "Image Detection",
   status: "available",
   learn: detectionLearn,
+  learnKo: detectionLearnKo,
   Playground: DetectionPlayground,
   scenarios: detectionScenarios,
+  scenariosKo: detectionScenariosKo,
 };
 
 export default detectionTopic;

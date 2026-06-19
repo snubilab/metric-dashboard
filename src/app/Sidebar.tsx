@@ -11,6 +11,7 @@
 
 import type { Topic, TopicGroup } from "../types/topic";
 import { GROUPS } from "./groups";
+import { useT } from "../i18n/messages";
 
 interface SidebarProps {
   topics: Topic[];
@@ -96,6 +97,7 @@ function topicsForGroup(topics: Topic[], group: TopicGroup): Topic[] {
 }
 
 export function Sidebar({ topics, activeId, onSelect }: SidebarProps) {
+  const t = useT();
   return (
     <nav aria-label="Topics" style={navStyle}>
       {GROUPS.map((group) => {
@@ -105,11 +107,12 @@ export function Sidebar({ topics, activeId, onSelect }: SidebarProps) {
         }
         return (
           <section key={group.id} style={groupStyle}>
-            <h2 style={groupHeaderStyle}>{group.label}</h2>
+            <h2 style={groupHeaderStyle}>{t(`group.${group.id}`) || group.label}</h2>
             <ul style={listStyle}>
               {groupTopics.map((topic) => {
                 const isAvailable = topic.status === "available";
                 const isActive = topic.id === activeId;
+                const title = t(`topicTitle.${topic.id}`) || topic.title;
                 return (
                   <li key={topic.id}>
                     <button
@@ -119,8 +122,8 @@ export function Sidebar({ topics, activeId, onSelect }: SidebarProps) {
                       onClick={() => onSelect(topic.id)}
                       style={itemStyle(isActive, isAvailable)}
                     >
-                      <span>{topic.title}</span>
-                      {!isAvailable && <span style={soonTagStyle}>soon</span>}
+                      <span>{title}</span>
+                      {!isAvailable && <span style={soonTagStyle}>{t("soon")}</span>}
                     </button>
                   </li>
                 );
