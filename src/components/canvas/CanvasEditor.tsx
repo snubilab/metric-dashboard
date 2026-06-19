@@ -16,10 +16,16 @@ import type { Grid, Shape, Vec2 } from "../../types/engine";
 import {
   addBox,
   addCircle,
+  handlePositions,
+  hitTestHandle,
   hitTestShape,
   moveShape,
   pathToPolygon,
+  resizeBoxCorner,
+  resizeCircle,
+  scalePolygon,
   screenToGrid,
+  type BoxCorner,
 } from "./canvasMath";
 
 /** The three editable overlay layers; A/B mirror the prediction ids. */
@@ -30,25 +36,29 @@ const L = {
     addCircle: "원 추가",
     addBox: "박스 추가",
     draw: "그리기",
-    move: "이동",
+    move: "선택 / 이동",
     delete: "삭제",
     canvasTools: "캔버스 도구",
     activeLayer: "활성 레이어",
     segmentationEditor: "분할 편집기",
     predictionA: "예측 A",
     predictionB: "예측 B",
+    show: "표시",
+    hide: "숨김",
   },
   en: {
     addCircle: "Add circle",
     addBox: "Add box",
     draw: "Draw",
-    move: "Move",
+    move: "Select / Move",
     delete: "Delete",
     canvasTools: "Canvas tools",
     activeLayer: "Active layer",
     segmentationEditor: "Segmentation editor",
     predictionA: "Prediction A",
     predictionB: "Prediction B",
+    show: "Show",
+    hide: "Hide",
   },
 } as const;
 
@@ -63,8 +73,22 @@ export interface CanvasEditorProps {
   predictions: PredictionInput[];
   activeLayer: Layer;
   onChange: (layer: Layer, shapes: Shape[]) => void;
-  /** Layers to draw; defaults to all three. */
+  /**
+   * Layers to draw; defaults to all three. Ignored when `visibleLayers` is
+   * provided (which takes precedence).
+   */
   showLayers?: Layer[];
+  /**
+   * Layers currently drawn. Takes precedence over `showLayers` when provided;
+   * defaults to all three when neither is set.
+   */
+  visibleLayers?: Layer[];
+  /**
+   * When provided, an eye/visibility toggle is rendered beside each layer
+   * button and clicking it calls this with the layer. When omitted, no eye
+   * toggles render (backward compatible).
+   */
+  onToggleLayerVisibility?: (layer: Layer) => void;
 }
 
 /** Each layer's fill/stroke color comes from a token custom property. */
@@ -78,6 +102,12 @@ const ALL_LAYERS: Layer[] = ["GT", "A", "B"];
 const FILL_ALPHA = 0.4;
 /** Canvas backing-store size in device pixels (independent of CSS layout). */
 const CANVAS_PX = 480;
+/** Half-size of a square resize handle, in canvas pixels. */
+const HANDLE_HALF_PX = 5;
+/** Pointer pick tolerance for grabbing a resize handle, in canvas pixels. */
+const HANDLE_PICK_PX = 10;
+/** Box handle index -> corner id, matching `handlePositions` ordering. */
+const BOX_CORNERS: BoxCorner[] = ["tl", "tr", "bl", "br"];
 
 type Tool = "circle" | "box" | "move" | "delete" | "draw";
 
@@ -142,6 +172,53 @@ function paintShape(
   ctx.stroke();
 }
 
+/**
+ * Outline the selected shape's bounding box (for polygons) and draw small
+ * square resize handles at its anchor points, stroked in the supplied color.
+ */
+function paintSelection(
+  ctx: CanvasRenderingContext2D,
+  shape: Shape,
+  color: string,
+  scaleX: number,
+  scaleY: number,
+): void {
+  // For polygons, hint the resize region with a bounding-box outline.
+  if (shape.kind === "polygon") {
+    const handles = handlePositions(shape);
+    const [tl, , , br] = handles;
+    ctx.beginPath();
+    ctx.rect(
+      tl[0] * scaleX,
+      tl[1] * scaleY,
+      (br[0] - tl[0]) * scaleX,
+      (br[1] - tl[1]) * scaleY,
+    );
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  for (const [hx, hy] of handlePositions(shape)) {
+    const cx = hx * scaleX;
+    const cy = hy * scaleY;
+    ctx.beginPath();
+    ctx.rect(
+      cx - HANDLE_HALF_PX,
+      cy - HANDLE_HALF_PX,
+      HANDLE_HALF_PX * 2,
+      HANDLE_HALF_PX * 2,
+    );
+    ctx.fillStyle = "var(--c-surface)";
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
 /** Stroke an in-progress freehand path (no fill) in the supplied color. */
 function paintStroke(
   ctx: CanvasRenderingContext2D,
@@ -169,6 +246,8 @@ export function CanvasEditor({
   activeLayer,
   onChange,
   showLayers,
+  visibleLayers: visibleLayersProp,
+  onToggleLayerVisibility,
 }: CanvasEditorProps) {
   const { lang } = useLang();
   const t = L[lang];
@@ -179,14 +258,19 @@ export function CanvasEditor({
   };
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<Tool>("circle");
+  /** Index of the selected shape in the active layer, or null when none. */
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const dragRef = useRef<{ index: number; lastX: number; lastY: number } | null>(
     null,
   );
+  /** Active handle drag: which shape + which handle is being dragged. */
+  const resizeRef = useRef<{ index: number; handle: number } | null>(null);
   /** Live freehand path in grid coordinates while the Draw tool is dragging. */
   const drawPathRef = useRef<Vec2[] | null>(null);
   const [drawPath, setDrawPath] = useState<Vec2[] | null>(null);
 
-  const visibleLayers = showLayers ?? ALL_LAYERS;
+  // visibleLayers takes precedence over showLayers; both default to all.
+  const visibleLayers = visibleLayersProp ?? showLayers ?? ALL_LAYERS;
   const activeShapes = shapesForLayer(activeLayer, gt, predictions);
 
   useEffect(() => {
@@ -207,6 +291,25 @@ export function CanvasEditor({
       }
     }
 
+    // Resize handles for the selected shape (only while the Select/Move tool is
+    // active and the active layer is visible), stroked in the pred-A accent.
+    if (
+      tool === "move" &&
+      selectedIndex != null &&
+      visibleLayers.includes(activeLayer)
+    ) {
+      const selected = activeShapes[selectedIndex];
+      if (selected) {
+        paintSelection(
+          ctx,
+          selected,
+          resolveColor(canvas, "--c-pred-a"),
+          scaleX,
+          scaleY,
+        );
+      }
+    }
+
     // Live freehand preview, drawn on top in the active layer's color.
     if (drawPath && drawPath.length > 0) {
       paintStroke(
@@ -217,7 +320,23 @@ export function CanvasEditor({
         scaleY,
       );
     }
-  }, [grid, gt, predictions, visibleLayers, drawPath, activeLayer]);
+  }, [
+    grid,
+    gt,
+    predictions,
+    visibleLayers,
+    drawPath,
+    activeLayer,
+    tool,
+    selectedIndex,
+    activeShapes,
+  ]);
+
+  // A selection belongs to one (layer, tool) context; drop it when either
+  // changes so a stale index can never address a different layer's shapes.
+  useEffect(() => {
+    setSelectedIndex(null);
+  }, [activeLayer, tool]);
 
   const emitActive = (next: Shape[]) => onChange(activeLayer, next);
 
@@ -243,6 +362,42 @@ export function CanvasEditor({
     return -1;
   };
 
+  /** Pick tolerance in grid units (pixels scaled back through the grid size). */
+  const handlePickRadiusGrid = (HANDLE_PICK_PX / CANVAS_PX) * grid.width;
+
+  /**
+   * Resize the shape at `index` by dragging its handle to (gx, gy):
+   * circle radius from center, box corner, or polygon scaled about its
+   * centroid by the ratio of new to old distance from the bounding-box center.
+   */
+  const resizeShapeByHandle = (
+    shape: Shape,
+    handle: number,
+    gx: number,
+    gy: number,
+  ): Shape => {
+    if (shape.kind === "circle") {
+      const newR = Math.hypot(gx - shape.cx, gy - shape.cy);
+      return resizeCircle(shape, newR);
+    }
+    if (shape.kind === "box") {
+      return resizeBoxCorner(shape, BOX_CORNERS[handle], gx, gy);
+    }
+    // polygon: scale about the bounding-box center by drag-distance ratio.
+    const corners = handlePositions(shape);
+    const minX = corners[0][0];
+    const minY = corners[0][1];
+    const maxX = corners[3][0];
+    const maxY = corners[3][1];
+    const midX = (minX + maxX) / 2;
+    const midY = (minY + maxY) / 2;
+    const [hx, hy] = corners[handle];
+    const oldDist = Math.hypot(hx - midX, hy - midY);
+    if (oldDist === 0) return shape;
+    const newDist = Math.hypot(gx - midX, gy - midY);
+    return scalePolygon(shape, newDist / oldDist);
+  };
+
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -257,14 +412,32 @@ export function CanvasEditor({
       return;
     }
 
+    // Select/Move: first try to grab a resize handle on the current selection.
+    if (tool === "move" && selectedIndex != null) {
+      const selected = activeShapes[selectedIndex];
+      if (selected) {
+        const handle = hitTestHandle(selected, x, y, handlePickRadiusGrid);
+        if (handle != null) {
+          resizeRef.current = { index: selectedIndex, handle };
+          canvas.setPointerCapture?.(e.pointerId);
+          return;
+        }
+      }
+    }
+
     const hit = topHitIndex(x, y);
-    if (hit < 0) return;
+    if (hit < 0) {
+      // Clicking empty space clears the selection when selecting/moving.
+      if (tool === "move") setSelectedIndex(null);
+      return;
+    }
 
     if (tool === "delete") {
       emitActive(activeShapes.filter((_, i) => i !== hit));
       return;
     }
     if (tool === "move") {
+      setSelectedIndex(hit);
       dragRef.current = { index: hit, lastX: x, lastY: y };
       canvas.setPointerCapture?.(e.pointerId);
     }
@@ -284,6 +457,16 @@ export function CanvasEditor({
       const next: Vec2[] = [...path, [x, y]];
       drawPathRef.current = next;
       setDrawPath(next);
+      return;
+    }
+
+    // Resize the selected shape by dragging one of its handles.
+    const resize = resizeRef.current;
+    if (resize && tool === "move") {
+      const nextShapes = activeShapes.map((s, i) =>
+        i === resize.index ? resizeShapeByHandle(s, resize.handle, x, y) : s,
+      );
+      emitActive(nextShapes);
       return;
     }
 
@@ -308,6 +491,11 @@ export function CanvasEditor({
       setDrawPath(null);
       canvasRef.current?.releasePointerCapture?.(e.pointerId);
       if (polygon) emitActive([...activeShapes, polygon]);
+      return;
+    }
+    if (resizeRef.current) {
+      canvasRef.current?.releasePointerCapture?.(e.pointerId);
+      resizeRef.current = null;
       return;
     }
     if (dragRef.current) {
@@ -369,43 +557,79 @@ export function CanvasEditor({
           aria-label={t.activeLayer}
           style={{ display: "flex", gap: "var(--space-1)" }}
         >
-          {ALL_LAYERS.map((layer) => (
-            <button
-              key={layer}
-              type="button"
-              aria-pressed={activeLayer === layer}
-              title={layerLabel[layer]}
-              onClick={() => onChange(layer, shapesForLayer(layer, gt, predictions))}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "var(--space-1)",
-                padding: "var(--space-1) var(--space-2)",
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-xs)",
-                color: "var(--c-text)",
-                background:
-                  activeLayer === layer ? "var(--c-surface-2)" : "var(--c-surface)",
-                border:
-                  activeLayer === layer
-                    ? `1px solid var(${LAYER_COLOR_VAR[layer]})`
-                    : "1px solid var(--c-border)",
-                borderRadius: "var(--radius-sm)",
-                cursor: "pointer",
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: "10px",
-                  height: "10px",
-                  borderRadius: "var(--radius-sm)",
-                  background: `var(${LAYER_COLOR_VAR[layer]})`,
-                }}
-              />
-              {layer}
-            </button>
-          ))}
+          {ALL_LAYERS.map((layer) => {
+            const isVisible = visibleLayers.includes(layer);
+            return (
+              <div
+                key={layer}
+                style={{ display: "inline-flex", alignItems: "center" }}
+              >
+                <button
+                  type="button"
+                  aria-pressed={activeLayer === layer}
+                  title={layerLabel[layer]}
+                  onClick={() =>
+                    onChange(layer, shapesForLayer(layer, gt, predictions))
+                  }
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "var(--space-1)",
+                    padding: "var(--space-1) var(--space-2)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-xs)",
+                    color: "var(--c-text)",
+                    background:
+                      activeLayer === layer
+                        ? "var(--c-surface-2)"
+                        : "var(--c-surface)",
+                    border:
+                      activeLayer === layer
+                        ? `1px solid var(${LAYER_COLOR_VAR[layer]})`
+                        : "1px solid var(--c-border)",
+                    borderRadius: "var(--radius-sm)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      borderRadius: "var(--radius-sm)",
+                      background: `var(${LAYER_COLOR_VAR[layer]})`,
+                    }}
+                  />
+                  {layer}
+                </button>
+                {onToggleLayerVisibility && (
+                  <button
+                    type="button"
+                    aria-pressed={isVisible}
+                    title={`${isVisible ? t.hide : t.show} ${layerLabel[layer]}`}
+                    aria-label={`${isVisible ? t.hide : t.show} ${layerLabel[layer]}`}
+                    onClick={() => onToggleLayerVisibility(layer)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginLeft: "var(--space-1)",
+                      padding: "var(--space-1)",
+                      fontSize: "var(--text-xs)",
+                      lineHeight: 1,
+                      color: isVisible ? "var(--c-text)" : "var(--c-text-dim)",
+                      background: "var(--c-surface)",
+                      border: "1px solid var(--c-border)",
+                      borderRadius: "var(--radius-sm)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <span aria-hidden="true">{isVisible ? "\u{1F441}" : "⊘"}</span>
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

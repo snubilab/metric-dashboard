@@ -118,6 +118,149 @@ export interface PathToPolygonOptions {
 
 const DEFAULT_MIN_POINTS = 3;
 
+/** Smallest radius a circle may shrink to, so it never collapses to a point. */
+const MIN_CIRCLE_RADIUS = 1;
+
+/** Resize a circle to `newR`, clamping to a minimum radius. Never mutates. */
+export function resizeCircle(
+  circle: Extract<Shape, { kind: "circle" }>,
+  newR: number,
+): Extract<Shape, { kind: "circle" }> {
+  return { ...circle, r: Math.max(MIN_CIRCLE_RADIUS, newR) };
+}
+
+/** The four resizable corners of a box. */
+export type BoxCorner = "tl" | "tr" | "bl" | "br";
+
+/**
+ * Move one corner of a box to (gx, gy) and return a normalized box (always
+ * positive width/height). The opposite corner stays anchored; if the dragged
+ * corner crosses it, the box flips and is re-normalized rather than inverting.
+ * Never mutates the input.
+ */
+export function resizeBoxCorner(
+  box: Extract<Shape, { kind: "box" }>,
+  corner: BoxCorner,
+  gx: number,
+  gy: number,
+): Extract<Shape, { kind: "box" }> {
+  const left = box.x;
+  const top = box.y;
+  const right = box.x + box.w;
+  const bottom = box.y + box.h;
+
+  // Anchor is the corner diagonally opposite the one being dragged.
+  const anchorX = corner === "tl" || corner === "bl" ? right : left;
+  const anchorY = corner === "tl" || corner === "tr" ? bottom : top;
+
+  const x = Math.min(anchorX, gx);
+  const y = Math.min(anchorY, gy);
+  const w = Math.abs(anchorX - gx);
+  const h = Math.abs(anchorY - gy);
+  return { kind: "box", x, y, w, h };
+}
+
+/** The centroid (mean of vertices) of a polygon's points. */
+function polygonCentroid(points: Vec2[]): Vec2 {
+  let sx = 0;
+  let sy = 0;
+  for (const [px, py] of points) {
+    sx += px;
+    sy += py;
+  }
+  return [sx / points.length, sy / points.length];
+}
+
+/**
+ * Scale a polygon about its centroid by `factor`. Never mutates the input.
+ */
+export function scalePolygon(
+  polygon: Extract<Shape, { kind: "polygon" }>,
+  factor: number,
+): Extract<Shape, { kind: "polygon" }> {
+  const [cx, cy] = polygonCentroid(polygon.points);
+  return {
+    ...polygon,
+    points: polygon.points.map(([px, py]): Vec2 => [
+      cx + (px - cx) * factor,
+      cy + (py - cy) * factor,
+    ]),
+  };
+}
+
+/** Axis-aligned bounds of a list of points. */
+function pointsBounds(points: Vec2[]): {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+} {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const [px, py] of points) {
+    if (px < minX) minX = px;
+    if (py < minY) minY = py;
+    if (px > maxX) maxX = px;
+    if (py > maxY) maxY = py;
+  }
+  return { minX, minY, maxX, maxY };
+}
+
+/**
+ * The resize-handle anchor points for a shape, in grid coordinates.
+ *
+ * - circle: one handle on its right edge (`[cx + r, cy]`).
+ * - box: four corner handles, ordered tl, tr, bl, br (matching `BoxCorner`).
+ * - polygon: four corners of its axis-aligned bounding box (tl, tr, bl, br).
+ */
+export function handlePositions(shape: Shape): Vec2[] {
+  switch (shape.kind) {
+    case "circle":
+      return [[shape.cx + shape.r, shape.cy]];
+    case "box":
+      return [
+        [shape.x, shape.y],
+        [shape.x + shape.w, shape.y],
+        [shape.x, shape.y + shape.h],
+        [shape.x + shape.w, shape.y + shape.h],
+      ];
+    case "polygon": {
+      const { minX, minY, maxX, maxY } = pointsBounds(shape.points);
+      return [
+        [minX, minY],
+        [maxX, minY],
+        [minX, maxY],
+        [maxX, maxY],
+      ];
+    }
+  }
+}
+
+/**
+ * Hit-test a shape's resize handles. Returns the index into `handlePositions`
+ * of the first handle within `radiusGrid` grid units of (gx, gy), or null when
+ * none is close enough. `radiusGrid` is the pick tolerance expressed in grid
+ * coordinates (callers convert a pixel radius via the canvas scale).
+ */
+export function hitTestHandle(
+  shape: Shape,
+  gx: number,
+  gy: number,
+  radiusGrid: number,
+): number | null {
+  const handles = handlePositions(shape);
+  const r2 = radiusGrid * radiusGrid;
+  for (let i = 0; i < handles.length; i++) {
+    const [hx, hy] = handles[i];
+    const dx = hx - gx;
+    const dy = hy - gy;
+    if (dx * dx + dy * dy <= r2) return i;
+  }
+  return null;
+}
+
 /**
  * Build a polygon shape from a freehand drag path of grid points.
  *

@@ -24,11 +24,36 @@ import { CanvasEditor } from "../../components/canvas/CanvasEditor";
 import type { Layer } from "../../components/canvas/CanvasEditor";
 import { UnitsBanner } from "../../components/UnitsBanner";
 import { MetricTable } from "../../components/MetricTable";
+import { DisagreementInsight } from "../../components/DisagreementInsight";
+import { MetricBarChart } from "../../components/charts/MetricBarChart";
 import { useEngineMetrics } from "../../components/metrics/useEngineMetrics";
 import { useLang } from "../../i18n/LanguageContext";
 import type { Lang } from "../../i18n/LanguageContext";
 import { SEG_PRESETS, DEFAULT_PRESET_ID } from "./presets";
 import type { SegPreset } from "./presets";
+
+/** Layers shown on the canvas by default — all three. */
+const DEFAULT_VISIBLE_LAYERS: Layer[] = ["GT", "A", "B"];
+
+/** Bilingual copy for the editing-action row. */
+const L = {
+  ko: {
+    actions: "편집 동작",
+    undo: "실행취소",
+    reset: "초기화",
+    clearLayer: "레이어 비우기",
+    insight: "인사이트",
+    chart: "지표 막대 비교",
+  },
+  en: {
+    actions: "Edit actions",
+    undo: "Undo",
+    reset: "Reset",
+    clearLayer: "Clear layer",
+    insight: "Insight",
+    chart: "Metric bar comparison",
+  },
+} as const;
 
 /** Bounds for the NSD tolerance slider, in millimeters. */
 const NSD_MIN = 0;
@@ -164,6 +189,30 @@ const presetDescriptionStyle: CSSProperties = {
   color: "var(--c-text-dim)",
 };
 
+const actionRowStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "var(--space-2)",
+};
+
+const actionButtonStyle: CSSProperties = {
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-sm)",
+  color: "var(--c-text)",
+  background: "var(--c-surface-2)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+  padding: "var(--space-2) var(--space-3)",
+  cursor: "pointer",
+};
+
+const actionButtonDisabledStyle: CSSProperties = {
+  ...actionButtonStyle,
+  color: "var(--c-text-dim)",
+  cursor: "not-allowed",
+  opacity: 0.6,
+};
+
 /** Pick a preset's label for the active language. */
 function presetLabel(preset: SegPreset, lang: Lang): string {
   return lang === "ko" ? preset.labelKo : preset.label;
@@ -215,13 +264,22 @@ function PresetBar({
 
 export default function Playground() {
   const { lang } = useLang();
+  const t = L[lang];
   const [state, setState] = useState<EngineState>(() => cloneState(DEFAULT_PRESET.state));
   const [activePresetId, setActivePresetId] = useState<string>(DEFAULT_PRESET.id);
   const [activeLayer, setActiveLayer] = useState<Layer>("GT");
+  const [visibleLayers, setVisibleLayers] = useState<Layer[]>(() => [...DEFAULT_VISIBLE_LAYERS]);
+  /** Undo stack of prior EngineStates; the last entry is the most recent. */
+  const [history, setHistory] = useState<EngineState[]>([]);
   const { rows } = useEngineMetrics(state);
+
+  /** Push the current state onto the undo history before mutating it. */
+  const pushHistory = (current: EngineState) =>
+    setHistory((prev) => [...prev, cloneState(current)]);
 
   /** Replace the entire engine state with the chosen preset and highlight it. */
   const selectPreset = (preset: SegPreset) => {
+    pushHistory(state);
     setState(cloneState(preset.state));
     setActivePresetId(preset.id);
   };
@@ -230,6 +288,7 @@ export default function Playground() {
   const handleLayerChange = (layer: Layer, shapes: Shape[]) => {
     setActiveLayer(layer);
     setActivePresetId("");
+    pushHistory(state);
     setState((prev) => {
       if (layer === "GT") {
         return { ...prev, gt: shapes };
@@ -241,12 +300,57 @@ export default function Playground() {
     });
   };
 
-  const setNsdTolerance = (mm: number) =>
+  const setNsdTolerance = (mm: number) => {
+    pushHistory(state);
     setState((prev) => ({ ...prev, nsdToleranceMm: mm }));
+  };
 
-  const setPolicy = (patch: Partial<DegeneratePolicy>) =>
+  const setPolicy = (patch: Partial<DegeneratePolicy>) => {
+    pushHistory(state);
     setState((prev) => ({ ...prev, policy: { ...prev.policy, ...patch } }));
+  };
 
+  /** Pop the last state off the history stack, restoring it. */
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    const restored = history[history.length - 1];
+    setHistory((prev) => prev.slice(0, -1));
+    setState(restored);
+    setActivePresetId("");
+  };
+
+  /** Re-apply the currently active preset's state (no-op snapshot if none active). */
+  const handleReset = () => {
+    const preset = SEG_PRESETS.find((p) => p.id === activePresetId) ?? DEFAULT_PRESET;
+    pushHistory(state);
+    setState(cloneState(preset.state));
+    setActivePresetId(preset.id);
+  };
+
+  /** Empty the active layer's shapes, recording the prior state for Undo. */
+  const handleClearLayer = () => {
+    pushHistory(state);
+    setActivePresetId("");
+    setState((prev) => {
+      if (activeLayer === "GT") {
+        return { ...prev, gt: [] };
+      }
+      return {
+        ...prev,
+        predictions: prev.predictions.map((p) =>
+          p.id === activeLayer ? { ...p, shapes: [] } : p,
+        ),
+      };
+    });
+  };
+
+  /** Toggle whether a layer is drawn on the canvas (does not change metrics). */
+  const toggleLayerVisibility = (layer: Layer) =>
+    setVisibleLayers((prev) =>
+      prev.includes(layer) ? prev.filter((l) => l !== layer) : [...prev, layer],
+    );
+
+  const canUndo = history.length > 0;
   const tolerance = state.nsdToleranceMm ?? 2;
 
   return (
@@ -261,7 +365,30 @@ export default function Playground() {
             predictions={state.predictions}
             activeLayer={activeLayer}
             onChange={handleLayerChange}
+            visibleLayers={visibleLayers}
+            onToggleLayerVisibility={toggleLayerVisibility}
           />
+
+          <section style={panelStyle}>
+            <h3 style={headingStyle}>{t.actions}</h3>
+            <div style={actionRowStyle} role="group" aria-label={t.actions}>
+              <button
+                type="button"
+                style={canUndo ? actionButtonStyle : actionButtonDisabledStyle}
+                disabled={!canUndo}
+                onClick={handleUndo}
+              >
+                {t.undo}
+              </button>
+              <button type="button" style={actionButtonStyle} onClick={handleReset}>
+                {t.reset}
+              </button>
+              <button type="button" style={actionButtonStyle} onClick={handleClearLayer}>
+                {t.clearLayer}
+              </button>
+            </div>
+          </section>
+
           <UnitsBanner spacingMm={[1, 1]} />
         </div>
 
@@ -269,6 +396,16 @@ export default function Playground() {
           <section style={panelStyle}>
             <h3 style={headingStyle}>{lang === "ko" ? "A 대 B 지표" : "A vs B metrics"}</h3>
             <MetricTable rows={rows} />
+          </section>
+
+          <section style={panelStyle}>
+            <h3 style={headingStyle}>{t.insight}</h3>
+            <DisagreementInsight rows={rows} />
+          </section>
+
+          <section style={panelStyle}>
+            <h3 style={headingStyle}>{t.chart}</h3>
+            <MetricBarChart rows={rows} />
           </section>
 
           <section style={panelStyle}>

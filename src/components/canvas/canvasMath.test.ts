@@ -6,6 +6,11 @@ import {
   addCircle,
   addBox,
   pathToPolygon,
+  resizeCircle,
+  resizeBoxCorner,
+  scalePolygon,
+  handlePositions,
+  hitTestHandle,
 } from "./canvasMath";
 import { makeGrid } from "../../engine/raster/grid";
 import type { Shape, Vec2 } from "../../types/engine";
@@ -228,5 +233,157 @@ describe("pathToPolygon", () => {
     const snapshot = JSON.parse(JSON.stringify(path));
     pathToPolygon(path);
     expect(path).toEqual(snapshot);
+  });
+});
+
+describe("resizeCircle", () => {
+  const circle = { kind: "circle", cx: 5, cy: 5, r: 3 } as const;
+
+  it("sets the radius to the new value", () => {
+    expect(resizeCircle(circle, 7)).toEqual({
+      kind: "circle",
+      cx: 5,
+      cy: 5,
+      r: 7,
+    });
+  });
+
+  it("clamps the radius to a minimum of 1", () => {
+    expect(resizeCircle(circle, 0).r).toBe(1);
+    expect(resizeCircle(circle, -4).r).toBe(1);
+  });
+
+  it("does not mutate the original circle", () => {
+    resizeCircle(circle, 99);
+    expect(circle.r).toBe(3);
+  });
+});
+
+describe("resizeBoxCorner", () => {
+  const box = { kind: "box", x: 2, y: 2, w: 6, h: 6 } as const;
+
+  it("resizes by dragging the bottom-right corner outward", () => {
+    expect(resizeBoxCorner(box, "br", 10, 12)).toEqual({
+      kind: "box",
+      x: 2,
+      y: 2,
+      w: 8,
+      h: 10,
+    });
+  });
+
+  it("resizes by dragging the top-left corner, keeping bottom-right anchored", () => {
+    // Anchor (right, bottom) = (8, 8); new tl = (4, 5).
+    expect(resizeBoxCorner(box, "tl", 4, 5)).toEqual({
+      kind: "box",
+      x: 4,
+      y: 5,
+      w: 4,
+      h: 3,
+    });
+  });
+
+  it("normalizes a corner dragged past the opposite corner (no inversion)", () => {
+    // Drag bottom-right far past the anchored top-left (2, 2).
+    const result = resizeBoxCorner(box, "br", -3, -1);
+    expect(result.w).toBeGreaterThanOrEqual(0);
+    expect(result.h).toBeGreaterThanOrEqual(0);
+    expect(result).toEqual({ kind: "box", x: -3, y: -1, w: 5, h: 3 });
+  });
+
+  it("does not mutate the original box", () => {
+    resizeBoxCorner(box, "br", 20, 20);
+    expect(box).toEqual({ kind: "box", x: 2, y: 2, w: 6, h: 6 });
+  });
+});
+
+describe("scalePolygon", () => {
+  // Square centered at (5, 5) with half-extent 5.
+  const square: Extract<Shape, { kind: "polygon" }> = {
+    kind: "polygon",
+    points: [
+      [0, 0],
+      [10, 0],
+      [10, 10],
+      [0, 10],
+    ],
+  };
+
+  it("scales about the centroid by a factor > 1", () => {
+    const scaled = scalePolygon(square, 2);
+    expect(scaled.points).toEqual([
+      [-5, -5],
+      [15, -5],
+      [15, 15],
+      [-5, 15],
+    ]);
+  });
+
+  it("keeps the centroid fixed when scaling", () => {
+    const scaled = scalePolygon(square, 0.5);
+    const cx = scaled.points.reduce((s, [px]) => s + px, 0) / 4;
+    const cy = scaled.points.reduce((s, [, py]) => s + py, 0) / 4;
+    expect(cx).toBeCloseTo(5);
+    expect(cy).toBeCloseTo(5);
+  });
+
+  it("does not mutate the original polygon", () => {
+    scalePolygon(square, 3);
+    expect(square.points[0]).toEqual([0, 0]);
+  });
+});
+
+describe("handlePositions", () => {
+  it("returns a single handle on a circle's right edge", () => {
+    const handles = handlePositions({ kind: "circle", cx: 5, cy: 5, r: 3 });
+    expect(handles).toHaveLength(1);
+    expect(handles[0]).toEqual([8, 5]);
+  });
+
+  it("returns four corner handles for a box", () => {
+    const handles = handlePositions({ kind: "box", x: 2, y: 2, w: 4, h: 6 });
+    expect(handles).toHaveLength(4);
+    expect(handles).toEqual([
+      [2, 2],
+      [6, 2],
+      [2, 8],
+      [6, 8],
+    ]);
+  });
+
+  it("returns four bounding-box corners for a polygon", () => {
+    const handles = handlePositions({
+      kind: "polygon",
+      points: [
+        [1, 1],
+        [5, 0],
+        [3, 7],
+      ],
+    });
+    expect(handles).toHaveLength(4);
+    expect(handles).toEqual([
+      [1, 0],
+      [5, 0],
+      [1, 7],
+      [5, 7],
+    ]);
+  });
+});
+
+describe("hitTestHandle", () => {
+  const box = { kind: "box", x: 2, y: 2, w: 4, h: 4 } as const;
+
+  it("returns the index of a handle within the pick radius", () => {
+    // Bottom-right handle is at (6, 6).
+    expect(hitTestHandle(box, 6.4, 6.2, 1)).toBe(3);
+  });
+
+  it("returns null when no handle is within the pick radius", () => {
+    expect(hitTestHandle(box, 4, 4, 1)).toBeNull();
+  });
+
+  it("hits a circle's lone right-edge handle", () => {
+    const circle = { kind: "circle", cx: 5, cy: 5, r: 3 } as const;
+    expect(hitTestHandle(circle, 8, 5, 0.5)).toBe(0);
   });
 });

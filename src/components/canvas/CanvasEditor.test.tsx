@@ -52,7 +52,7 @@ describe("CanvasEditor", () => {
     );
     expect(screen.getByRole("button", { name: "원 추가" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "박스 추가" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "이동" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "선택 / 이동" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "삭제" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "그리기" })).toBeInTheDocument();
   });
@@ -221,5 +221,140 @@ describe("CanvasEditor", () => {
     fireEvent.pointerUp(canvas, { clientX: 0, clientY: 0, pointerId: 1 });
 
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("labels the Select / Move tool", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+    expect(
+      screen.getByRole("button", { name: "Select / Move" }),
+    ).toBeInTheDocument();
+  });
+
+  const stubRect = (canvas: HTMLCanvasElement) => {
+    // 16x16 grid mapped onto a 160px canvas: 10px == 1 grid cell.
+    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 160,
+      height: 160,
+      right: 160,
+      bottom: 160,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+  };
+
+  it("resizes the selected box when dragging a corner handle (onChange path)", () => {
+    const onChange = vi.fn();
+    // Box occupying grid cells [2,2]..[8,8]; bottom-right handle at grid (8, 8).
+    const box: Shape = { kind: "box", x: 2, y: 2, w: 6, h: 6 };
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[box]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={onChange}
+        />
+      </LanguageProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Select / Move" }));
+
+    const canvas = document.querySelector("canvas")!;
+    stubRect(canvas);
+
+    // 1) Select the box by clicking its interior (grid cell 4,4 -> 45px,45px).
+    fireEvent.pointerDown(canvas, { clientX: 45, clientY: 45, pointerId: 1 });
+    fireEvent.pointerUp(canvas, { clientX: 45, clientY: 45, pointerId: 1 });
+    onChange.mockClear();
+
+    // 2) Grab the bottom-right handle (grid 8,8 -> 80px,80px) and drag to
+    //    grid (12, 12) -> 125px,125px, enlarging the box.
+    fireEvent.pointerDown(canvas, { clientX: 80, clientY: 80, pointerId: 1 });
+    fireEvent.pointerMove(canvas, { clientX: 125, clientY: 125, pointerId: 1 });
+    fireEvent.pointerUp(canvas, { clientX: 125, clientY: 125, pointerId: 1 });
+
+    expect(onChange).toHaveBeenCalled();
+    const [layer, shapes] = onChange.mock.calls[onChange.mock.calls.length - 1];
+    expect(layer).toBe("GT");
+    const resized = shapes[0];
+    expect(resized.kind).toBe("box");
+    // Anchored top-left stays at (2,2); corner moved to (12,12): w=h=10.
+    expect(resized.x).toBe(2);
+    expect(resized.y).toBe(2);
+    expect(resized.w).toBe(10);
+    expect(resized.h).toBe(10);
+  });
+
+  it("draws only the layers in visibleLayers (precedence over showLayers)", () => {
+    // Smoke test: with visibleLayers set, rendering must not throw and the
+    // canvas must still mount. getContext returns null under jsdom, so we only
+    // assert the component renders without error.
+    const onChange = vi.fn();
+    render(
+      <CanvasEditor
+        grid={grid}
+        gt={[{ kind: "circle", cx: 5, cy: 5, r: 3 }]}
+        predictions={[{ id: "A", shapes: [] }]}
+        activeLayer="GT"
+        onChange={onChange}
+        showLayers={["GT", "A", "B"]}
+        visibleLayers={["GT"]}
+      />,
+    );
+    expect(document.querySelector("canvas")).toBeInTheDocument();
+  });
+
+  it("renders no eye toggles when onToggleLayerVisibility is absent", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+    expect(screen.queryByRole("button", { name: /Hide GT/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Show GT/i })).toBeNull();
+  });
+
+  it("renders eye toggles that call onToggleLayerVisibility", () => {
+    const onToggle = vi.fn();
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+          visibleLayers={["GT", "A"]}
+          onToggleLayerVisibility={onToggle}
+        />
+      </LanguageProvider>,
+    );
+
+    // GT and A are visible -> "Hide ..." ; B is hidden -> "Show ...".
+    fireEvent.click(screen.getByRole("button", { name: /Hide GT/i }));
+    expect(onToggle).toHaveBeenCalledWith("GT");
+
+    fireEvent.click(screen.getByRole("button", { name: /Show Prediction B/i }));
+    expect(onToggle).toHaveBeenCalledWith("B");
   });
 });
