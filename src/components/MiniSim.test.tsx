@@ -1,0 +1,39 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import type { EngineState } from "../types/engine";
+import type { MiniSimConfig } from "../types/topic";
+import MiniSim from "./MiniSim";
+
+const baseState: EngineState = {
+  grid: { width: 128, height: 128, spacingMm: [1, 1] },
+  gt: [{ kind: "circle", cx: 64, cy: 64, r: 30 }],
+  predictions: [{ id: "A", shapes: [{ kind: "circle", cx: 64, cy: 64, r: 30 }] }],
+  policy: { emptyDice: "one", emptyDistance: "undefined" },
+};
+
+function config(kind: string, spotlightMetric = "dice"): MiniSimConfig {
+  return { kind, initialState: baseState, spotlightMetric };
+}
+
+describe("MiniSim dispatcher", () => {
+  it("renders the Dice overlap widget for the 'dice-overlap' kind", () => {
+    render(<MiniSim config={config("dice-overlap", "dice")} />);
+
+    // DiceOverlapSim exposes a "Pred offset" slider; assert its control appears.
+    expect(screen.getByLabelText(/pred offset/i)).toBeInTheDocument();
+  });
+
+  it("renders the AP-reorder widget for the 'ap-reorder' kind", () => {
+    render(<MiniSim config={config("ap-reorder", "ap")} />);
+
+    // ApReorderSim exposes a "Sort by confidence" control.
+    expect(screen.getByText(/sort by confidence/i)).toBeInTheDocument();
+  });
+
+  it("renders the coming-soon note for an unknown kind without crashing", () => {
+    render(<MiniSim config={config("totally-unknown-kind")} />);
+
+    const note = screen.getByRole("note");
+    expect(note).toHaveTextContent(/coming soon/i);
+  });
+});
