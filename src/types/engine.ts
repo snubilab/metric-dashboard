@@ -1,0 +1,42 @@
+export type Vec2 = [number, number];
+
+export type Shape =
+  | { kind: "circle"; cx: number; cy: number; r: number }
+  | { kind: "box"; x: number; y: number; w: number; h: number }
+  | { kind: "polygon"; points: Vec2[] };
+
+export interface Grid {
+  width: number;
+  height: number;
+  spacingMm: Vec2; // [sx, sy] millimeters per pixel
+}
+
+export type EmptyDicePolicy = "one" | "zero" | "nan";
+export type EmptyDistancePolicy = "undefined" | "diagonal" | "fixed";
+
+export interface DegeneratePolicy {
+  emptyDice: EmptyDicePolicy;        // value when GT and pred both empty
+  emptyDistance: EmptyDistancePolicy; // HD/HD95 when one mask empty
+  fixedPenaltyMm?: number;           // used when emptyDistance === "fixed"
+}
+
+export interface DetBox {
+  x: number; y: number; w: number; h: number;
+  confidence?: number; // omitted for ground-truth objects
+}
+
+export interface PredictionLayer {
+  id: "A" | "B";
+  shapes: Shape[];
+}
+
+export interface EngineState {
+  grid: Grid;
+  gt: Shape[];
+  predictions: PredictionLayer[];
+  detections?: { boxes: DetBox[]; gtObjects: DetBox[] };
+  policy: DegeneratePolicy;
+  nsdToleranceMm?: number;
+}
+
+export type Mask = Uint8Array; // length = width*height, values 0|1
