@@ -45,6 +45,7 @@ const L = {
     predictionB: "예측 B",
     show: "표시",
     hide: "숨김",
+    emptyHint: '도형이 없습니다 — "원 추가"로 시작하세요',
   },
   en: {
     addCircle: "Add circle",
@@ -59,7 +60,20 @@ const L = {
     predictionB: "Prediction B",
     show: "Show",
     hide: "Hide",
+    emptyHint: 'No shapes — start with "Add circle".',
   },
+} as const;
+
+/**
+ * Affordance glyphs prefixed to each tool label (unicode, not emoji). The
+ * bilingual text label follows the glyph.
+ */
+const TOOL_GLYPH = {
+  circle: "◯", // ◯
+  box: "▢", // ▢
+  draw: "✎", // ✎
+  move: "↔", // ↔
+  delete: "✕", // ✕
 } as const;
 
 interface PredictionInput {
@@ -272,6 +286,14 @@ export function CanvasEditor({
   // visibleLayers takes precedence over showLayers; both default to all.
   const visibleLayers = visibleLayersProp ?? showLayers ?? ALL_LAYERS;
   const activeShapes = shapesForLayer(activeLayer, gt, predictions);
+
+  // Show the empty-state hint when nothing is drawn: the active layer has no
+  // shapes and no visible layer contributes any either. (Rendered as an HTML
+  // overlay so it works under jsdom, where getContext returns null.)
+  const hasVisibleShapes = visibleLayers.some(
+    (layer) => shapesForLayer(layer, gt, predictions).length > 0,
+  );
+  const isEmpty = activeShapes.length === 0 && !hasVisibleShapes;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -524,19 +546,30 @@ export function CanvasEditor({
           gap: "var(--space-2)",
         }}
       >
-        <ToolButton label={t.addCircle} onClick={handleAddCircle} />
-        <ToolButton label={t.addBox} onClick={handleAddBox} />
         <ToolButton
+          glyph={TOOL_GLYPH.circle}
+          label={t.addCircle}
+          onClick={handleAddCircle}
+        />
+        <ToolButton
+          glyph={TOOL_GLYPH.box}
+          label={t.addBox}
+          onClick={handleAddBox}
+        />
+        <ToolButton
+          glyph={TOOL_GLYPH.draw}
           label={t.draw}
           pressed={tool === "draw"}
           onClick={() => setTool("draw")}
         />
         <ToolButton
+          glyph={TOOL_GLYPH.move}
           label={t.move}
           pressed={tool === "move"}
           onClick={() => setTool("move")}
         />
         <ToolButton
+          glyph={TOOL_GLYPH.delete}
           label={t.delete}
           pressed={tool === "delete"}
           onClick={() => setTool("delete")}
@@ -633,27 +666,55 @@ export function CanvasEditor({
         </div>
       </div>
 
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_PX}
-        height={CANVAS_PX}
-        aria-label={t.segmentationEditor}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
+      <div
         style={{
+          position: "relative",
           width: "100%",
           maxWidth: `${CANVAS_PX}px`,
-          aspectRatio: `${grid.width} / ${grid.height}`,
-          display: "block",
-          background: "var(--c-surface)",
-          border: "1px solid var(--c-border)",
-          borderRadius: "var(--radius-md)",
-          touchAction: "none",
-          cursor: tool === "delete" ? "not-allowed" : "crosshair",
         }}
-      />
+      >
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_PX}
+          height={CANVAS_PX}
+          aria-label={t.segmentationEditor}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          style={{
+            width: "100%",
+            maxWidth: `${CANVAS_PX}px`,
+            aspectRatio: `${grid.width} / ${grid.height}`,
+            display: "block",
+            background: "var(--c-surface)",
+            border: "1px solid var(--c-border)",
+            borderRadius: "var(--radius-md)",
+            touchAction: "none",
+            cursor: tool === "delete" ? "not-allowed" : "crosshair",
+          }}
+        />
+        {isEmpty && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "var(--space-3)",
+              textAlign: "center",
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-sm)",
+              color: "var(--c-text-dim)",
+              pointerEvents: "none",
+            }}
+          >
+            {t.emptyHint}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -661,26 +722,40 @@ export function CanvasEditor({
 interface ToolButtonProps {
   label: string;
   onClick: () => void;
+  /** Affordance glyph rendered before the text label (unicode, not emoji). */
+  glyph?: string;
+  /**
+   * Active state for MODE tools (draw / select-move / delete). When true the
+   * button is styled like the active layer chip (pred-A border + surface-2 bg)
+   * and `aria-pressed` is reflected. Omitted for momentary action buttons
+   * (add-circle / add-box), which never show a persistent active state.
+   */
   pressed?: boolean;
 }
 
-function ToolButton({ label, onClick, pressed }: ToolButtonProps) {
+function ToolButton({ label, onClick, glyph, pressed }: ToolButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={pressed}
       style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "var(--space-1)",
         padding: "var(--space-1) var(--space-3)",
         fontFamily: "var(--font-ui)",
         fontSize: "var(--text-sm)",
         color: "var(--c-text)",
         background: pressed ? "var(--c-surface-2)" : "var(--c-surface)",
-        border: "1px solid var(--c-border)",
+        border: pressed
+          ? "1px solid var(--c-pred-a)"
+          : "1px solid var(--c-border)",
         borderRadius: "var(--radius-sm)",
         cursor: "pointer",
       }}
     >
+      {glyph && <span aria-hidden="true">{glyph}</span>}
       {label}
     </button>
   );

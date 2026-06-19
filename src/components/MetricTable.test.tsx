@@ -74,6 +74,48 @@ describe("MetricTable", () => {
     expect(screen.getByText("예측 A")).toBeInTheDocument();
     expect(screen.getByText("예측 B")).toBeInTheDocument();
     expect(screen.getByText("순위 불일치")).toBeInTheDocument();
+    expect(screen.getByText("굵게 = 해당 지표에서 더 우수")).toBeInTheDocument();
+  });
+
+  it("explains the bold convention in the English legend", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <MetricTable rows={opposingRows} />
+      </LanguageProvider>,
+    );
+
+    expect(screen.getByText("Bold = better on this metric")).toBeInTheDocument();
+  });
+
+  it("marks each metric with its higher/lower-is-better direction", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <MetricTable rows={opposingRows} />
+      </LanguageProvider>,
+    );
+
+    const diceRow = screen.getByText("Dice").closest("tr");
+    expect(diceRow).not.toBeNull();
+    expect(
+      within(diceRow as HTMLElement).getByLabelText(/higher is better/i),
+    ).toBeInTheDocument();
+
+    const hd95Row = screen.getByText("HD95").closest("tr");
+    expect(hd95Row).not.toBeNull();
+    expect(
+      within(hd95Row as HTMLElement).getByLabelText(/lower is better/i),
+    ).toBeInTheDocument();
+  });
+
+  it("marks the metric direction in Korean", () => {
+    render(
+      <LanguageProvider initialLang="ko">
+        <MetricTable rows={opposingRows} />
+      </LanguageProvider>,
+    );
+
+    expect(screen.getByLabelText("높을수록 좋음")).toBeInTheDocument();
+    expect(screen.getByLabelText("낮을수록 좋음")).toBeInTheDocument();
   });
 
   it("colors the A and B column headers with the prediction tokens", () => {

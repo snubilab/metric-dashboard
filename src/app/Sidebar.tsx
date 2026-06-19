@@ -80,14 +80,15 @@ function itemStyle(isActive: boolean, isAvailable: boolean): React.CSSProperties
 
 const soonTagStyle: React.CSSProperties = {
   flex: "0 0 auto",
-  padding: "0 var(--space-1)",
+  padding: "var(--space-1) var(--space-2)",
   fontSize: "var(--text-xs)",
   fontFamily: "var(--font-mono)",
+  fontWeight: 600,
+  lineHeight: 1,
   textTransform: "uppercase",
   letterSpacing: "0.06em",
   color: "var(--c-text-dim)",
   background: "var(--c-surface-2)",
-  border: "1px solid var(--c-border)",
   borderRadius: "var(--radius-sm)",
 };
 

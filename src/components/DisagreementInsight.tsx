@@ -24,16 +24,24 @@ interface DisagreementInsightProps {
 
 const L = {
   ko: {
-    referenceWins: (side: string, label: string) => `예측 ${side}가 ${label} 기준으로 더 낫지만`,
-    flaggedWin: (label: string, side: string) => `${label}는 예측 ${side}가 더 낫고`,
+    referenceWins: (side: string, label: string) => `예측 ${side}가 ${label}에서 앞서지만`,
+    flaggedWin: (label: string, side: string) => `${label}에서는 예측 ${side}가 앞섭니다`,
     verdictFlips: "어떤 지표를 보느냐에 따라 우열이 바뀝니다.",
     agree: "이 장면에서는 모든 지표에서 예측 A와 B의 우열이 일치합니다.",
+    /** Separator between two or more flagged-metric clauses. */
+    clauseJoin: ", ",
+    /** Break before the closing verdict; the flagged clause ends a full sentence. */
+    verdictJoin: ". ",
   },
   en: {
-    referenceWins: (side: string, label: string) => `Prediction ${side} is better on ${label}, but`,
+    referenceWins: (side: string, label: string) => `Prediction ${side} leads on ${label}, but`,
     flaggedWin: (label: string, side: string) => `${label} favors prediction ${side}`,
     verdictFlips: "— which prediction wins depends on the metric you look at.",
     agree: "In this scene, predictions A and B agree across every metric.",
+    /** Separator between two or more flagged-metric clauses. */
+    clauseJoin: ", and ",
+    /** Break before the closing verdict; the verdict already opens with an em-dash. */
+    verdictJoin: " ",
   },
 } as const;
 
@@ -102,7 +110,12 @@ export function DisagreementInsight({ rows }: DisagreementInsightProps) {
     return t.flaggedWin(localizedMetricLabel(row.key, row.label, lang), side);
   });
 
-  const sentence = `${lead} ${clauses.join(", ")} ${t.verdictFlips}`;
+  // `lead` ends with the contrastive conjunction ("앞서지만" / "but"), so a single
+  // space carries it into the flagged clauses. Multiple flipped metrics are joined
+  // with a language-appropriate separator so the run of clauses reads naturally
+  // rather than as a comma-spliced list.
+  const flaggedSentence = clauses.join(t.clauseJoin);
+  const sentence = `${lead} ${flaggedSentence}${t.verdictJoin}${t.verdictFlips}`;
 
   return (
     <p data-role="insight" data-disagree="true" style={calloutStyle}>

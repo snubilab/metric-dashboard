@@ -44,6 +44,7 @@ const L = {
     clearLayer: "레이어 비우기",
     insight: "인사이트",
     chart: "지표 막대 비교",
+    dragHint: "도형을 드래그하면 오른쪽 지표가 실시간으로 갱신됩니다",
   },
   en: {
     actions: "Edit actions",
@@ -52,6 +53,7 @@ const L = {
     clearLayer: "Clear layer",
     insight: "Insight",
     chart: "Metric bar comparison",
+    dragHint: "Drag a shape — the metrics on the right update live.",
   },
 } as const;
 
@@ -62,6 +64,23 @@ const NSD_STEP = 0.5;
 
 const EMPTY_DICE_OPTIONS: EmptyDicePolicy[] = ["one", "zero", "nan"];
 const EMPTY_DISTANCE_OPTIONS: EmptyDistancePolicy[] = ["undefined", "diagonal", "fixed"];
+
+/**
+ * Human-readable, bilingual labels for the degenerate-policy option values.
+ * The <option> keeps the raw code as its `value`; only the displayed text is
+ * localized so students never see opaque tokens like "nan" or "diagonal".
+ */
+const EMPTY_DICE_LABELS: Record<EmptyDicePolicy, Record<Lang, string>> = {
+  one: { ko: "둘 다 비면 1.0", en: "Both empty → 1.0" },
+  zero: { ko: "둘 다 비면 0.0", en: "Both empty → 0.0" },
+  nan: { ko: "정의 안 함(NaN)", en: "Undefined (NaN)" },
+};
+
+const EMPTY_DISTANCE_LABELS: Record<EmptyDistancePolicy, Record<Lang, string>> = {
+  undefined: { ko: "정의 안 함(NaN)", en: "Undefined (NaN)" },
+  diagonal: { ko: "대각선 길이로 대체", en: "Image diagonal" },
+  fixed: { ko: "고정 페널티", en: "Fixed penalty" },
+};
 
 /** The well-configured preset loaded on first render. */
 const DEFAULT_PRESET: SegPreset =
@@ -146,6 +165,13 @@ const selectStyle: CSSProperties = {
   border: "1px solid var(--c-border)",
   borderRadius: "var(--radius-sm)",
   padding: "var(--space-1) var(--space-2)",
+};
+
+const dragHintStyle: CSSProperties = {
+  margin: 0,
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-xs)",
+  color: "var(--c-text-dim)",
 };
 
 const headingStyle: CSSProperties = {
@@ -359,6 +385,8 @@ export default function Playground() {
 
       <div style={splitStyle}>
         <div style={columnStyle}>
+          <p style={dragHintStyle}>{t.dragHint}</p>
+
           <CanvasEditor
             grid={state.grid}
             gt={state.gt}
@@ -399,21 +427,11 @@ export default function Playground() {
           </section>
 
           <section style={panelStyle}>
-            <h3 style={headingStyle}>{t.insight}</h3>
-            <DisagreementInsight rows={rows} />
-          </section>
-
-          <section style={panelStyle}>
-            <h3 style={headingStyle}>{t.chart}</h3>
-            <MetricBarChart rows={rows} />
-          </section>
-
-          <section style={panelStyle}>
             <h3 style={headingStyle}>{lang === "ko" ? "컨트롤" : "Controls"}</h3>
             <div style={controlsRowStyle}>
               <label style={fieldStyle}>
                 <span style={labelStyle}>
-                  {lang === "ko" ? "NSD 허용 오차" : "NSD tolerance"}{" "}
+                  {lang === "ko" ? "NSD 허용 오차" : "NSD tolerance"}:{" "}
                   <span style={valueBadgeStyle}>{tolerance.toFixed(1)} mm</span>
                 </span>
                 <input
@@ -439,7 +457,7 @@ export default function Playground() {
                 >
                   {EMPTY_DICE_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {EMPTY_DICE_LABELS[opt][lang]}
                     </option>
                   ))}
                 </select>
@@ -459,12 +477,22 @@ export default function Playground() {
                 >
                   {EMPTY_DISTANCE_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {EMPTY_DISTANCE_LABELS[opt][lang]}
                     </option>
                   ))}
                 </select>
               </label>
             </div>
+          </section>
+
+          <section style={panelStyle}>
+            <h3 style={headingStyle}>{t.insight}</h3>
+            <DisagreementInsight rows={rows} />
+          </section>
+
+          <section style={panelStyle}>
+            <h3 style={headingStyle}>{t.chart}</h3>
+            <MetricBarChart rows={rows} />
           </section>
         </div>
       </div>

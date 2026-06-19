@@ -28,8 +28,10 @@ describe("DisagreementInsight", () => {
     const callout = screen.getByText(/HD95/);
     expect(callout).toBeInTheDocument();
     expect(callout).toHaveAttribute("data-disagree", "true");
-    // References both the reference metric and the flipped one.
+    // References both the reference metric and the flipped one, and names the
+    // flipped metric with its winning side using the unambiguous "앞섭니다" wording.
     expect(callout.textContent).toContain("Dice");
+    expect(callout.textContent).toContain("HD95에서는 예측 B가 앞섭니다");
     expect(callout.textContent).toContain("우열이 바뀝니다");
   });
 
@@ -43,6 +45,8 @@ describe("DisagreementInsight", () => {
     const callout = screen.getByText(/HD95/);
     expect(callout).toBeInTheDocument();
     expect(callout.textContent).toContain("Dice");
+    // Names the flipped metric with its winning side using the "favors" wording.
+    expect(callout.textContent).toContain("HD95 favors prediction B");
     expect(callout.textContent).toContain("depends on the metric");
   });
 

@@ -45,7 +45,7 @@ describe("MetricBarChart", () => {
     );
   });
 
-  it("prints the raw value (with unit) at the bar ends", () => {
+  it("prints the raw value (with unit) at the bar ends, always to 2 decimals", () => {
     const { getByText } = render(
       <LanguageProvider initialLang="en">
         <MetricBarChart rows={rows} />
@@ -53,8 +53,9 @@ describe("MetricBarChart", () => {
     );
     expect(getByText("0.90")).toBeInTheDocument();
     expect(getByText("0.70")).toBeInTheDocument();
-    expect(getByText("8 mm")).toBeInTheDocument();
-    expect(getByText("3 mm")).toBeInTheDocument();
+    // Integer mm distances are padded to 2 decimals to match the table.
+    expect(getByText("8.00 mm")).toBeInTheDocument();
+    expect(getByText("3.00 mm")).toBeInTheDocument();
   });
 
   it("normalizes bars within their own row so A is the longer of two same-row bars", () => {

@@ -28,6 +28,9 @@ const L = {
     predictionB: "예측 B",
     rankingDisagreement: "순위 불일치",
     disagreementMarker: "지표 순위 불일치",
+    higherIsBetter: "높을수록 좋음",
+    lowerIsBetter: "낮을수록 좋음",
+    boldLegend: "굵게 = 해당 지표에서 더 우수",
   },
   en: {
     metric: "Metric",
@@ -35,6 +38,9 @@ const L = {
     predictionB: "Prediction B",
     rankingDisagreement: "Ranking disagreement",
     disagreementMarker: "metric ranking disagreement",
+    higherIsBetter: "higher is better",
+    lowerIsBetter: "lower is better",
+    boldLegend: "Bold = better on this metric",
   },
 } as const;
 
@@ -57,6 +63,10 @@ const DECIMALS = 2;
 
 /** Marker glyph for a flagged row (NOT an emoji). */
 const WARN_GLYPH = "△"; // △ WHITE UP-POINTING TRIANGLE
+
+/** Direction glyphs: ↑ when higher is better, ↓ when lower is better. */
+const DIRECTION_UP_GLYPH = "↑"; // ↑ UPWARDS ARROW
+const DIRECTION_DOWN_GLYPH = "↓"; // ↓ DOWNWARDS ARROW
 
 interface MetricTableProps {
   /** Comparison rows; the first row is the reference for rank-flip detection. */
@@ -98,6 +108,13 @@ const metricCellStyle: React.CSSProperties = {
 const valueCellBase: React.CSSProperties = {
   padding: "var(--space-2) var(--space-3)",
   textAlign: "right",
+};
+
+const directionStyle: React.CSSProperties = {
+  marginLeft: "var(--space-1)",
+  color: "var(--c-text-dim)",
+  fontFamily: "var(--font-mono)",
+  fontSize: "var(--text-xs)",
 };
 
 const markerStyle: React.CSSProperties = {
@@ -200,6 +217,15 @@ export function MetricTable({ rows }: MetricTableProps) {
               >
                 <th scope="row" style={metricCellStyle}>
                   {lang === "ko" ? KO_METRIC_LABELS[row.key] ?? row.label : row.label}
+                  <span
+                    style={directionStyle}
+                    role="img"
+                    aria-label={row.higherIsBetter ? t.higherIsBetter : t.lowerIsBetter}
+                  >
+                    <span aria-hidden="true">
+                      {row.higherIsBetter ? DIRECTION_UP_GLYPH : DIRECTION_DOWN_GLYPH}
+                    </span>
+                  </span>
                   {flagged && (
                     <span
                       style={markerStyle}
@@ -234,6 +260,9 @@ export function MetricTable({ rows }: MetricTableProps) {
         <span style={legendItemStyle}>
           <span aria-hidden="true" style={swatchStyle("var(--c-warn)")} />
           {t.rankingDisagreement}
+        </span>
+        <span style={legendItemStyle}>
+          <span style={{ fontWeight: 600 }}>{t.boldLegend}</span>
         </span>
       </div>
     </div>

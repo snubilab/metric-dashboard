@@ -48,9 +48,14 @@ const TOP_PAD = 36;
 const SIDE_PAD = 12;
 const SWATCH = 10;
 
-/** Format a raw value with its optional unit for the mono end-label. */
+/**
+ * Format a raw value with its optional unit for the mono end-label.
+ *
+ * Always uses two decimals (so `1` -> `1.00`, `0` -> `0.00`) to match the
+ * table's precision, then appends the unit suffix when present.
+ */
 function formatValue(row: MetricRow, value: number): string {
-  const text = Number.isInteger(value) ? String(value) : value.toFixed(2);
+  const text = value.toFixed(2);
   return row.unit ? `${text} ${row.unit}` : text;
 }
 

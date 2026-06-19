@@ -357,4 +357,122 @@ describe("CanvasEditor", () => {
     fireEvent.click(screen.getByRole("button", { name: /Show Prediction B/i }));
     expect(onToggle).toHaveBeenCalledWith("B");
   });
+
+  it("prefixes each tool label with an affordance glyph", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+
+    // The glyph spans are aria-hidden, so partial text still resolves the
+    // accessible name; the glyph itself must be present in the button text.
+    expect(screen.getByRole("button", { name: /Add circle/i }).textContent).toContain("◯");
+    expect(screen.getByRole("button", { name: /Add box/i }).textContent).toContain("▢");
+    expect(screen.getByRole("button", { name: /Draw/i }).textContent).toContain("✎");
+    expect(screen.getByRole("button", { name: /Select \/ Move/i }).textContent).toContain("↔");
+    expect(screen.getByRole("button", { name: /Delete/i }).textContent).toContain("✕");
+  });
+
+  it("marks the selected mode tool as active (aria-pressed)", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+
+    const drawButton = screen.getByRole("button", { name: /Draw/i });
+    const moveButton = screen.getByRole("button", { name: /Select \/ Move/i });
+
+    // Initial tool is "circle" (a momentary action), so no mode tool is pressed.
+    expect(drawButton).toHaveAttribute("aria-pressed", "false");
+    expect(moveButton).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(drawButton);
+    expect(drawButton).toHaveAttribute("aria-pressed", "true");
+    expect(moveButton).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(moveButton);
+    expect(moveButton).toHaveAttribute("aria-pressed", "true");
+    expect(drawButton).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("keeps add-circle / add-box as momentary actions (no pressed state)", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+
+    // Momentary action buttons never expose a persistent active state.
+    expect(
+      screen.getByRole("button", { name: /Add circle/i }),
+    ).not.toHaveAttribute("aria-pressed");
+    expect(
+      screen.getByRole("button", { name: /Add box/i }),
+    ).not.toHaveAttribute("aria-pressed");
+  });
+
+  it("shows the empty-state hint when the active layer has no shapes", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+    expect(screen.getByText(/No shapes — start with "Add circle"\./)).toBeInTheDocument();
+  });
+
+  it("hides the empty-state hint once a shape exists", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[{ kind: "circle", cx: 5, cy: 5, r: 3 }]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+    expect(screen.queryByText(/No shapes/)).toBeNull();
+  });
+
+  it("shows the Korean empty-state hint by default", () => {
+    render(
+      <CanvasEditor
+        grid={grid}
+        gt={[]}
+        predictions={[]}
+        activeLayer="GT"
+        onChange={() => {}}
+      />,
+    );
+    expect(
+      screen.getByText('도형이 없습니다 — "원 추가"로 시작하세요'),
+    ).toBeInTheDocument();
+  });
 });

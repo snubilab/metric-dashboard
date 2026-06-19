@@ -87,4 +87,38 @@ describe("Playground", () => {
       within(group).getByRole("button", { name: "Clear layer" }),
     ).toBeInTheDocument();
   });
+
+  it("shows the live-update drag hint near the canvas", () => {
+    renderPlayground();
+    expect(
+      screen.getByText("Drag a shape — the metrics on the right update live."),
+    ).toBeInTheDocument();
+  });
+
+  it("renders human labels (not raw codes) in the policy selects", () => {
+    renderPlayground();
+
+    const dice = screen.getByRole("combobox", { name: "Empty Dice policy" });
+    expect(within(dice).getByRole("option", { name: "Both empty → 1.0" })).toBeInTheDocument();
+    expect(within(dice).getByRole("option", { name: "Both empty → 0.0" })).toBeInTheDocument();
+    expect(within(dice).getByRole("option", { name: "Undefined (NaN)" })).toBeInTheDocument();
+    // Raw code values must not surface as visible option text.
+    expect(within(dice).queryByRole("option", { name: "nan" })).not.toBeInTheDocument();
+
+    const distance = screen.getByRole("combobox", { name: "Empty distance policy" });
+    expect(
+      within(distance).getByRole("option", { name: "Undefined (NaN)" }),
+    ).toBeInTheDocument();
+    expect(within(distance).getByRole("option", { name: "Image diagonal" })).toBeInTheDocument();
+    expect(within(distance).getByRole("option", { name: "Fixed penalty" })).toBeInTheDocument();
+    expect(
+      within(distance).queryByRole("option", { name: "diagonal" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders the NSD tolerance label with a space and lowercase mm", () => {
+    renderPlayground();
+    expect(screen.getByText(/NSD tolerance:/)).toBeInTheDocument();
+    expect(screen.getByText(/2\.0 mm/)).toBeInTheDocument();
+  });
 });
