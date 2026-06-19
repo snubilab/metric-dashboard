@@ -38,6 +38,20 @@ const L = {
   },
 } as const;
 
+/**
+ * Korean labels for metric rows, keyed by MetricRow.key. Acronyms / proper-noun
+ * metric names (Dice, IoU, HD95, ASSD) are intentionally kept as-is; only the
+ * worded metric names are localized. Unknown keys fall back to row.label.
+ */
+const KO_METRIC_LABELS: Record<string, string> = {
+  sensitivity: "민감도",
+  precision: "정밀도",
+  nsd: "표면 Dice (NSD)",
+  surfaceDice: "표면 Dice (NSD)",
+  volRel: "상대 부피차",
+  volumeDiff: "상대 부피차",
+};
+
 /** Decimal places used for every value cell; metrics here read naturally at 2 dp. */
 const DECIMALS = 2;
 
@@ -185,7 +199,7 @@ export function MetricTable({ rows }: MetricTableProps) {
                 }}
               >
                 <th scope="row" style={metricCellStyle}>
-                  {row.label}
+                  {lang === "ko" ? KO_METRIC_LABELS[row.key] ?? row.label : row.label}
                   {flagged && (
                     <span
                       style={markerStyle}

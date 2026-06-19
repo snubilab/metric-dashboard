@@ -151,7 +151,9 @@ const presetButtonBaseStyle: CSSProperties = {
 
 const presetButtonActiveStyle: CSSProperties = {
   ...presetButtonBaseStyle,
-  borderColor: "var(--c-gt)",
+  // Use the full `border` shorthand (not borderColor) so we never mix
+  // shorthand + longhand for the same property on a re-render.
+  border: "1px solid var(--c-gt)",
   color: "var(--c-gt)",
 };
 
