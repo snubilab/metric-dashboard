@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  deepLesionScans,
   detectionScenarios,
   luna16Scans,
   rsnaGt,
@@ -76,5 +77,20 @@ describe("detectionScenarios", () => {
     const firstPerfect = froc.find((point) => point.sensitivity === 1);
     expect(firstPerfect).toBeDefined();
     expect(firstPerfect!.fpPerScan).toBeGreaterThan(4);
+  });
+
+  it("DeepLesion scene: sensitivity is 1.0 at 5 FP/image but only 0.5 at 1 FP/image", () => {
+    const froc = frocCurve(
+      deepLesionScans.detectionsPerScan,
+      deepLesionScans.gtPerScan,
+      0.5,
+    );
+
+    // DeepLesion's headline operating point: full sensitivity at 5 FP/image.
+    expect(sensitivityAtFp(froc, 5)).toBe(1);
+    // Tightening the FP budget to 1 FP/image halves the catch rate — the
+    // number is meaningless without the FP budget it was read at.
+    expect(sensitivityAtFp(froc, 1)).toBeLessThanOrEqual(0.5);
+    expect(sensitivityAtFp(froc, 1)).toBeLessThan(sensitivityAtFp(froc, 5));
   });
 });

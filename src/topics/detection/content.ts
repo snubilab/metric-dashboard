@@ -227,6 +227,8 @@ export const detectionLearn: LearnContent = {
         "Standard for medical lesion detection and CAD.",
         "Handles multiple lesions per image or scan.",
         "Lets you read off sensitivity at any chosen false-positive level.",
+        "Used for whole-slide pathology too — CAMELYON16 scores metastasis " +
+          "detection by FROC, plotting sensitivity against FP/image.",
       ],
       caveats: [
         "Adding more candidate detections raises sensitivity but also raises FP/scan.",
@@ -245,11 +247,15 @@ export const detectionLearn: LearnContent = {
         "reports detection sensitivity under a fixed false-positive condition. " +
         "LUNA16, for example, averages sensitivity across the seven FP/scan " +
         "levels {1/8, 1/4, 1/2, 1, 2, 4, 8}; DeepLesion reports sensitivity at " +
-        "5 false positives per image.",
+        "5 false positives per image; and CAMELYON16 scores whole-slide " +
+        "metastasis detection by FROC, reading sensitivity against the average " +
+        "false positives per image.",
       features: [
         "Directly states performance under a clinically meaningful FP budget.",
         "Easier to interpret than a single threshold-free summary in CAD settings.",
         "Averaging several FP levels gives a single challenge-ranking score.",
+        "Spans modalities: LUNA16 (CT, FP/scan), DeepLesion (CT, FP/image), and " +
+          "CAMELYON16 (whole-slide pathology, FP/image).",
       ],
       caveats: [
         "The chosen FP budget must match the clinical workflow it represents.",
