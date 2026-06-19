@@ -71,6 +71,9 @@ export const detectionLearn: LearnContent = {
         "A single ground-truth object cannot be split across two true positives.",
         "Changing the IoU threshold changes which predictions count as matched, and therefore every downstream metric.",
       ],
+      figure: "det-matching",
+      complements:
+        "Defines TP/FP/FN; a duplicate detection on one lesion becomes an FP.",
       miniSim: detectionSim("matching-duplicate-fp", "matching"),
     },
     {
@@ -88,6 +91,9 @@ export const detectionLearn: LearnContent = {
         "High precision alone does not show how many objects were missed.",
         "A conservative model can post high precision while missing many lesions.",
       ],
+      figure: "det-confusion",
+      complements:
+        "Report with Recall (and AP, which sweeps the threshold).",
     },
     {
       id: "recall",
@@ -105,6 +111,9 @@ export const detectionLearn: LearnContent = {
         "Recall says nothing about false-positive burden on its own.",
         "Recall can be inflated by predicting many boxes, which destroys precision.",
       ],
+      figure: "det-confusion",
+      complements:
+        "Report with Precision; in lesion detection, report with FP/scan via FROC.",
     },
     {
       id: "f1",
@@ -122,6 +131,9 @@ export const detectionLearn: LearnContent = {
         "F1 depends on the chosen confidence threshold.",
         "It does not summarize behavior across all thresholds the way AP does.",
       ],
+      figure: "det-confusion",
+      complements:
+        "Threshold-dependent; report AP for a threshold-free summary.",
     },
     {
       id: "ap",
@@ -142,6 +154,9 @@ export const detectionLearn: LearnContent = {
         "Interpolation differs (VOC 11-point, all-points, COCO 101-point), so the method must be stated.",
         "AP integrates the whole curve, so it is invariant to a single operating threshold.",
       ],
+      figure: "pr-curve",
+      complements:
+        "Report AP50 AND AP75 (or AP@[.5:.95]): a high AP50 with low AP75 means loose localization.",
       miniSim: detectionSim("ap-reorder", "ap"),
     },
     {
@@ -161,6 +176,9 @@ export const detectionLearn: LearnContent = {
         "Averaging hides which class or IoU threshold drives the score.",
         "The averaging axis (classes vs IoU thresholds) must be specified.",
       ],
+      figure: "pr-curve",
+      complements:
+        "Average over classes/IoU; inspect per-class AP for imbalance.",
     },
     {
       id: "ap50",
@@ -178,6 +196,9 @@ export const detectionLearn: LearnContent = {
         "A high AP50 does not guarantee accurate localization.",
         "Compare against AP75 to see how tight the boxes really are.",
       ],
+      figure: "ap-threshold",
+      complements:
+        "Compare the two to read localization tightness.",
     },
     {
       id: "ap75",
@@ -195,6 +216,9 @@ export const detectionLearn: LearnContent = {
         "If AP50 is high but AP75 is low, the model finds objects but localizes them loosely.",
         "AP75 can drop sharply on small or hard-to-bound structures.",
       ],
+      figure: "ap-threshold",
+      complements:
+        "Compare the two to read localization tightness.",
     },
     {
       id: "apRange",
@@ -213,6 +237,9 @@ export const detectionLearn: LearnContent = {
         "More demanding than AP50, so absolute values look lower.",
         "Recomputes the PR curve at each IoU threshold, which is more expensive.",
       ],
+      figure: "pr-curve",
+      complements:
+        "Summarizes localization quality across IoU thresholds.",
     },
     {
       id: "froc",
@@ -235,6 +262,9 @@ export const detectionLearn: LearnContent = {
         "A curve must be reported alongside any single sensitivity number.",
         "FP/image and FP/scan are different units — do not conflate them.",
       ],
+      figure: "froc-fig",
+      complements:
+        "Pairs sensitivity WITH FP/scan; a sensitivity number is meaningless without its FP budget.",
       miniSim: detectionSim("froc-add-fp", "froc"),
     },
     {
@@ -262,8 +292,93 @@ export const detectionLearn: LearnContent = {
         "FP/image and FP/scan budgets are not interchangeable.",
         "A score at one FP level hides behavior at the others.",
       ],
+      figure: "sensatfp",
+      complements:
+        "Always state the fixed FP/image or FP/scan level.",
     },
   ],
+  complementarity: {
+    intro:
+      "No single detection number is trustworthy on its own. Localization, " +
+      "false-positive burden, threshold choice, and duplicate suppression are " +
+      "four independent axes, and every headline metric is blind to at least " +
+      "one of them. Report metrics in complementary pairs so a high score on " +
+      "one axis cannot hide a failure on another — exactly the pattern medical " +
+      "detection benchmarks enforce.",
+    pairs: [
+      {
+        blindSpot:
+          "Loose vs strict localization — boxes that overlap the lesion " +
+          "approximately but sit off-center still count as correct.",
+        blindMetric: "AP50",
+        caughtBy:
+          "AP75 / AP@[.5:.95], which raise the IoU bar and expose how tight " +
+          "the localization really is.",
+      },
+      {
+        blindSpot:
+          "False-positive burden — a sensitivity figure says how many lesions " +
+          "were caught but nothing about how many false alarms it cost.",
+        blindMetric: "Sensitivity alone",
+        caughtBy:
+          "FROC / FP-per-scan, which pin sensitivity to an explicit " +
+          "false-positive budget.",
+      },
+      {
+        blindSpot:
+          "Threshold dependence — a single confidence threshold can be tuned " +
+          "to flatter one operating point.",
+        blindMetric: "F1 at one threshold",
+        caughtBy:
+          "AP / the PR curve, which summarize behavior across every threshold.",
+      },
+      {
+        blindSpot:
+          "Duplicate detections — piling several boxes onto one lesion still " +
+          "registers that lesion as found.",
+        blindMetric: "Recall",
+        caughtBy:
+          "Precision with one-to-one matching, where each extra box on the " +
+          "same lesion becomes a false positive.",
+      },
+    ],
+    benchmarks: [
+      {
+        name: "RSNA Pneumonia Detection",
+        task: "Chest X-ray pneumonia opacity detection",
+        combination: "mAP averaged across IoU thresholds",
+        perspective:
+          "Scores localization tightness, not just whether the opacity was " +
+          "found, by sweeping the IoU threshold.",
+      },
+      {
+        name: "LUNA16",
+        task: "Lung nodule detection on CT",
+        combination:
+          "FROC — average sensitivity at the fixed FP/scan levels " +
+          "{1/8, 1/4, 1/2, 1, 2, 4, 8}",
+        perspective:
+          "Ties nodule sensitivity to an explicit per-scan false-positive " +
+          "budget rather than reporting recall alone.",
+      },
+      {
+        name: "CAMELYON16",
+        task: "Whole-slide metastasis detection in pathology",
+        combination: "FROC — sensitivity vs FP/image",
+        perspective:
+          "Makes the false-positive burden per slide explicit alongside " +
+          "metastasis sensitivity.",
+      },
+      {
+        name: "DeepLesion",
+        task: "Universal lesion detection on CT",
+        combination: "Sensitivity at a fixed FP/image (e.g. 5 FP/image)",
+        perspective:
+          "States detection performance under a clinically meaningful " +
+          "false-positive budget per image.",
+      },
+    ],
+  },
 };
 
 export default detectionLearn;

@@ -80,6 +80,9 @@ export const segmentationLearn: LearnContent = {
         "Dice can be unstable for very small structures: a few voxel errors swing it sharply.",
         "A large structure can have high Dice even when part of the boundary is inaccurate.",
       ],
+      figure: "dice",
+      complements:
+        "Report with HD95/NSD: Dice summarizes overlap but is blind to boundary error.",
       miniSim: miniSim("dice-overlap", "dice", circleState(30, 0)),
     },
     {
@@ -99,6 +102,9 @@ export const segmentationLearn: LearnContent = {
         "Because IoU is always ≤ Dice for the same mask, never compare an IoU against a Dice directly.",
         "Like Dice, IoU is a region-overlap metric and ignores where on the boundary the error sits.",
       ],
+      figure: "iou",
+      complements:
+        "Equivalent ranking to Dice for a single case; pair with a boundary metric (HD95/NSD/ASSD) to see boundary error.",
       miniSim: miniSim("dice-iou-relation", "iou", circleState(30, 0)),
     },
     {
@@ -117,6 +123,9 @@ export const segmentationLearn: LearnContent = {
         "Sensitivity alone does not show the false-positive burden.",
         "A model can inflate sensitivity simply by over-segmenting, so read it with precision.",
       ],
+      figure: "sensitivity",
+      complements:
+        "Report with Precision: high sensitivity can hide over-segmentation (many FPs).",
     },
     {
       id: "precision",
@@ -135,6 +144,9 @@ export const segmentationLearn: LearnContent = {
         "A conservative model may have high precision but low sensitivity.",
         "Precision and sensitivity are interpreted together, not in isolation.",
       ],
+      figure: "precision",
+      complements:
+        "Report with Sensitivity/Recall: high precision can hide a conservative model that misses much of the target.",
     },
     {
       id: "hd",
@@ -153,6 +165,9 @@ export const segmentationLearn: LearnContent = {
         "Very sensitive to outliers.",
         "A single isolated false-positive region can make HD enormous.",
       ],
+      figure: "hd",
+      complements:
+        "Report with Dice: boundary distance ignores how much region overlaps.",
     },
     {
       id: "hd95",
@@ -170,6 +185,9 @@ export const segmentationLearn: LearnContent = {
         "For 3D CT or MRI, distances must be computed in physical units (mm), not voxel counts.",
         "Still rises sharply when a stray false-positive blob lands far from the true boundary.",
       ],
+      figure: "hd",
+      complements:
+        "Report with Dice: boundary distance ignores how much region overlaps.",
       miniSim: miniSim("hd95-stray-fp", "hd95", circleState(30, 0)),
     },
     {
@@ -189,6 +207,9 @@ export const segmentationLearn: LearnContent = {
         "A local large error can be diluted by averaging.",
         "Useful when overall boundary agreement matters more than a single worst point.",
       ],
+      figure: "assd",
+      complements:
+        "Pairs with HD95 (worst-case boundary error) and Dice (region overlap): averaging dilutes a single large local error.",
     },
     {
       id: "nsd",
@@ -209,6 +230,9 @@ export const segmentationLearn: LearnContent = {
         "The tolerance value must be chosen carefully.",
         "The tolerance may differ by organ, lesion type, imaging modality, or clinical use.",
       ],
+      figure: "nsd",
+      complements:
+        "Report with Dice; the tolerance τ must be clinically chosen so acceptable boundary deviations are not penalized.",
       miniSim: miniSim("nsd-tolerance", "nsd", circleState(30, 0)),
     },
     {
@@ -229,6 +253,9 @@ export const segmentationLearn: LearnContent = {
         "Volume agreement does not imply spatial agreement: a shifted mask can match in volume yet miss spatially.",
         "Relative volume difference is undefined when the ground-truth volume is zero.",
       ],
+      figure: "volume",
+      complements:
+        "Report with Dice/HD95: equal volume can still be badly localized — a shifted mask matches in volume yet misses spatially.",
     },
     {
       id: "lesionwise",
@@ -248,9 +275,83 @@ export const segmentationLearn: LearnContent = {
         "A high voxel Dice can hide a completely missed small lesion (low lesion sensitivity).",
         "Matching depends on the criterion (IoU vs centroid) and threshold chosen.",
       ],
+      figure: "lesionwise",
+      complements:
+        "Report with voxel Dice: voxel averages let large structures hide missed small lesions.",
       miniSim: miniSim("lesionwise-missed", "lesionSensitivity", missedMetState()),
     },
   ],
+  complementarity: {
+    intro:
+      "The Metrics Reloaded thesis is that no single metric suffices: every " +
+      "metric is blind to some failure mode, so report pairs that cover each " +
+      "other's blind spots — an overlap metric alongside a boundary, surface, " +
+      "volume, or lesion-wise metric.",
+    pairs: [
+      {
+        blindSpot: "Boundary error — high overlap can still hide an inaccurate boundary.",
+        blindMetric: "Dice / IoU",
+        caughtBy: "HD95 / NSD / ASSD",
+      },
+      {
+        blindSpot: "Worst-case outlier — a single stray region is averaged away.",
+        blindMetric: "ASSD / Dice",
+        caughtBy: "HD / HD95",
+      },
+      {
+        blindSpot: "Missed small lesion — voxel averages let large structures dominate.",
+        blindMetric: "Voxel Dice",
+        caughtBy: "Lesion-wise sensitivity",
+      },
+      {
+        blindSpot: "Over-segmentation / false positives — recall ignores the FP burden.",
+        blindMetric: "Sensitivity",
+        caughtBy: "Precision",
+      },
+      {
+        blindSpot: "Volume error — equal overlap need not mean equal volume when shapes differ.",
+        blindMetric: "Dice (when shapes differ)",
+        caughtBy: "Volume difference",
+      },
+      {
+        blindSpot: "Topology break — a broken or disconnected structure can still overlap well.",
+        blindMetric: "Dice",
+        caughtBy: "clDice / centerline Dice",
+      },
+    ],
+    benchmarks: [
+      {
+        name: "Medical Segmentation Decathlon",
+        task: "Multi-organ, multi-task segmentation",
+        combination: "Dice + NSD",
+        perspective: "Region overlap + surface agreement",
+      },
+      {
+        name: "KiTS23",
+        task: "Kidney, tumor, and cyst segmentation",
+        combination: "Dice + Surface Dice",
+        perspective: "Region overlap + surface quality",
+      },
+      {
+        name: "MRBrainS",
+        task: "Brain tissue segmentation",
+        combination: "Dice + HD95 + volume",
+        perspective: "Overlap + boundary + volume agreement",
+      },
+      {
+        name: "BraTS 2023",
+        task: "Brain tumor segmentation",
+        combination: "Lesion-wise Dice + lesion-wise HD95",
+        perspective: "Lesion-level overlap + lesion-level boundary",
+      },
+      {
+        name: "BraTS-METS",
+        task: "Brain metastasis segmentation",
+        combination: "Lesion-wise Dice + lesion-wise HD95 + FP/FN penalty",
+        perspective: "Multiple-lesion evaluation with explicit FP/FN penalty",
+      },
+    ],
+  },
 };
 
 /**

@@ -63,6 +63,9 @@ export const detectionLearnKo: LearnContent = {
         "하나의 정답 객체를 두 개의 참양성으로 쪼개어 인정할 수는 없습니다.",
         "IoU 임계값을 바꾸면 어떤 예측이 매칭으로 집계되는지가 달라지고, 따라서 이후의 모든 지표가 함께 바뀝니다.",
       ],
+      figure: "det-matching",
+      complements:
+        "TP/FP/FN를 정의합니다. 한 병변에 대한 중복 검출은 FP가 됩니다.",
       miniSim: detectionSim("matching-duplicate-fp", "matching"),
     },
     {
@@ -80,6 +83,9 @@ export const detectionLearnKo: LearnContent = {
         "정밀도가 높다고 해서 얼마나 많은 객체를 놓쳤는지는 알 수 없습니다.",
         "보수적인 모델은 많은 병변을 놓치면서도 높은 정밀도를 보일 수 있습니다.",
       ],
+      figure: "det-confusion",
+      complements:
+        "재현율(그리고 임계값을 훑는 AP)과 함께 보고하세요.",
     },
     {
       id: "recall",
@@ -97,6 +103,9 @@ export const detectionLearnKo: LearnContent = {
         "재현율만으로는 거짓양성 부담에 대해 아무것도 말해주지 않습니다.",
         "박스를 마구 예측하면 재현율은 부풀릴 수 있지만 정밀도가 무너집니다.",
       ],
+      figure: "det-confusion",
+      complements:
+        "정밀도와 함께 보고하세요. 병변 검출에서는 FROC를 통해 스캔당 FP와 함께 보고하세요.",
     },
     {
       id: "f1",
@@ -114,6 +123,9 @@ export const detectionLearnKo: LearnContent = {
         "F1은 선택한 신뢰도 임계값에 의존합니다.",
         "AP처럼 모든 임계값에 걸친 동작을 요약하지는 못합니다.",
       ],
+      figure: "det-confusion",
+      complements:
+        "임계값에 의존하므로, 임계값에 의존하지 않는 요약으로는 AP를 보고하세요.",
     },
     {
       id: "ap",
@@ -133,6 +145,9 @@ export const detectionLearnKo: LearnContent = {
         "보간 방식(VOC 11점, all-points, COCO 101점)이 다르므로 어떤 방식인지 반드시 밝혀야 합니다.",
         "AP는 곡선 전체를 적분하므로 단일 운영 임계값에 대해서는 불변입니다.",
       ],
+      figure: "pr-curve",
+      complements:
+        "AP50과 AP75를 함께(또는 AP@[.5:.95]를) 보고하세요. AP50은 높은데 AP75가 낮으면 위치 판정이 느슨하다는 뜻입니다.",
       miniSim: detectionSim("ap-reorder", "ap"),
     },
     {
@@ -151,6 +166,9 @@ export const detectionLearnKo: LearnContent = {
         "평균을 내면 어떤 클래스나 IoU 임계값이 점수를 좌우하는지가 가려집니다.",
         "평균을 내는 축(클래스 vs IoU 임계값)을 반드시 명시해야 합니다.",
       ],
+      figure: "pr-curve",
+      complements:
+        "클래스/IoU에 걸쳐 평균낸 값이므로, 불균형을 보려면 클래스별 AP를 살펴보세요.",
     },
     {
       id: "ap50",
@@ -167,6 +185,9 @@ export const detectionLearnKo: LearnContent = {
         "AP50이 높다고 해서 위치 정확성이 보장되지는 않습니다.",
         "박스가 실제로 얼마나 정밀한지 보려면 AP75와 비교해야 합니다.",
       ],
+      figure: "ap-threshold",
+      complements:
+        "둘을 비교하면 위치 판정의 엄격함을 읽을 수 있습니다.",
     },
     {
       id: "ap75",
@@ -183,6 +204,9 @@ export const detectionLearnKo: LearnContent = {
         "AP50이 높은데 AP75가 낮다면, 모델이 객체를 찾기는 하지만 느슨하게 위치시키는 것입니다.",
         "작거나 경계를 잡기 어려운 구조에서는 AP75가 급격히 떨어질 수 있습니다.",
       ],
+      figure: "ap-threshold",
+      complements:
+        "둘을 비교하면 위치 판정의 엄격함을 읽을 수 있습니다.",
     },
     {
       id: "apRange",
@@ -201,6 +225,9 @@ export const detectionLearnKo: LearnContent = {
         "AP50보다 까다로우므로 절댓값은 더 낮게 보입니다.",
         "각 IoU 임계값마다 PR 곡선을 다시 계산하므로 비용이 더 큽니다.",
       ],
+      figure: "pr-curve",
+      complements:
+        "여러 IoU 임계값에 걸친 위치 품질을 요약합니다.",
     },
     {
       id: "froc",
@@ -223,6 +250,9 @@ export const detectionLearnKo: LearnContent = {
         "단일 민감도 수치를 보고할 때는 반드시 곡선을 함께 제시해야 합니다.",
         "영상당 FP와 스캔당 FP는 서로 다른 단위이므로 혼동하면 안 됩니다.",
       ],
+      figure: "froc-fig",
+      complements:
+        "민감도를 스캔당 FP와 함께 묶습니다. FP 예산 없는 민감도 수치는 의미가 없습니다.",
       miniSim: detectionSim("froc-add-fp", "froc"),
     },
     {
@@ -249,8 +279,87 @@ export const detectionLearnKo: LearnContent = {
         "영상당 FP 예산과 스캔당 FP 예산은 서로 바꿔 쓸 수 없습니다.",
         "하나의 FP 수준에서의 점수는 다른 수준에서의 동작을 가립니다.",
       ],
+      figure: "sensatfp",
+      complements:
+        "고정된 영상당 FP 또는 스캔당 FP 수준을 항상 함께 명시하세요.",
     },
   ],
+  complementarity: {
+    intro:
+      "어떤 단일 검출 수치도 그 자체만으로는 신뢰할 수 없습니다. 위치 판정, " +
+      "거짓양성 부담, 임계값 선택, 중복 억제는 서로 독립적인 네 개의 축이며, " +
+      "모든 대표 지표는 그중 적어도 하나에 대해 눈이 멉니다. 한 축에서의 높은 " +
+      "점수가 다른 축에서의 실패를 가리지 못하도록 지표를 상호 보완적인 쌍으로 " +
+      "보고하세요. 이것이 바로 의료 검출 벤치마크가 강제하는 방식입니다.",
+    pairs: [
+      {
+        blindSpot:
+          "느슨한 vs 엄격한 위치 판정 — 병변과 대략 겹치지만 중심에서 벗어난 " +
+          "박스도 여전히 정답으로 집계됩니다.",
+        blindMetric: "AP50",
+        caughtBy:
+          "IoU 기준을 높여 위치 판정이 실제로 얼마나 엄격한지 드러내는 " +
+          "AP75 / AP@[.5:.95].",
+      },
+      {
+        blindSpot:
+          "거짓양성 부담 — 민감도 수치는 몇 개의 병변을 잡았는지는 알려주지만 " +
+          "그 대가로 얼마나 많은 거짓 경보가 발생했는지는 말해주지 않습니다.",
+        blindMetric: "민감도 단독",
+        caughtBy:
+          "민감도를 명시적인 거짓양성 예산에 고정하는 FROC / 스캔당 FP.",
+      },
+      {
+        blindSpot:
+          "임계값 의존성 — 단일 신뢰도 임계값은 하나의 운영점을 돋보이게 " +
+          "조정될 수 있습니다.",
+        blindMetric: "단일 임계값에서의 F1",
+        caughtBy:
+          "모든 임계값에 걸친 동작을 요약하는 AP / PR 곡선.",
+      },
+      {
+        blindSpot:
+          "중복 검출 — 하나의 병변에 여러 박스를 쌓아 올려도 그 병변은 여전히 " +
+          "검출된 것으로 기록됩니다.",
+        blindMetric: "재현율",
+        caughtBy:
+          "같은 병변에 대한 추가 박스가 거짓양성이 되는, 일대일 매칭을 동반한 정밀도.",
+      },
+    ],
+    benchmarks: [
+      {
+        name: "RSNA Pneumonia Detection",
+        task: "흉부 X선 폐렴 음영 검출",
+        combination: "IoU 임계값에 걸쳐 평균낸 mAP",
+        perspective:
+          "IoU 임계값을 훑어, 음영을 찾았는지뿐 아니라 위치 판정의 엄격함까지 " +
+          "채점합니다.",
+      },
+      {
+        name: "LUNA16",
+        task: "CT 폐 결절 검출",
+        combination:
+          "FROC — 고정 스캔당 FP 수준 {1/8, 1/4, 1/2, 1, 2, 4, 8}에서의 평균 민감도",
+        perspective:
+          "재현율만 보고하는 대신, 결절 민감도를 명시적인 스캔당 거짓양성 예산에 " +
+          "묶습니다.",
+      },
+      {
+        name: "CAMELYON16",
+        task: "병리 전체 슬라이드 전이 검출",
+        combination: "FROC — 민감도 vs 영상당 FP",
+        perspective:
+          "전이 민감도와 함께 슬라이드당 거짓양성 부담을 명시적으로 드러냅니다.",
+      },
+      {
+        name: "DeepLesion",
+        task: "CT 범용 병변 검출",
+        combination: "고정 영상당 FP에서의 민감도(예: 영상당 5 FP)",
+        perspective:
+          "영상당 임상적으로 의미 있는 거짓양성 예산에서의 검출 성능을 진술합니다.",
+      },
+    ],
+  },
 };
 
 export default detectionLearnKo;

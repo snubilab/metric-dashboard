@@ -18,11 +18,39 @@ export interface MetricSection {
   features: string[];
   caveats: string[];
   miniSim?: MiniSimConfig;
+  /** Figure key (e.g. "dice", "det-matching") dispatched by MetricFigure. */
+  figure?: string;
+  /** Short "pairs well with" note shown after this section's caveats. */
+  complements?: string;
+}
+
+/** A blind spot one metric misses and the metric that catches it. */
+export interface ComplementarityPair {
+  blindSpot: string;
+  blindMetric: string;
+  caughtBy: string;
+}
+
+/** A benchmark and the metric combination it uses to cover a perspective. */
+export interface ComplementarityBenchmark {
+  name: string;
+  task: string;
+  combination: string;
+  perspective: string;
+}
+
+/** How a topic's metrics complement one another, surfaced at the end of Learn. */
+export interface Complementarity {
+  intro: string;
+  pairs: ComplementarityPair[];
+  benchmarks: ComplementarityBenchmark[];
 }
 
 export interface LearnContent {
   intro: string;
   sections: MetricSection[];
+  /** Closing "how these metrics complement each other" content. */
+  complementarity?: Complementarity;
 }
 
 export interface ClinicalContext {

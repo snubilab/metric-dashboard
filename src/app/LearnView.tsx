@@ -13,10 +13,14 @@
 import { useEffect, useState } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import type { MetricSection, Topic } from "../types/topic";
+import type { Complementarity, MetricSection, Topic } from "../types/topic";
 import { MiniSim } from "../components/MiniSim";
+import { MetricFigure } from "../components/figures/MetricFigure";
+import { CoverageTable } from "../components/CoverageTable";
+import { BenchmarkTable } from "../components/BenchmarkTable";
 import { SectionNav } from "./SectionNav";
 import { useLang } from "../i18n/LanguageContext";
+import type { Lang } from "../i18n/LanguageContext";
 
 interface LearnViewProps {
   topic: Topic;
@@ -110,6 +114,52 @@ const listStyle: React.CSSProperties = {
   color: "var(--c-text)",
 };
 
+const L = {
+  ko: {
+    complementsLabel: "함께 보는 지표",
+    complementarityTitle: "지표는 어떻게 서로를 보완하는가",
+  },
+  en: {
+    complementsLabel: "Pairs well with",
+    complementarityTitle: "How these metrics complement each other",
+  },
+} as const;
+
+const calloutStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--space-1)",
+  padding: "var(--space-3) var(--space-4)",
+  background: "var(--c-surface-2)",
+  border: "1px solid var(--c-border)",
+  borderLeft: "3px solid var(--c-pred-b)",
+  borderRadius: "var(--radius-md)",
+};
+
+const calloutLabelStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: "var(--text-xs)",
+  fontWeight: 600,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "var(--c-pred-b)",
+};
+
+const calloutTextStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: "var(--text-sm)",
+  lineHeight: 1.5,
+  color: "var(--c-text)",
+};
+
+const complementaritySectionStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--space-6)",
+  paddingTop: "var(--space-6)",
+  borderTop: "1px solid var(--c-border)",
+};
+
 /** Render a KaTeX formula to a sanitizable HTML string; never throws. */
 function renderFormula(formula: string): string {
   return katex.renderToString(formula, { throwOnError: false, displayMode: true });
@@ -131,7 +181,7 @@ function LabeledList({ label, items }: { label: string; items: string[] }) {
   );
 }
 
-function Section({ section }: { section: MetricSection }) {
+function Section({ section, lang }: { section: MetricSection; lang: Lang }) {
   return (
     <section id={sectionDomId(section.id)} style={sectionStyle}>
       <h3 style={titleStyle}>{section.title}</h3>
@@ -143,10 +193,33 @@ function Section({ section }: { section: MetricSection }) {
           dangerouslySetInnerHTML={{ __html: renderFormula(section.formula) }}
         />
       )}
+      {section.figure && <MetricFigure figure={section.figure} />}
       <p style={meaningStyle}>{section.meaning}</p>
       <LabeledList label="Features" items={section.features} />
       <LabeledList label="Caveats" items={section.caveats} />
+      {section.complements && (
+        <div style={calloutStyle}>
+          <h4 style={calloutLabelStyle}>{L[lang].complementsLabel}</h4>
+          <p style={calloutTextStyle}>{section.complements}</p>
+        </div>
+      )}
       {section.miniSim && <MiniSim config={section.miniSim} />}
+    </section>
+  );
+}
+
+function ComplementaritySection({
+  complementarity,
+  lang,
+}: {
+  complementarity: Complementarity;
+  lang: Lang;
+}) {
+  return (
+    <section style={complementaritySectionStyle}>
+      <h3 style={titleStyle}>{L[lang].complementarityTitle}</h3>
+      <CoverageTable intro={complementarity.intro} pairs={complementarity.pairs} />
+      <BenchmarkTable benchmarks={complementarity.benchmarks} />
     </section>
   );
 }
@@ -206,8 +279,11 @@ export function LearnView({ topic }: LearnViewProps) {
       <div style={rootStyle}>
         <p style={introStyle}>{learn.intro}</p>
         {learn.sections.map((section) => (
-          <Section key={section.id} section={section} />
+          <Section key={section.id} section={section} lang={lang} />
         ))}
+        {learn.complementarity && (
+          <ComplementaritySection complementarity={learn.complementarity} lang={lang} />
+        )}
       </div>
       <div style={navRailStyle}>
         <SectionNav

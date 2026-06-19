@@ -30,6 +30,11 @@ function formulaFor(id: string): string | undefined {
   return segmentationLearn.sections.find((section) => section.id === id)?.formula;
 }
 
+/** Carry over the English section's figure key unchanged (a render dispatch key, never translated). */
+function figureFor(id: string): string | undefined {
+  return segmentationLearn.sections.find((section) => section.id === id)?.figure;
+}
+
 const sections: MetricSection[] = [
   {
     id: "dice",
@@ -49,6 +54,9 @@ const sections: MetricSection[] = [
       "아주 작은 구조에서는 불안정합니다. 몇 픽셀(voxel)의 오차만으로도 값이 크게 흔들립니다.",
       "큰 구조에서는 경계의 일부가 부정확해도 Dice가 높게 나올 수 있습니다.",
     ],
+    figure: figureFor("dice"),
+    complements:
+      "HD95/NSD와 함께 보고하세요. Dice는 겹침을 요약할 뿐 경계 오차에는 눈을 감습니다.",
     miniSim: miniSimFor("dice"),
   },
   {
@@ -67,6 +75,9 @@ const sections: MetricSection[] = [
       "같은 마스크에 대해 IoU는 항상 Dice 이하이므로, IoU 값을 Dice 값과 직접 비교해서는 안 됩니다.",
       "Dice와 마찬가지로 IoU도 영역 겹침 지표라서, 오차가 경계의 어디에 있는지는 보지 못합니다.",
     ],
+    figure: figureFor("iou"),
+    complements:
+      "단일 사례에서는 Dice와 순위가 동일합니다. 경계 오차를 보려면 경계 지표(HD95/NSD/ASSD)와 짝지으세요.",
     miniSim: miniSimFor("iou"),
   },
   {
@@ -85,6 +96,9 @@ const sections: MetricSection[] = [
       "민감도만으로는 위양성(false positive)의 부담을 알 수 없습니다.",
       "모델은 단순히 과다 분할하는 것만으로도 민감도를 부풀릴 수 있으므로, 정밀도와 함께 읽어야 합니다.",
     ],
+    figure: figureFor("sensitivity"),
+    complements:
+      "정밀도(Precision)와 함께 보고하세요. 높은 민감도는 과다 분할(많은 위양성)을 가릴 수 있습니다.",
     miniSim: miniSimFor("sensitivity"),
   },
   {
@@ -103,6 +117,9 @@ const sections: MetricSection[] = [
       "보수적인 모델은 정밀도는 높지만 민감도가 낮을 수 있습니다.",
       "정밀도와 민감도는 단독이 아니라 함께 해석합니다.",
     ],
+    figure: figureFor("precision"),
+    complements:
+      "민감도/재현율(Sensitivity/Recall)과 함께 보고하세요. 높은 정밀도는 대상을 많이 놓치는 보수적 모델을 가릴 수 있습니다.",
     miniSim: miniSimFor("precision"),
   },
   {
@@ -120,6 +137,9 @@ const sections: MetricSection[] = [
       "이상치(outlier)에 매우 민감합니다.",
       "멀리 떨어진 단 하나의 위양성 영역만으로도 HD가 엄청나게 커질 수 있습니다.",
     ],
+    figure: figureFor("hd"),
+    complements:
+      "Dice와 함께 보고하세요. 경계 거리는 영역이 얼마나 겹치는지는 무시합니다.",
     miniSim: miniSimFor("hd"),
   },
   {
@@ -138,6 +158,9 @@ const sections: MetricSection[] = [
       "3D CT나 MRI에서는 거리를 픽셀(voxel) 수가 아니라 물리 단위(mm)로 계산해야 합니다.",
       "참 경계에서 멀리 떨어진 위양성 덩어리가 생기면 여전히 급격히 커집니다.",
     ],
+    figure: figureFor("hd95"),
+    complements:
+      "Dice와 함께 보고하세요. 경계 거리는 영역이 얼마나 겹치는지는 무시합니다.",
     miniSim: miniSimFor("hd95"),
   },
   {
@@ -157,6 +180,9 @@ const sections: MetricSection[] = [
       "평균을 내기 때문에 국소적으로 큰 오차가 희석될 수 있습니다.",
       "단 하나의 최악 지점보다 전반적인 경계 일치가 더 중요할 때 유용합니다.",
     ],
+    figure: figureFor("assd"),
+    complements:
+      "HD95(최악의 경계 오차) 및 Dice(영역 겹침)와 짝지으세요. 평균을 내면 국소적으로 큰 오차 하나가 희석됩니다.",
     miniSim: miniSimFor("assd"),
   },
   {
@@ -176,6 +202,9 @@ const sections: MetricSection[] = [
       "허용 오차 값을 신중하게 선택해야 합니다.",
       "허용 오차는 장기, 병변 종류, 영상 양식(modality), 임상 용도에 따라 달라질 수 있습니다.",
     ],
+    figure: figureFor("nsd"),
+    complements:
+      "Dice와 함께 보고하세요. 허용 오차 τ는 임상적으로 선택해야 허용 가능한 경계 편차가 부당하게 패널티를 받지 않습니다.",
     miniSim: miniSimFor("nsd"),
   },
   {
@@ -195,6 +224,9 @@ const sections: MetricSection[] = [
       "부피 일치가 공간적 일치를 의미하지는 않습니다. 위치가 어긋난 마스크도 부피는 맞으면서 공간적으로는 빗나갈 수 있습니다.",
       "상대 부피 차이는 정답 부피가 0일 때 정의되지 않습니다.",
     ],
+    figure: figureFor("volume"),
+    complements:
+      "Dice/HD95와 함께 보고하세요. 부피가 같아도 위치가 어긋난 마스크는 부피만 맞고 공간적으로는 빗나갈 수 있습니다.",
     miniSim: miniSimFor("volume"),
   },
   {
@@ -216,6 +248,9 @@ const sections: MetricSection[] = [
       "픽셀 Dice가 높아도 완전히 놓친 작은 병변(낮은 병변 단위 민감도)을 숨길 수 있습니다.",
       "매칭은 선택한 기준(IoU 대 무게중심)과 임계값에 따라 달라집니다.",
     ],
+    figure: figureFor("lesionwise"),
+    complements:
+      "복셀 단위 Dice와 함께 보고하세요. 복셀 평균은 큰 구조가 놓친 작은 병변을 가리게 만듭니다.",
     miniSim: miniSimFor("lesionwise"),
   },
 ];
@@ -231,4 +266,75 @@ export const segmentationLearnKo: LearnContent = {
     "서로 다른 실패 양상에 대해 눈을 감고 있기 때문에, 의료 벤치마크는 겹침 지표를 " +
     "경계·표면·부피·병변 단위 지표와 짝지어 보고합니다.",
   sections,
+  complementarity: {
+    intro:
+      "Metrics Reloaded의 핵심 주장은 단 하나의 지표로는 충분하지 않다는 것입니다. " +
+      "모든 지표는 어떤 실패 양상에 대해 눈을 감고 있으므로, 서로의 사각지대를 " +
+      "메워 주는 지표를 짝지어 보고해야 합니다 — 겹침 지표를 경계·표면·부피·병변 " +
+      "단위 지표와 함께 보고하세요.",
+    pairs: [
+      {
+        blindSpot: "경계 오차 — 겹침이 높아도 경계가 부정확할 수 있습니다.",
+        blindMetric: "Dice / IoU",
+        caughtBy: "HD95 / NSD / ASSD",
+      },
+      {
+        blindSpot: "최악의 이상치 — 멀리 떨어진 단 하나의 영역이 평균으로 희석됩니다.",
+        blindMetric: "ASSD / Dice",
+        caughtBy: "HD / HD95",
+      },
+      {
+        blindSpot: "놓친 작은 병변 — 복셀 평균은 큰 구조가 지배하게 만듭니다.",
+        blindMetric: "복셀 Dice",
+        caughtBy: "병변 단위 민감도",
+      },
+      {
+        blindSpot: "과다 분할 / 위양성 — 재현율은 위양성 부담을 무시합니다.",
+        blindMetric: "민감도(Sensitivity)",
+        caughtBy: "정밀도(Precision)",
+      },
+      {
+        blindSpot: "부피 오차 — 모양이 다르면 겹침이 같아도 부피가 다를 수 있습니다.",
+        blindMetric: "Dice (모양이 다를 때)",
+        caughtBy: "부피 차이",
+      },
+      {
+        blindSpot: "위상(topology) 단절 — 끊기거나 분리된 구조도 겹침은 좋을 수 있습니다.",
+        blindMetric: "Dice",
+        caughtBy: "clDice / centerline Dice",
+      },
+    ],
+    benchmarks: [
+      {
+        name: "Medical Segmentation Decathlon",
+        task: "다중 장기·다중 과제 분할",
+        combination: "Dice + NSD",
+        perspective: "영역 겹침 + 표면 일치",
+      },
+      {
+        name: "KiTS23",
+        task: "신장·종양·낭종 분할",
+        combination: "Dice + Surface Dice",
+        perspective: "영역 겹침 + 표면 품질",
+      },
+      {
+        name: "MRBrainS",
+        task: "뇌 조직 분할",
+        combination: "Dice + HD95 + 부피",
+        perspective: "겹침 + 경계 + 부피 일치",
+      },
+      {
+        name: "BraTS 2023",
+        task: "뇌종양 분할",
+        combination: "병변 단위 Dice + 병변 단위 HD95",
+        perspective: "병변 단위 겹침 + 병변 단위 경계",
+      },
+      {
+        name: "BraTS-METS",
+        task: "뇌 전이 분할",
+        combination: "병변 단위 Dice + 병변 단위 HD95 + 위양성/위음성 패널티",
+        perspective: "명시적 FP/FN 패널티가 있는 다중 병변 평가",
+      },
+    ],
+  },
 };
