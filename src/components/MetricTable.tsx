@@ -16,9 +16,12 @@
  */
 
 import { useLang } from "../i18n/LanguageContext";
+import type { Lang } from "../i18n/LanguageContext";
 import { AnimatedMetric } from "./AnimatedMetric";
 import { detectDisagreements, winner } from "./metrics/detectDisagreements";
 import type { Disagreement, Winner } from "./metrics/detectDisagreements";
+import { localizedMetricLabel } from "./metrics/metricLabel";
+import { metricMeaning } from "./metrics/metricMeaning";
 import type { MetricRow } from "./metrics/types";
 
 const L = {
@@ -31,6 +34,10 @@ const L = {
     higherIsBetter: "높을수록 좋음",
     lowerIsBetter: "낮을수록 좋음",
     boldLegend: "굵게 = 해당 지표에서 더 우수",
+    leadsA: "A 우세",
+    leadsB: "B 우세",
+    tie: "비슷",
+    notComparable: "비교 불가",
   },
   en: {
     metric: "Metric",
@@ -41,22 +48,12 @@ const L = {
     higherIsBetter: "higher is better",
     lowerIsBetter: "lower is better",
     boldLegend: "Bold = better on this metric",
+    leadsA: "A leads",
+    leadsB: "B leads",
+    tie: "tie",
+    notComparable: "n/a",
   },
 } as const;
-
-/**
- * Korean labels for metric rows, keyed by MetricRow.key. Acronyms / proper-noun
- * metric names (Dice, IoU, HD95, ASSD) are intentionally kept as-is; only the
- * worded metric names are localized. Unknown keys fall back to row.label.
- */
-const KO_METRIC_LABELS: Record<string, string> = {
-  sensitivity: "민감도",
-  precision: "정밀도",
-  nsd: "표면 Dice (NSD)",
-  surfaceDice: "표면 Dice (NSD)",
-  volRel: "상대 부피차",
-  volumeDiff: "상대 부피차",
-};
 
 /** Decimal places used for every value cell; metrics here read naturally at 2 dp. */
 const DECIMALS = 2;
@@ -71,7 +68,72 @@ const DIRECTION_DOWN_GLYPH = "↓"; // ↓ DOWNWARDS ARROW
 interface MetricTableProps {
   /** Comparison rows; the first row is the reference for rank-flip detection. */
   rows: MetricRow[];
+  /**
+   * When true, each row gains a relative "leads" chip (A 우세 / B 우세 / 비슷 /
+   * 비교 불가) and a plain-language meaning caption. The chip is colored to the
+   * leading prediction, not a quality grade. Defaults to false so the shared
+   * ScenariosView consumer renders unchanged.
+   */
+  showRelativeCue?: boolean;
 }
+
+/** Which prediction leads a row, or "na" when a value is non-finite. */
+type Lead = Winner | "na";
+
+/** A relative-cue chip's localized label and its token color. */
+interface RelativeCue {
+  label: string;
+  color: string;
+}
+
+/**
+ * The relative lead for a row, guarding against non-finite values so a NaN never
+ * produces a misleading winner. {@link winner} only reports "tie" on equality,
+ * so NaN must be detected up front.
+ */
+function relativeLead(row: MetricRow): Lead {
+  if (!Number.isFinite(row.a) || !Number.isFinite(row.b)) {
+    return "na";
+  }
+  return winner(row);
+}
+
+/** The localized chip text + token color for a relative lead. */
+function relativeCue(lead: Lead, t: (typeof L)[Lang]): RelativeCue {
+  switch (lead) {
+    case "A":
+      return { label: t.leadsA, color: "var(--c-pred-a)" };
+    case "B":
+      return { label: t.leadsB, color: "var(--c-pred-b)" };
+    case "tie":
+      return { label: t.tie, color: "var(--c-text-dim)" };
+    default:
+      return { label: t.notComparable, color: "var(--c-text-dim)" };
+  }
+}
+
+const chipStyle = (color: string): React.CSSProperties => ({
+  display: "inline-flex",
+  alignItems: "center",
+  marginLeft: "var(--space-2)",
+  padding: "0 var(--space-2)",
+  borderRadius: "var(--radius-sm)",
+  border: `1px solid ${color}`,
+  color,
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-xs)",
+  fontWeight: 600,
+  lineHeight: 1.6,
+});
+
+const meaningStyle: React.CSSProperties = {
+  marginTop: "var(--space-1)",
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-xs)",
+  fontWeight: 400,
+  color: "var(--c-text-dim)",
+  whiteSpace: "normal",
+};
 
 const tableStyle: React.CSSProperties = {
   width: "100%",
@@ -181,7 +243,7 @@ function valueCellStyle(side: Winner, rowWinner: Winner, flagged: boolean): Reac
   };
 }
 
-export function MetricTable({ rows }: MetricTableProps) {
+export function MetricTable({ rows, showRelativeCue = false }: MetricTableProps) {
   const { lang } = useLang();
   const t = L[lang];
   const disagreements = detectDisagreements(rows);
@@ -207,6 +269,8 @@ export function MetricTable({ rows }: MetricTableProps) {
           {rows.map((row, index) => {
             const rowWinner = winner(row);
             const flagged = isFlagged(disagreements[index]);
+            const cue = showRelativeCue ? relativeCue(relativeLead(row), t) : null;
+            const meaning = showRelativeCue ? metricMeaning(row.key, lang) : "";
             return (
               <tr
                 key={row.key}
@@ -216,7 +280,7 @@ export function MetricTable({ rows }: MetricTableProps) {
                 }}
               >
                 <th scope="row" style={metricCellStyle}>
-                  {lang === "ko" ? KO_METRIC_LABELS[row.key] ?? row.label : row.label}
+                  {localizedMetricLabel(row.key, row.label, lang)}
                   <span
                     style={directionStyle}
                     role="img"
@@ -235,6 +299,8 @@ export function MetricTable({ rows }: MetricTableProps) {
                       <span aria-hidden="true">{WARN_GLYPH}</span>
                     </span>
                   )}
+                  {cue && <span style={chipStyle(cue.color)}>{cue.label}</span>}
+                  {meaning && <div style={meaningStyle}>{meaning}</div>}
                 </th>
                 <td style={valueCellStyle("A", rowWinner, flagged)}>
                   <AnimatedMetric value={row.a} unit={row.unit} decimals={DECIMALS} size="sm" />

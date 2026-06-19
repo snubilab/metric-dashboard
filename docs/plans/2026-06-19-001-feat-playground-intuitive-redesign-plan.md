@@ -1,7 +1,7 @@
 ---
 title: "feat: Make the Segmentation Playground intuitive (A/B identity, relative reading, verdict-first, first-visit banner)"
 type: feat
-status: active
+status: completed
 created: 2026-06-19
 deepened: 2026-06-19
 depth: standard
