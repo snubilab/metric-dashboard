@@ -7,6 +7,12 @@
  * back into that one state object, so the table recomputes live and A/B
  * disagreements (rank flips, large gaps) surface immediately.
  *
+ * The layout is verdict-first: an identity legend (what A/B/GT are) and the
+ * auto-generated disagreement verdict lead, a compact three-metric table follows,
+ * and the full eight-metric table plus bar chart sit behind a progressive
+ * "show all metrics" expander. A dismissible first-visit banner frames the A/B
+ * comparison on first arrival.
+ *
  * All visual values come from the design-system token custom properties; no
  * color or font is hardcoded.
  */
@@ -24,36 +30,68 @@ import { CanvasEditor } from "../../components/canvas/CanvasEditor";
 import type { Layer } from "../../components/canvas/CanvasEditor";
 import { UnitsBanner } from "../../components/UnitsBanner";
 import { MetricTable } from "../../components/MetricTable";
+import { PredictionLegend } from "../../components/PredictionLegend";
+import type { PredictionLegendItem } from "../../components/PredictionLegend";
 import { DisagreementInsight } from "../../components/DisagreementInsight";
 import { MetricBarChart } from "../../components/charts/MetricBarChart";
 import { useEngineMetrics } from "../../components/metrics/useEngineMetrics";
+import { useFirstVisit } from "../../components/useFirstVisit";
 import { useLang } from "../../i18n/LanguageContext";
 import type { Lang } from "../../i18n/LanguageContext";
+import type { MetricRow } from "../../components/metrics/types";
 import { SEG_PRESETS, DEFAULT_PRESET_ID } from "./presets";
 import type { SegPreset } from "./presets";
 
 /** Layers shown on the canvas by default — all three. */
 const DEFAULT_VISIBLE_LAYERS: Layer[] = ["GT", "A", "B"];
 
-/** Bilingual copy for the editing-action row. */
+/** localStorage key for the first-visit guide banner's dismissed flag. */
+const GUIDE_SEEN_KEY = "md-playground-guide-seen";
+
+/**
+ * The fixed core metrics shown in the compact, verdict-first table — overlap,
+ * a boundary distance, and detection. The full eight-metric table lives behind
+ * the progressive-disclosure expander.
+ */
+const CORE_METRIC_KEYS: readonly string[] = ["dice", "hd95", "sensitivity"];
+
+/** Bilingual copy for the editing-action row and the new framing affordances. */
 const L = {
   ko: {
     actions: "편집 동작",
     undo: "실행취소",
     reset: "초기화",
     clearLayer: "레이어 비우기",
-    insight: "인사이트",
+    verdict: "결론",
+    coreMetrics: "핵심 지표",
+    showAll: "모든 지표 보기",
+    hideAll: "지표 접기",
     chart: "지표 막대 비교",
-    dragHint: "도형을 드래그하면 오른쪽 지표가 실시간으로 갱신됩니다",
+    dragHint: "도형을 드래그하면 지표가 실시간으로 갱신됩니다",
+    guide:
+      "A·B는 같은 정답(GT)에 대한 두 예측입니다. 도형을 움직여 지표가 어떻게 달라지는지 보세요.",
+    dismiss: "닫기",
+    help: "도움말",
+    predictionA: "예측 A",
+    predictionB: "예측 B",
   },
   en: {
     actions: "Edit actions",
     undo: "Undo",
     reset: "Reset",
     clearLayer: "Clear layer",
-    insight: "Insight",
+    verdict: "Verdict",
+    coreMetrics: "Core metrics",
+    showAll: "Show all metrics",
+    hideAll: "Hide metrics",
     chart: "Metric bar comparison",
-    dragHint: "Drag a shape — the metrics on the right update live.",
+    dragHint: "Drag a shape — the metrics update live.",
+    guide:
+      "A and B are two predictions of the same ground truth. Move the shapes and watch the metrics change.",
+    dismiss: "Dismiss",
+    help: "Help",
+    predictionA: "Prediction A",
+    predictionB: "Prediction B",
   },
 } as const;
 
@@ -96,6 +134,22 @@ function cloneState(state: EngineState): EngineState {
     policy: { ...state.policy },
   };
 }
+
+/**
+ * Scoped layout rules for the verdict-first split. All visual values stay in
+ * inline token styles; this stylesheet only governs flex ordering so that the
+ * canvas sits on the LEFT when the two columns are side by side, but the
+ * verdict column rises ABOVE the canvas once the columns stack at narrow widths
+ * (so the takeaway is read before the canvas in reading order).
+ */
+const RESPONSIVE_ORDER_CSS = `
+.pg-canvas-col { order: 1; }
+.pg-verdict-col { order: 2; }
+@media (max-width: 720px) {
+  .pg-canvas-col { order: 2; }
+  .pg-verdict-col { order: 1; }
+}
+`;
 
 const pageStyle: CSSProperties = {
   display: "flex",
@@ -239,6 +293,72 @@ const actionButtonDisabledStyle: CSSProperties = {
   opacity: 0.6,
 };
 
+/** A one-line, dismissible first-visit framing note, styled like UnitsBanner. */
+const guideBannerStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "baseline",
+  gap: "var(--space-2)",
+  padding: "var(--space-2) var(--space-3)",
+  background: "var(--c-surface-2)",
+  color: "var(--c-text-dim)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-xs)",
+  lineHeight: 1.4,
+};
+
+const guideGlyphStyle: CSSProperties = {
+  flex: "0 0 auto",
+  color: "var(--c-text-dim)",
+};
+
+const guideTextStyle: CSSProperties = {
+  flex: "1 1 auto",
+};
+
+const guideDismissStyle: CSSProperties = {
+  flex: "0 0 auto",
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-xs)",
+  color: "var(--c-text-dim)",
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+  padding: 0,
+  lineHeight: 1,
+};
+
+const helpButtonStyle: CSSProperties = {
+  alignSelf: "flex-start",
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-xs)",
+  color: "var(--c-text-dim)",
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+  padding: 0,
+  textDecoration: "underline",
+};
+
+const expanderSummaryStyle: CSSProperties = {
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-sm)",
+  color: "var(--c-text)",
+  cursor: "pointer",
+};
+
+const expanderBodyStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--space-4)",
+  marginTop: "var(--space-3)",
+};
+
+/** Unicode info / dismiss glyphs (NOT emoji). */
+const INFO_GLYPH = "ⓘ"; // ⓘ CIRCLED LATIN SMALL LETTER I
+const DISMISS_GLYPH = "✕"; // ✕ MULTIPLICATION X
+
 /** Pick a preset's label for the active language. */
 function presetLabel(preset: SegPreset, lang: Lang): string {
   return lang === "ko" ? preset.labelKo : preset.label;
@@ -247,6 +367,35 @@ function presetLabel(preset: SegPreset, lang: Lang): string {
 /** Pick a preset's description for the active language. */
 function presetDescription(preset: SegPreset, lang: Lang): string {
   return lang === "ko" ? preset.descriptionKo : preset.description;
+}
+
+/** Filter the engine rows down to the fixed core keys, preserving their order. */
+function coreRows(rows: MetricRow[]): MetricRow[] {
+  return rows.filter((row) => CORE_METRIC_KEYS.includes(row.key));
+}
+
+/**
+ * Build the legend's A/B items from the active preset. When a preset is active,
+ * its localized name + scene role anchor each prediction; for a hand-edited
+ * scene (`activePresetId === ""`) generic names are used with NO role, since the
+ * scene no longer matches any preset's described behavior.
+ */
+function legendItems(
+  activePresetId: string,
+  lang: Lang,
+  t: (typeof L)[Lang],
+): { a: PredictionLegendItem; b: PredictionLegendItem } {
+  const preset = SEG_PRESETS.find((p) => p.id === activePresetId);
+  if (!preset) {
+    return {
+      a: { name: t.predictionA },
+      b: { name: t.predictionB },
+    };
+  }
+  return {
+    a: { name: preset.predictionA.name[lang], role: preset.predictionA.role[lang] },
+    b: { name: preset.predictionB.name[lang], role: preset.predictionB.role[lang] },
+  };
 }
 
 /** A labeled row of one-click presets; clicking one loads its full state. */
@@ -298,6 +447,10 @@ export default function Playground() {
   /** Undo stack of prior EngineStates; the last entry is the most recent. */
   const [history, setHistory] = useState<EngineState[]>([]);
   const { rows } = useEngineMetrics(state);
+  const { seen, markSeen, reset: resetGuide } = useFirstVisit(GUIDE_SEEN_KEY);
+
+  const compactRows = coreRows(rows);
+  const legend = legendItems(activePresetId, lang, t);
 
   /** Push the current state onto the undo history before mutating it. */
   const pushHistory = (current: EngineState) =>
@@ -381,10 +534,35 @@ export default function Playground() {
 
   return (
     <div style={pageStyle}>
+      <style>{RESPONSIVE_ORDER_CSS}</style>
+
+      {!seen ? (
+        <aside role="note" style={guideBannerStyle}>
+          <span aria-hidden="true" style={guideGlyphStyle}>
+            {INFO_GLYPH}
+          </span>
+          <span style={guideTextStyle}>{t.guide}</span>
+          <button
+            type="button"
+            style={guideDismissStyle}
+            aria-label={t.dismiss}
+            onClick={markSeen}
+          >
+            <span aria-hidden="true">{DISMISS_GLYPH}</span>
+          </button>
+        </aside>
+      ) : (
+        <button type="button" style={helpButtonStyle} onClick={resetGuide}>
+          {t.help}
+        </button>
+      )}
+
       <PresetBar activeId={activePresetId} onSelect={selectPreset} lang={lang} />
 
+      <PredictionLegend a={legend.a} b={legend.b} />
+
       <div style={splitStyle}>
-        <div style={columnStyle}>
+        <div style={columnStyle} className="pg-canvas-col">
           <p style={dragHintStyle}>{t.dragHint}</p>
 
           <CanvasEditor
@@ -415,15 +593,6 @@ export default function Playground() {
                 {t.clearLayer}
               </button>
             </div>
-          </section>
-
-          <UnitsBanner spacingMm={[1, 1]} />
-        </div>
-
-        <div style={columnStyle}>
-          <section style={panelStyle}>
-            <h3 style={headingStyle}>{lang === "ko" ? "A 대 B 지표" : "A vs B metrics"}</h3>
-            <MetricTable rows={rows} />
           </section>
 
           <section style={panelStyle}>
@@ -485,15 +654,30 @@ export default function Playground() {
             </div>
           </section>
 
+          <UnitsBanner spacingMm={[1, 1]} />
+        </div>
+
+        <div style={columnStyle} className="pg-verdict-col">
           <section style={panelStyle}>
-            <h3 style={headingStyle}>{t.insight}</h3>
+            <h3 style={headingStyle}>{t.verdict}</h3>
             <DisagreementInsight rows={rows} />
           </section>
 
           <section style={panelStyle}>
-            <h3 style={headingStyle}>{t.chart}</h3>
-            <MetricBarChart rows={rows} />
+            <h3 style={headingStyle}>{t.coreMetrics}</h3>
+            <MetricTable rows={compactRows} showRelativeCue />
           </section>
+
+          <details style={panelStyle}>
+            <summary style={expanderSummaryStyle}>{t.showAll}</summary>
+            <div style={expanderBodyStyle}>
+              <MetricTable rows={rows} showRelativeCue />
+              <section>
+                <h3 style={headingStyle}>{t.chart}</h3>
+                <MetricBarChart rows={rows} />
+              </section>
+            </div>
+          </details>
         </div>
       </div>
     </div>
