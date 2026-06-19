@@ -25,4 +25,10 @@ describe("edt", () => {
     const d = edt(g, mask);
     expect(d[3 * 2 + 2]).toBeCloseTo(Math.sqrt(8)); // (2,2) -> sqrt(2^2+2^2)
   });
+  it("all-background mask is +Infinity everywhere (no NaN)", () => {
+    const g = makeGrid(4, 4, [1, 1]);
+    const d = edt(g, new Uint8Array(16));
+    expect(d.every((v) => v === Infinity)).toBe(true);
+    expect(d.some((v) => Number.isNaN(v))).toBe(false);
+  });
 });

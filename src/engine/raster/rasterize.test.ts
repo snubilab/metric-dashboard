@@ -25,4 +25,13 @@ describe("rasterize", () => {
     ]);
     expect(m.every((v) => v === 0 || v === 1)).toBe(true);
   });
+  it("polygon fills a triangle", () => {
+    const g = makeGrid(10, 10, [1, 1]);
+    const m = rasterize(g, [
+      { kind: "polygon", points: [[0, 0], [8, 0], [0, 8]] },
+    ]);
+    expect(m[0]).toBe(1); // inside near the right angle
+    expect(m[10 * 7 + 7]).toBe(0); // beyond the hypotenuse
+    expect(m.reduce((a, b) => a + b, 0)).toBeGreaterThan(20);
+  });
 });
