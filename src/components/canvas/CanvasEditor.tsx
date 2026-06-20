@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "../../i18n/LanguageContext";
 import type { Grid, Shape, Vec2 } from "../../types/engine";
+import { readableTextOn } from "./colorContrast";
 import {
   addBox,
   addCircle,
@@ -125,9 +126,14 @@ const LAYER_DASH: Record<Layer, number[]> = {
 };
 /** Short on-canvas tag drawn near each shape so every blob is identifiable. */
 const LAYER_TAG: Record<Layer, string> = { GT: "GT", A: "A", B: "B" };
-/** Vertical tag offset (canvas px), staggered so GT/A/B tags never overlap when
- * shapes share a top edge (they stack GT → A → B upward). */
-const LAYER_TAG_DY: Record<Layer, number> = { GT: 0, A: -15, B: -30 };
+/** Vertical tag offset (canvas px), staggered so the GT/A/B chips never overlap
+ * when shapes share a top edge (they stack GT → A → B upward, ~3px gap given the
+ * 16px chip height). */
+const LAYER_TAG_DY: Record<Layer, number> = { GT: 0, A: -19, B: -38 };
+/** Height of a tag chip in canvas px. */
+const TAG_CHIP_H = 16;
+/** Corner radius of a tag chip in canvas px. */
+const TAG_CHIP_RADIUS = 4;
 /** Canvas backing-store size in device pixels (independent of CSS layout). */
 const CANVAS_PX = 480;
 /** Half-size of a square resize handle, in canvas pixels. */
@@ -212,25 +218,56 @@ function shapeTop(shape: Shape): Vec2 {
   return top;
 }
 
-/** Draw a short tag (GT/A/B) with a themed halo so it reads over any fill. */
-function paintLabel(
+/** Trace a rounded-rect path (manual so it works without ctx.roundRect). */
+function roundRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+/**
+ * Draw a GT/A/B tag as a solid chip in the layer color with an auto-contrast
+ * (black/white) glyph. Unlike a halo'd glyph, the chip's legibility does not
+ * depend on the translucent fills behind it, so the tag reads on any overlap in
+ * either theme. A thin `ring` (page background) lifts the chip off a fill of the
+ * same hue. `yBottom` anchors the chip's bottom edge.
+ */
+function paintTagBadge(
   ctx: CanvasRenderingContext2D,
   text: string,
   x: number,
-  y: number,
-  color: string,
-  halo: string,
+  yBottom: number,
+  fillColor: string,
+  ring: string,
   font: string,
 ): void {
   ctx.font = font;
   ctx.textAlign = "center";
-  ctx.textBaseline = "bottom";
-  ctx.lineJoin = "round";
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = halo;
-  ctx.strokeText(text, x, y);
-  ctx.fillStyle = color;
-  ctx.fillText(text, x, y);
+  ctx.textBaseline = "middle";
+  const padX = 5;
+  const w = Math.ceil(ctx.measureText(text).width) + padX * 2;
+  const left = x - w / 2;
+  const top = yBottom - TAG_CHIP_H;
+  roundRectPath(ctx, left, top, w, TAG_CHIP_H, TAG_CHIP_RADIUS);
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = ring;
+  ctx.stroke();
+  ctx.fillStyle = readableTextOn(fillColor);
+  ctx.fillText(text, x, top + TAG_CHIP_H / 2 + 0.5);
 }
 
 /**
@@ -378,21 +415,22 @@ export function CanvasEditor({
     }
 
     // Tag each shape (GT/A/B) on top so overlapping blobs are identifiable.
-    // Halo uses the page background (--c-bg) so the glyph sits in a theme-aware
-    // knockout bubble that lifts it off the colored fills, in light and dark.
-    const tagFont = `700 14px ${resolveColor(canvas, "--font-ui") || "system-ui, sans-serif"}`;
-    const tagHalo = resolveColor(canvas, "--c-bg") || "#fff";
+    // Each tag is a solid chip in the layer color with a contrast-picked glyph,
+    // so it stays legible over any overlap of translucent fills in either theme.
+    // The ring (page background) lifts a chip off a fill of the same hue.
+    const tagFont = `700 13px ${resolveColor(canvas, "--font-ui") || "system-ui, sans-serif"}`;
+    const tagRing = resolveColor(canvas, "--c-bg") || "#fff";
     for (const layer of visibleLayers) {
       const color = resolveColor(canvas, LAYER_COLOR_VAR[layer]);
       for (const shape of shapesForLayer(layer, gt, predictions)) {
         const [gx, gy] = shapeTop(shape);
-        paintLabel(
+        paintTagBadge(
           ctx,
           LAYER_TAG[layer],
           gx * scaleX,
           gy * scaleY - 2 + LAYER_TAG_DY[layer],
           color,
-          tagHalo,
+          tagRing,
           tagFont,
         );
       }

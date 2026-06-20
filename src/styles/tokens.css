@@ -3,10 +3,12 @@
  *
  * Light is the default theme (:root) — a bright, clean, slightly cool scheme. A
  * dark override lives under [data-theme="dark"] on the document element (<html>):
- * a soft modern slate rather than near-black. Only neutrals change between
- * themes; the Okabe-Ito data colors are theme-invariant so GT / Pred-A / Pred-B /
- * disagreement read identically in canvas fills, tables, charts, and legends
- * across both themes.
+ * a soft modern slate rather than near-black. Neutrals change between themes;
+ * the Okabe-Ito data hues stay stable so GT / Pred-A / Pred-B / disagreement read
+ * as the same colors across both themes. The lone exception is Pred-A: the deep
+ * blue (#0072b2) clears AA as text on white but only reaches ~2.9:1 on the dark
+ * surface, so dark mode lifts it to Okabe-Ito sky-blue (#56b4e9, ~6.8:1) — the
+ * same blue identity, just bright enough to read as a label on slate.
  *
  * All visual values in components MUST come from these custom properties.
  */
@@ -57,11 +59,15 @@
 }
 
 [data-theme="dark"] {
-  /* Neutrals — dark override: soft modern slate (data colors unchanged) */
+  /* Neutrals — dark override: soft modern slate */
   --c-bg: #131a24;
   --c-surface: #1b2431;
   --c-surface-2: #232e3d;
   --c-border: #344150;
   --c-text: #eaf0f7;
   --c-text-dim: #94a3b5;
+
+  /* Pred-A only: lift the deep blue to Okabe-Ito sky-blue so it clears AA as a
+     label on slate (deep blue reaches just ~2.9:1 here). GT/Pred-B already pass. */
+  --c-pred-a: #56b4e9;
 }
