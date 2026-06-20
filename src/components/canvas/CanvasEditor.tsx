@@ -113,7 +113,18 @@ const LAYER_COLOR_VAR: Record<Layer, string> = {
 };
 
 const ALL_LAYERS: Layer[] = ["GT", "A", "B"];
-const FILL_ALPHA = 0.4;
+/** Translucent fill — kept light so overlapping layers don't blend into mud. */
+const FILL_ALPHA = 0.18;
+/** Per-layer stroke dash so overlapping layers stay distinguishable. */
+const LAYER_DASH: Record<Layer, number[]> = {
+  GT: [],
+  A: [9, 6],
+  B: [],
+};
+/** Short on-canvas tag drawn near each shape so every blob is identifiable. */
+const LAYER_TAG: Record<Layer, string> = { GT: "GT", A: "A", B: "B" };
+/** Vertical tag offset (canvas px) so GT/A tags don't collide when shapes coincide. */
+const LAYER_TAG_DY: Record<Layer, number> = { GT: 0, A: -16, B: 0 };
 /** Canvas backing-store size in device pixels (independent of CSS layout). */
 const CANVAS_PX = 480;
 /** Half-size of a square resize handle, in canvas pixels. */
@@ -142,13 +153,14 @@ function resolveColor(el: HTMLElement, cssVar: string): string {
   return value || `var(${cssVar})`;
 }
 
-/** Fill + stroke a single shape in the supplied solid color. */
+/** Fill + stroke a single shape in the supplied color, with an optional dash. */
 function paintShape(
   ctx: CanvasRenderingContext2D,
   shape: Shape,
   color: string,
   scaleX: number,
   scaleY: number,
+  dash: number[] = [],
 ): void {
   ctx.beginPath();
   if (shape.kind === "circle") {
@@ -182,8 +194,40 @@ function paintShape(
   ctx.fill();
   ctx.globalAlpha = 1;
   ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash(dash);
   ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+/** A label-anchor point (grid coords) near the top of a shape. */
+function shapeTop(shape: Shape): Vec2 {
+  if (shape.kind === "circle") return [shape.cx, shape.cy - shape.r];
+  if (shape.kind === "box") return [shape.x + shape.w / 2, shape.y];
+  let top = shape.points[0] ?? [0, 0];
+  for (const p of shape.points) if (p[1] < top[1]) top = p;
+  return top;
+}
+
+/** Draw a short tag (GT/A/B) with a themed halo so it reads over any fill. */
+function paintLabel(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  color: string,
+  halo: string,
+  font: string,
+): void {
+  ctx.font = font;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "bottom";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = halo;
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
 }
 
 /**
@@ -309,7 +353,26 @@ export function CanvasEditor({
     for (const layer of visibleLayers) {
       const color = resolveColor(canvas, LAYER_COLOR_VAR[layer]);
       for (const shape of shapesForLayer(layer, gt, predictions)) {
-        paintShape(ctx, shape, color, scaleX, scaleY);
+        paintShape(ctx, shape, color, scaleX, scaleY, LAYER_DASH[layer]);
+      }
+    }
+
+    // Tag each shape (GT/A/B) on top so overlapping blobs are identifiable.
+    const tagFont = `700 13px ${resolveColor(canvas, "--font-ui") || "system-ui, sans-serif"}`;
+    const tagHalo = resolveColor(canvas, "--c-surface") || "#fff";
+    for (const layer of visibleLayers) {
+      const color = resolveColor(canvas, LAYER_COLOR_VAR[layer]);
+      for (const shape of shapesForLayer(layer, gt, predictions)) {
+        const [gx, gy] = shapeTop(shape);
+        paintLabel(
+          ctx,
+          LAYER_TAG[layer],
+          gx * scaleX,
+          gy * scaleY - 2 + LAYER_TAG_DY[layer],
+          color,
+          tagHalo,
+          tagFont,
+        );
       }
     }
 
