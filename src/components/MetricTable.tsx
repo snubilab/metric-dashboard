@@ -104,7 +104,7 @@ function relativeCue(lead: Lead, t: (typeof L)[Lang]): RelativeCue {
     case "A":
       return { label: t.leadsA, color: "var(--c-pred-a)" };
     case "B":
-      return { label: t.leadsB, color: "var(--c-pred-b)" };
+      return { label: t.leadsB, color: "var(--c-pred-b-text)" };
     case "tie":
       return { label: t.tie, color: "var(--c-text-dim)" };
     default:
@@ -260,7 +260,7 @@ export function MetricTable({ rows, showRelativeCue = false }: MetricTableProps)
             <th scope="col" style={valueHeadCell("var(--c-pred-a)")}>
               A
             </th>
-            <th scope="col" style={valueHeadCell("var(--c-pred-b)")}>
+            <th scope="col" style={valueHeadCell("var(--c-pred-b-text)")}>
               B
             </th>
           </tr>

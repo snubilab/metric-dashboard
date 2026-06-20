@@ -17,13 +17,13 @@
 import type { DegeneratePolicy, EngineState, Vec2 } from "../../types/engine";
 
 /** Shared 256x256, 1mm isotropic grid — identical to the Playground default. */
-const GRID = { width: 256, height: 256, spacingMm: [1, 1] as Vec2 };
+export const GRID = { width: 256, height: 256, spacingMm: [1, 1] as Vec2 };
 
 /** Reasonable default degenerate-case policy, shared by every preset. */
-const POLICY: DegeneratePolicy = { emptyDice: "one", emptyDistance: "undefined" };
+export const POLICY: DegeneratePolicy = { emptyDice: "one", emptyDistance: "undefined" };
 
 /** Shared NSD tolerance for every preset, in millimeters. */
-const NSD_TOLERANCE_MM = 2;
+export const NSD_TOLERANCE_MM = 2;
 
 /** A bilingual string pair (Korean / English) for a single piece of UI text. */
 export interface Bilingual {

@@ -11,6 +11,10 @@ import {
   scalePolygon,
   handlePositions,
   hitTestHandle,
+  normalizeBox,
+  rectFromDrag,
+  circleFromDrag,
+  isBelowMinSize,
 } from "./canvasMath";
 import { makeGrid } from "../../engine/raster/grid";
 import type { Shape, Vec2 } from "../../types/engine";
@@ -385,5 +389,112 @@ describe("hitTestHandle", () => {
   it("hits a circle's lone right-edge handle", () => {
     const circle = { kind: "circle", cx: 5, cy: 5, r: 3 } as const;
     expect(hitTestHandle(circle, 8, 5, 0.5)).toBe(0);
+  });
+});
+
+describe("normalizeBox", () => {
+  it("returns the drag as-is for a bottom-right drag (ax<bx, ay<by)", () => {
+    // Arrange / Act
+    const result = normalizeBox(2, 3, 12, 9);
+    // Assert
+    expect(result).toEqual({ x: 2, y: 3, w: 10, h: 6 });
+  });
+
+  it("flips a top-left drag (ax>bx, ay>by) to positive w/h with x=bx, y=by", () => {
+    const result = normalizeBox(12, 9, 2, 3);
+    expect(result).toEqual({ x: 2, y: 3, w: 10, h: 6 });
+  });
+
+  it("normalizes a top-right drag (ax<bx, ay>by) to positive w/h, x=min, y=min", () => {
+    const result = normalizeBox(2, 9, 12, 3);
+    expect(result).toEqual({ x: 2, y: 3, w: 10, h: 6 });
+  });
+
+  it("normalizes a bottom-left drag (ax>bx, ay<by) to positive w/h, x=min, y=min", () => {
+    const result = normalizeBox(12, 3, 2, 9);
+    expect(result).toEqual({ x: 2, y: 3, w: 10, h: 6 });
+  });
+});
+
+describe("rectFromDrag", () => {
+  it("returns a box matching the normalized drag bbox", () => {
+    const result = rectFromDrag(2, 3, 12, 9);
+    expect(result).toEqual({ kind: "box", x: 2, y: 3, w: 10, h: 6 });
+  });
+
+  it("is direction-agnostic (reversed drag yields the same box)", () => {
+    expect(rectFromDrag(12, 9, 2, 3)).toEqual(rectFromDrag(2, 3, 12, 9));
+  });
+
+  it("does not mutate its scalar inputs (frozen-input safe)", () => {
+    const ax = 2,
+      ay = 3,
+      bx = 12,
+      by = 9;
+    rectFromDrag(ax, ay, bx, by);
+    expect([ax, ay, bx, by]).toEqual([2, 3, 12, 9]);
+  });
+});
+
+describe("circleFromDrag", () => {
+  it("inscribes a circle in a square drag 0,0->10,10 (cx:5,cy:5,r:5)", () => {
+    expect(circleFromDrag(0, 0, 10, 10)).toEqual({
+      kind: "circle",
+      cx: 5,
+      cy: 5,
+      r: 5,
+    });
+  });
+
+  it("inscribes an HONEST circle in a non-square drag 0,0->10,4 (r=min/2=2)", () => {
+    // r = min(10, 4) / 2 = 2 ; a true circle, never an ellipse.
+    expect(circleFromDrag(0, 0, 10, 4)).toEqual({
+      kind: "circle",
+      cx: 5,
+      cy: 2,
+      r: 2,
+    });
+  });
+
+  it("yields an identical circle for a reversed-direction drag 10,10->0,0", () => {
+    expect(circleFromDrag(10, 10, 0, 0)).toEqual(circleFromDrag(0, 0, 10, 10));
+  });
+
+  it("yields r=0 for a zero-area tap 5,5->5,5 (min-size guard rejects later)", () => {
+    expect(circleFromDrag(5, 5, 5, 5)).toEqual({
+      kind: "circle",
+      cx: 5,
+      cy: 5,
+      r: 0,
+    });
+  });
+
+  it("does not mutate its scalar inputs (frozen-input safe)", () => {
+    const ax = 0,
+      ay = 0,
+      bx = 10,
+      by = 4;
+    circleFromDrag(ax, ay, bx, by);
+    expect([ax, ay, bx, by]).toEqual([0, 0, 10, 4]);
+  });
+});
+
+describe("isBelowMinSize", () => {
+  const MIN = 5;
+
+  it("returns false when both w and h are >= minGrid (commit)", () => {
+    expect(isBelowMinSize(0, 0, 8, 6, MIN)).toBe(false);
+  });
+
+  it("returns true when w < minGrid (discard)", () => {
+    expect(isBelowMinSize(0, 0, 3, 8, MIN)).toBe(true);
+  });
+
+  it("returns true when h < minGrid (discard)", () => {
+    expect(isBelowMinSize(0, 0, 8, 3, MIN)).toBe(true);
+  });
+
+  it("returns false at exactly minGrid on both axes (boundary, equal is NOT below)", () => {
+    expect(isBelowMinSize(0, 0, MIN, MIN, MIN)).toBe(false);
   });
 });

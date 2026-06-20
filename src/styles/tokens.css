@@ -20,6 +20,12 @@
   --c-pred-b: #f59e0b; /* prediction B — clean amber (crisper on white than #e69f00) */
   --c-warn: #e5484d; /* disagreement / HD95 spikes — clean red (crisper on white than #d55e00) */
 
+  /* Text-legible variants of the data hues that fail AA as text on white (the
+     bright versions stay for MARKS — swatches, canvas, chart bars). Pred-A blue
+     already passes as text in both themes, so it needs no variant. */
+  --c-pred-b-text: #b45309; /* amber ~2.1:1 → ~5:1 */
+  --c-gt-text: #047857; /* green ~3.4:1 → ~5.5:1 */
+
   /* Neutrals — light (default): bright, slightly cool */
   --c-bg: #f7f9fc;
   --c-surface: #ffffff;
@@ -70,4 +76,9 @@
   /* Pred-A only: lift the deep blue to Okabe-Ito sky-blue so it clears AA as a
      label on slate (deep blue reaches just ~2.9:1 here). GT/Pred-B already pass. */
   --c-pred-a: #56b4e9;
+
+  /* On slate the bright hues read fine as text, so the text variants match the
+     marks here (the darker light-mode variants would only reach ~3:1 on slate). */
+  --c-pred-b-text: #f59e0b;
+  --c-gt-text: #009e73;
 }

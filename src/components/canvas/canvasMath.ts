@@ -104,6 +104,76 @@ export function addBox(x: number, y: number, w: number, h: number): Shape {
   return { kind: "box", x, y, w, h };
 }
 
+/**
+ * Order two drag corners into a normalized axis-aligned box with always-positive
+ * width/height: `x = min(ax, bx)`, `y = min(ay, by)`, `w = |ax - bx|`,
+ * `h = |ay - by|`. Handles all four diagonal drag directions identically and
+ * never mutates its inputs.
+ */
+export function normalizeBox(
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+): { x: number; y: number; w: number; h: number } {
+  return {
+    x: Math.min(ax, bx),
+    y: Math.min(ay, by),
+    w: Math.abs(ax - bx),
+    h: Math.abs(ay - by),
+  };
+}
+
+/**
+ * Build a box from a drag's two corners. The normalized drag bbox *is* the box,
+ * so the result is direction-agnostic. No min-size enforcement here — that guard
+ * lives in the component release path (see `isBelowMinSize`) so the same
+ * threshold also governs the circle. Pure; never mutates.
+ */
+export function rectFromDrag(
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+): Extract<Shape, { kind: "box" }> {
+  const { x, y, w, h } = normalizeBox(ax, ay, bx, by);
+  return { kind: "box", x, y, w, h };
+}
+
+/**
+ * Inscribe a TRUE circle in a drag's normalized bbox: centered at the bbox
+ * center with `r = min(w, h) / 2`. Honest given `Shape['circle']` carries a
+ * single radius — a free non-square drag persists as a circle, never an ellipse.
+ * `r` may be 0 for a tap; the component-level min-size guard rejects that before
+ * commit. Pure; never mutates.
+ */
+export function circleFromDrag(
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+): Extract<Shape, { kind: "circle" }> {
+  const { x, y, w, h } = normalizeBox(ax, ay, bx, by);
+  return { kind: "circle", cx: x + w / 2, cy: y + h / 2, r: Math.min(w, h) / 2 };
+}
+
+/**
+ * Pure predicate: is the drag's normalized bbox below the minimum draw size on
+ * either axis? Returns `w < minGrid || h < minGrid`. The boundary is strict —
+ * exactly `minGrid` on both axes is NOT below (commits). Callers convert a pixel
+ * threshold to grid units and use `true` to discard a stray tap before emitting.
+ */
+export function isBelowMinSize(
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  minGrid: number,
+): boolean {
+  const { w, h } = normalizeBox(ax, ay, bx, by);
+  return w < minGrid || h < minGrid;
+}
+
 /** Options controlling how a freehand drag path becomes a polygon. */
 export interface PathToPolygonOptions {
   /** Minimum distinct points required to form a polygon (default 3). */

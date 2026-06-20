@@ -124,8 +124,10 @@ describe("MetricTable", () => {
     expect(screen.getByRole("columnheader", { name: "A" })).toHaveStyle({
       color: "var(--c-pred-a)",
     });
+    // B uses the text-legible amber variant (the bright mark amber fails AA on
+    // white); the column allegiance reads the same, just readable.
     expect(screen.getByRole("columnheader", { name: "B" })).toHaveStyle({
-      color: "var(--c-pred-b)",
+      color: "var(--c-pred-b-text)",
     });
   });
 
@@ -230,7 +232,8 @@ describe("MetricTable", () => {
       );
 
       expect(screen.getByText("A leads")).toHaveStyle({ color: "var(--c-pred-a)" });
-      expect(screen.getByText("B leads")).toHaveStyle({ color: "var(--c-pred-b)" });
+      // B's chip uses the AA-legible amber text variant (still amber, not red/green).
+      expect(screen.getByText("B leads")).toHaveStyle({ color: "var(--c-pred-b-text)" });
       expect(screen.getByText("tie")).toHaveStyle({ color: "var(--c-text-dim)" });
     });
 

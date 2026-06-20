@@ -15,13 +15,14 @@ import { useLang } from "../../i18n/LanguageContext";
 import type { Grid, Shape, Vec2 } from "../../types/engine";
 import { readableTextOn } from "./colorContrast";
 import {
-  addBox,
-  addCircle,
+  circleFromDrag,
   handlePositions,
   hitTestHandle,
   hitTestShape,
+  isBelowMinSize,
   moveShape,
   pathToPolygon,
+  rectFromDrag,
   resizeBoxCorner,
   resizeCircle,
   scalePolygon,
@@ -34,9 +35,9 @@ export type Layer = "GT" | "A" | "B";
 
 const L = {
   ko: {
-    addCircle: "원 추가",
-    addBox: "박스 추가",
-    draw: "그리기",
+    circle: "원",
+    rect: "사각형",
+    pencil: "연필",
     move: "선택 / 이동",
     delete: "삭제",
     canvasTools: "캔버스 도구",
@@ -46,12 +47,12 @@ const L = {
     predictionB: "예측 B",
     show: "표시",
     hide: "숨김",
-    emptyHint: '도형이 없습니다 — "원 추가"로 시작하세요',
+    emptyHint: '도형이 없습니다 — 도구를 고른 뒤 캔버스를 눌러 드래그하세요',
   },
   en: {
-    addCircle: "Add circle",
-    addBox: "Add box",
-    draw: "Draw",
+    circle: "Circle",
+    rect: "Rectangle",
+    pencil: "Pencil",
     move: "Select / Move",
     delete: "Delete",
     canvasTools: "Canvas tools",
@@ -61,7 +62,7 @@ const L = {
     predictionB: "Prediction B",
     show: "Show",
     hide: "Hide",
-    emptyHint: 'No shapes — start with "Add circle".',
+    emptyHint: "No shapes — pick a tool, then press and drag on the canvas.",
   },
 } as const;
 
@@ -71,8 +72,8 @@ const L = {
  */
 const TOOL_GLYPH = {
   circle: "◯", // ◯
-  box: "▢", // ▢
-  draw: "✎", // ✎
+  rect: "▢", // ▢
+  pencil: "✎", // ✎
   move: "↔", // ↔
   delete: "✕", // ✕
 } as const;
@@ -104,6 +105,23 @@ export interface CanvasEditorProps {
    * toggles render (backward compatible).
    */
   onToggleLayerVisibility?: (layer: Layer) => void;
+  /**
+   * Layers that are locked for the guided flow: their layer buttons render
+   * dimmed and `disabled` (+ aria-disabled) but are NEVER hidden, so the
+   * three-layer mental model still forms. Omitted → all layers enabled.
+   */
+  lockedLayers?: Layer[];
+  /**
+   * Step-specific, layer-colored prompt shown over an empty canvas. Replaces
+   * the static empty hint when set; falls back to the legacy hint when absent.
+   */
+  prompt?: { text: string; layer: Layer };
+  /**
+   * Pure "switch active layer" callback. When provided, clicking a layer chip
+   * calls this instead of `onChange`, so a parent can derive `activeLayer`
+   * without an edit being recorded. When absent, the legacy onChange path runs.
+   */
+  onSelectLayer?: (layer: Layer) => void;
 }
 
 /** Each layer's fill/stroke color comes from a token custom property. */
@@ -126,12 +144,10 @@ const LAYER_DASH: Record<Layer, number[]> = {
 };
 /** Short on-canvas tag drawn near each shape so every blob is identifiable. */
 const LAYER_TAG: Record<Layer, string> = { GT: "GT", A: "A", B: "B" };
-/** Vertical tag offset (canvas px), staggered so the GT/A/B chips never overlap
- * when shapes share a top edge (they stack GT → A → B upward, ~3px gap given the
- * 16px chip height). */
-const LAYER_TAG_DY: Record<Layer, number> = { GT: 0, A: -19, B: -38 };
 /** Height of a tag chip in canvas px. */
 const TAG_CHIP_H = 16;
+/** Vertical gap kept between de-collided tag chips, in canvas px. */
+const TAG_CHIP_GAP = 3;
 /** Corner radius of a tag chip in canvas px. */
 const TAG_CHIP_RADIUS = 4;
 /** Canvas backing-store size in device pixels (independent of CSS layout). */
@@ -143,10 +159,14 @@ const HANDLE_PICK_PX = 10;
 /** Box handle index -> corner id, matching `handlePositions` ordering. */
 const BOX_CORNERS: BoxCorner[] = ["tl", "tr", "bl", "br"];
 
-type Tool = "circle" | "box" | "move" | "delete" | "draw";
+type Tool = "circle" | "rect" | "pencil" | "move" | "delete";
 
 /** Drop drag-path points whose grid cell duplicates their predecessor. */
 const DRAW_SIMPLIFY_EPS = 0;
+/** Minimum drag extent (canvas px) for a circle/rect create; smaller is a tap. */
+const MIN_DRAW_PX = 6;
+/** Dash pattern for the live drag-to-create ghost (canvas px). */
+const PREVIEW_DASH = [6, 4];
 
 function shapesForLayer(
   layer: Layer,
@@ -346,6 +366,9 @@ export function CanvasEditor({
   showLayers,
   visibleLayers: visibleLayersProp,
   onToggleLayerVisibility,
+  lockedLayers,
+  prompt,
+  onSelectLayer,
 }: CanvasEditorProps) {
   const { lang } = useLang();
   const t = L[lang];
@@ -363,9 +386,13 @@ export function CanvasEditor({
   );
   /** Active handle drag: which shape + which handle is being dragged. */
   const resizeRef = useRef<{ index: number; handle: number } | null>(null);
-  /** Live freehand path in grid coordinates while the Draw tool is dragging. */
+  /** Live freehand path in grid coordinates while the Pencil tool is dragging. */
   const drawPathRef = useRef<Vec2[] | null>(null);
   const [drawPath, setDrawPath] = useState<Vec2[] | null>(null);
+  /** Drag-to-create start corner (grid coords) for the circle/rect tools. */
+  const dragStartRef = useRef<Vec2 | null>(null);
+  /** Live drag-to-create ghost shape (circle or box), painted in the draw effect. */
+  const [preview, setPreview] = useState<Shape | null>(null);
 
   // The canvas colors come from CSS tokens read at draw time, so a light/dark
   // theme switch (which flips the document's data-theme) must force a redraw —
@@ -415,25 +442,45 @@ export function CanvasEditor({
     }
 
     // Tag each shape (GT/A/B) on top so overlapping blobs are identifiable.
-    // Each tag is a solid chip in the layer color with a contrast-picked glyph,
-    // so it stays legible over any overlap of translucent fills in either theme.
-    // The ring (page background) lifts a chip off a fill of the same hue.
+    // Each tag is a solid chip in the layer color with a contrast-picked glyph.
+    // A good prediction overlaps GT, so their chips would land on the same spot;
+    // we de-collide by placing chips bottom-up and pushing any that would overlap
+    // an already-placed chip upward into free space, so every letter stays legible
+    // regardless of how the shapes sit. The ring (page bg) lifts a chip off a
+    // same-hue fill.
     const tagFont = `700 13px ${resolveColor(canvas, "--font-ui") || "system-ui, sans-serif"}`;
     const tagRing = resolveColor(canvas, "--c-bg") || "#fff";
-    for (const layer of visibleLayers) {
+    ctx.font = tagFont;
+    const tagRequests = visibleLayers.flatMap((layer) => {
       const color = resolveColor(canvas, LAYER_COLOR_VAR[layer]);
-      for (const shape of shapesForLayer(layer, gt, predictions)) {
+      return shapesForLayer(layer, gt, predictions).map((shape) => {
         const [gx, gy] = shapeTop(shape);
-        paintTagBadge(
-          ctx,
-          LAYER_TAG[layer],
-          gx * scaleX,
-          gy * scaleY - 2 + LAYER_TAG_DY[layer],
-          color,
-          tagRing,
-          tagFont,
-        );
+        const text = LAYER_TAG[layer];
+        const halfW = (Math.ceil(ctx.measureText(text).width) + 10) / 2;
+        return { text, color, cx: gx * scaleX, yBottom: gy * scaleY - 2, halfW };
+      });
+    });
+    // Place bottom-most first so collisions resolve by moving chips upward.
+    tagRequests.sort((a, b) => b.yBottom - a.yBottom);
+    const placed: { cx: number; yBottom: number; halfW: number }[] = [];
+    for (const req of tagRequests) {
+      let yBottom = req.yBottom;
+      let moved = true;
+      while (moved) {
+        moved = false;
+        for (const p of placed) {
+          const overlapX = Math.abs(req.cx - p.cx) < req.halfW + p.halfW + 2;
+          const overlapY =
+            yBottom - TAG_CHIP_H < p.yBottom && yBottom > p.yBottom - TAG_CHIP_H;
+          if (overlapX && overlapY) {
+            yBottom = p.yBottom - TAG_CHIP_H - TAG_CHIP_GAP;
+            moved = true;
+          }
+        }
       }
+      yBottom = Math.max(yBottom, TAG_CHIP_H + 1);
+      placed.push({ cx: req.cx, yBottom, halfW: req.halfW });
+      paintTagBadge(ctx, req.text, req.cx, yBottom, req.color, tagRing, tagFont);
     }
 
     // Resize handles for the selected shape (only while the Select/Move tool is
@@ -465,12 +512,27 @@ export function CanvasEditor({
         scaleY,
       );
     }
+
+    // Live drag-to-create ghost (circle/rect), dashed, in the active layer's
+    // token color. Painted inside this effect so the data-theme MutationObserver
+    // redraw recolors the in-progress ghost for free.
+    if (preview) {
+      paintShape(
+        ctx,
+        preview,
+        resolveColor(canvas, LAYER_COLOR_VAR[activeLayer]),
+        scaleX,
+        scaleY,
+        PREVIEW_DASH,
+      );
+    }
   }, [
     grid,
     gt,
     predictions,
     visibleLayers,
     drawPath,
+    preview,
     activeLayer,
     tool,
     selectedIndex,
@@ -486,20 +548,8 @@ export function CanvasEditor({
 
   const emitActive = (next: Shape[]) => onChange(activeLayer, next);
 
-  const handleAddCircle = () => {
-    const cx = grid.width / 2;
-    const cy = grid.height / 2;
-    const r = Math.max(2, Math.min(grid.width, grid.height) / 6);
-    emitActive([...activeShapes, addCircle(cx, cy, r)]);
-  };
-
-  const handleAddBox = () => {
-    const w = Math.max(2, grid.width / 4);
-    const h = Math.max(2, grid.height / 4);
-    const x = (grid.width - w) / 2;
-    const y = (grid.height - h) / 2;
-    emitActive([...activeShapes, addBox(x, y, w, h)]);
-  };
+  /** Min create-drag extent in grid units (MIN_DRAW_PX scaled back). */
+  const minGrid = (MIN_DRAW_PX / CANVAS_PX) * grid.width;
 
   const topHitIndex = (gx: number, gy: number): number => {
     for (let i = activeShapes.length - 1; i >= 0; i--) {
@@ -550,10 +600,18 @@ export function CanvasEditor({
     const rect = canvas.getBoundingClientRect();
     const { x, y } = screenToGrid(e.clientX, e.clientY, rect, grid);
 
-    if (tool === "draw") {
+    if (tool === "pencil") {
       const start: Vec2[] = [[x, y]];
       drawPathRef.current = start;
       setDrawPath(start);
+      canvas.setPointerCapture?.(e.pointerId);
+      return;
+    }
+
+    // Drag-to-create: record the start corner in grid coords; commit on release.
+    if (tool === "circle" || tool === "rect") {
+      dragStartRef.current = [x, y];
+      setPreview(null);
       canvas.setPointerCapture?.(e.pointerId);
       return;
     }
@@ -595,7 +653,7 @@ export function CanvasEditor({
     const rect = canvas.getBoundingClientRect();
     const { x, y } = screenToGrid(e.clientX, e.clientY, rect, grid);
 
-    if (tool === "draw") {
+    if (tool === "pencil") {
       const path = drawPathRef.current;
       if (!path) return;
       const last = path[path.length - 1];
@@ -603,6 +661,18 @@ export function CanvasEditor({
       const next: Vec2[] = [...path, [x, y]];
       drawPathRef.current = next;
       setDrawPath(next);
+      return;
+    }
+
+    // Drag-to-create: update the live ghost (visual only, never an onChange).
+    if (tool === "circle" || tool === "rect") {
+      const start = dragStartRef.current;
+      if (!start) return;
+      const shape =
+        tool === "circle"
+          ? circleFromDrag(start[0], start[1], x, y)
+          : rectFromDrag(start[0], start[1], x, y);
+      setPreview(shape);
       return;
     }
 
@@ -629,7 +699,7 @@ export function CanvasEditor({
   };
 
   const endDrag = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (tool === "draw" && drawPathRef.current) {
+    if (tool === "pencil" && drawPathRef.current) {
       const polygon = pathToPolygon(drawPathRef.current, {
         simplifyEps: DRAW_SIMPLIFY_EPS,
       });
@@ -637,6 +707,27 @@ export function CanvasEditor({
       setDrawPath(null);
       canvasRef.current?.releasePointerCapture?.(e.pointerId);
       if (polygon) emitActive([...activeShapes, polygon]);
+      return;
+    }
+
+    // Drag-to-create commit: discard sub-min-size taps, else emit exactly one
+    // onChange with the inscribed circle / normalized rect.
+    if ((tool === "circle" || tool === "rect") && dragStartRef.current) {
+      const start = dragStartRef.current;
+      const canvas = canvasRef.current;
+      const rect = canvas?.getBoundingClientRect();
+      const { x, y } = rect
+        ? screenToGrid(e.clientX, e.clientY, rect, grid)
+        : { x: start[0], y: start[1] };
+      dragStartRef.current = null;
+      setPreview(null);
+      canvas?.releasePointerCapture?.(e.pointerId);
+      if (isBelowMinSize(start[0], start[1], x, y, minGrid)) return;
+      const shape =
+        tool === "circle"
+          ? circleFromDrag(start[0], start[1], x, y)
+          : rectFromDrag(start[0], start[1], x, y);
+      emitActive([...activeShapes, shape]);
       return;
     }
     if (resizeRef.current) {
@@ -672,19 +763,21 @@ export function CanvasEditor({
       >
         <ToolButton
           glyph={TOOL_GLYPH.circle}
-          label={t.addCircle}
-          onClick={handleAddCircle}
+          label={t.circle}
+          pressed={tool === "circle"}
+          onClick={() => setTool("circle")}
         />
         <ToolButton
-          glyph={TOOL_GLYPH.box}
-          label={t.addBox}
-          onClick={handleAddBox}
+          glyph={TOOL_GLYPH.rect}
+          label={t.rect}
+          pressed={tool === "rect"}
+          onClick={() => setTool("rect")}
         />
         <ToolButton
-          glyph={TOOL_GLYPH.draw}
-          label={t.draw}
-          pressed={tool === "draw"}
-          onClick={() => setTool("draw")}
+          glyph={TOOL_GLYPH.pencil}
+          label={t.pencil}
+          pressed={tool === "pencil"}
+          onClick={() => setTool("pencil")}
         />
         <ToolButton
           glyph={TOOL_GLYPH.move}
@@ -716,6 +809,7 @@ export function CanvasEditor({
         >
           {ALL_LAYERS.map((layer) => {
             const isVisible = visibleLayers.includes(layer);
+            const isLocked = lockedLayers?.includes(layer) ?? false;
             return (
               <div
                 key={layer}
@@ -724,10 +818,15 @@ export function CanvasEditor({
                 <button
                   type="button"
                   aria-pressed={activeLayer === layer}
+                  aria-disabled={isLocked || undefined}
+                  disabled={isLocked}
                   title={layerLabel[layer]}
-                  onClick={() =>
-                    onChange(layer, shapesForLayer(layer, gt, predictions))
-                  }
+                  onClick={() => {
+                    if (isLocked) return;
+                    if (onSelectLayer) onSelectLayer(layer);
+                    else
+                      onChange(layer, shapesForLayer(layer, gt, predictions));
+                  }}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -735,17 +834,21 @@ export function CanvasEditor({
                     padding: "var(--space-1) var(--space-2)",
                     fontFamily: "var(--font-mono)",
                     fontSize: "var(--text-xs)",
-                    color: "var(--c-text)",
+                    color: isLocked ? "var(--c-text-dim)" : "var(--c-text)",
                     background:
                       activeLayer === layer
                         ? "var(--c-surface-2)"
                         : "var(--c-surface)",
+                    // Locked layers read as present-but-inactive via a dashed dim
+                    // border (not a near-invisible solid one crushed by opacity).
                     border:
                       activeLayer === layer
                         ? `1px solid var(${LAYER_COLOR_VAR[layer]})`
-                        : "1px solid var(--c-border)",
+                        : isLocked
+                          ? "1px dashed var(--c-text-dim)"
+                          : "1px solid var(--c-border)",
                     borderRadius: "var(--radius-sm)",
-                    cursor: "pointer",
+                    cursor: isLocked ? "not-allowed" : "pointer",
                   }}
                 >
                   <span
@@ -759,7 +862,7 @@ export function CanvasEditor({
                   />
                   {layer}
                 </button>
-                {onToggleLayerVisibility && (
+                {onToggleLayerVisibility && !isLocked && (
                   <button
                     type="button"
                     aria-pressed={isVisible}
@@ -818,7 +921,7 @@ export function CanvasEditor({
             cursor: tool === "delete" ? "not-allowed" : "crosshair",
           }}
         />
-        {isEmpty && (
+        {(prompt || isEmpty) && (
           <div
             aria-hidden="true"
             style={{
@@ -835,7 +938,33 @@ export function CanvasEditor({
               pointerEvents: "none",
             }}
           >
-            {t.emptyHint}
+            {prompt ? (
+              // High-contrast prompt text (a raw layer color fails AA on the light
+              // canvas); a colored dot carries the layer association instead.
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "var(--space-2)",
+                  color: "var(--c-text)",
+                  fontWeight: 600,
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: "10px",
+                    height: "10px",
+                    borderRadius: "50%",
+                    background: `var(${LAYER_COLOR_VAR[prompt.layer]})`,
+                    flex: "0 0 auto",
+                  }}
+                />
+                {prompt.text}
+              </span>
+            ) : (
+              t.emptyHint
+            )}
           </div>
         )}
       </div>
@@ -849,10 +978,9 @@ interface ToolButtonProps {
   /** Affordance glyph rendered before the text label (unicode, not emoji). */
   glyph?: string;
   /**
-   * Active state for MODE tools (draw / select-move / delete). When true the
-   * button is styled like the active layer chip (pred-A border + surface-2 bg)
-   * and `aria-pressed` is reflected. Omitted for momentary action buttons
-   * (add-circle / add-box), which never show a persistent active state.
+   * Active state for the pressed tools (circle / rect / pencil / select-move /
+   * delete). When true the button is styled like the active layer chip (pred-A
+   * border + surface-2 bg) and `aria-pressed` is reflected.
    */
   pressed?: boolean;
 }

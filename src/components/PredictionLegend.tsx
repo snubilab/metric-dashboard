@@ -78,12 +78,26 @@ const separatorStyle: React.CSSProperties = {
   color: "var(--c-text-dim)",
 };
 
-/** A single color-swatch chip: swatch + colored name + optional dim role. */
-function Chip({ color, name, role }: { color: string; name: string; role?: string }) {
+/**
+ * A single color-swatch chip: a bright swatch (the data MARK color) + the name
+ * in a legible text color (the bright hue can fail AA as text — see the `*-text`
+ * tokens), plus an optional dim role. `textColor` defaults to `color`.
+ */
+function Chip({
+  color,
+  textColor,
+  name,
+  role,
+}: {
+  color: string;
+  textColor?: string;
+  name: string;
+  role?: string;
+}) {
   return (
     <span style={itemStyle}>
       <span aria-hidden="true" data-swatch style={swatchStyle(color)} />
-      <span style={nameStyle(color)}>{name}</span>
+      <span style={nameStyle(textColor ?? color)}>{name}</span>
       {role ? (
         <>
           <span aria-hidden="true" style={separatorStyle}>
@@ -107,9 +121,14 @@ export function PredictionLegend({ gtLabel, a, b }: PredictionLegendProps) {
 
   return (
     <div style={legendStyle}>
-      <Chip color="var(--c-gt)" name={gtLabel ?? t.gt} />
+      <Chip color="var(--c-gt)" textColor="var(--c-gt-text)" name={gtLabel ?? t.gt} />
       <Chip color="var(--c-pred-a)" name={a.name} role={a.role} />
-      <Chip color="var(--c-pred-b)" name={b.name} role={b.role} />
+      <Chip
+        color="var(--c-pred-b)"
+        textColor="var(--c-pred-b-text)"
+        name={b.name}
+        role={b.role}
+      />
     </div>
   );
 }

@@ -1,16 +1,18 @@
 /**
- * Segmentation Playground — a live sandbox for the segmentation metric suite.
+ * Segmentation Playground — a draw-from-scratch GUIDED sandbox for the
+ * segmentation metric suite.
  *
- * A single `EngineState` in component state drives everything: the canvas (GT +
- * Prediction A + Prediction B), the A-vs-B metric table, the NSD tolerance, and
- * the degenerate-case policy. Editing any layer, or changing any control, flows
- * back into that one state object, so the table recomputes live and A/B
- * disagreements (rank flips, large gaps) surface immediately.
+ * The Playground boots EMPTY (gt:[], A:[], B:[]) so every pixel on the canvas is
+ * something the student drew. A pure `flowStage(state)` helper derives the
+ * stage ("gt" | "a" | "b" | "compare") from shape counts and drives the whole
+ * experience: a STEP n of 3 pill, a layer-colored per-step prompt inside the
+ * canvas, which layer is active/unlocked, and whether the right column (verdict
+ * + table + chart) renders. The student draws the truth (GT), then guess A,
+ * then guess B; only when all three are non-empty does the comparison unlock.
  *
- * The layout is verdict-first: an identity legend (what A/B/GT are) and the
- * auto-generated disagreement verdict lead, then the full A-vs-B metric table
- * (all metrics shown at once) and the bar chart. A dismissible first-visit
- * banner frames the A/B comparison on first arrival.
+ * Product thesis preserved verbatim: NO metric is graded good/bad; the verdict
+ * only ever says which side each metric calls "closer", and the winner depends
+ * on the metric.
  *
  * All visual values come from the design-system token custom properties; no
  * color or font is hardcoded.
@@ -37,46 +39,49 @@ import { useEngineMetrics } from "../../components/metrics/useEngineMetrics";
 import { useFirstVisit } from "../../components/useFirstVisit";
 import { useLang } from "../../i18n/LanguageContext";
 import type { Lang } from "../../i18n/LanguageContext";
-import { SEG_PRESETS, DEFAULT_PRESET_ID } from "./presets";
+import { SEG_PRESETS, GRID, POLICY, NSD_TOLERANCE_MM } from "./presets";
 import type { SegPreset } from "./presets";
+import { flowStage, lockedLayersFor, stageLayer, stageStep } from "./flowStage";
+import {
+  LOAD_EXAMPLE,
+  LOAD_EXAMPLE_CAPTION,
+  RESET_TO_EMPTY,
+  SHOW_GUIDE_AGAIN,
+  STAGE_GATING_LINE,
+  STAGE_PROMPT,
+  THESIS_BANNER,
+  stepPill,
+} from "./guidedCopy";
 
 /** Layers shown on the canvas by default — all three. */
 const DEFAULT_VISIBLE_LAYERS: Layer[] = ["GT", "A", "B"];
 
-/** localStorage key for the first-visit guide banner's dismissed flag. */
+/** localStorage key for the one-time compare (thesis) banner's dismissed flag. */
 const GUIDE_SEEN_KEY = "md-playground-guide-seen";
 
-/** Bilingual copy for the editing-action row and the new framing affordances. */
+/** Bilingual copy for the editing-action row and the framing affordances. */
 const L = {
   ko: {
     actions: "편집 동작",
     undo: "실행취소",
-    reset: "초기화",
     clearLayer: "레이어 비우기",
     verdict: "결론",
     allMetrics: "지표 (A 대 B)",
     chart: "지표 막대 비교",
-    dragHint: "도형을 드래그하면 지표가 실시간으로 갱신됩니다",
-    guide:
-      "A·B는 같은 정답(GT)에 대한 두 예측입니다. 도형을 움직여 지표가 어떻게 달라지는지 보세요.",
+    advanced: "고급",
     dismiss: "닫기",
-    help: "도움말",
     predictionA: "예측 A",
     predictionB: "예측 B",
   },
   en: {
     actions: "Edit actions",
     undo: "Undo",
-    reset: "Reset",
     clearLayer: "Clear layer",
     verdict: "Verdict",
     allMetrics: "Metrics (A vs B)",
     chart: "Metric bar comparison",
-    dragHint: "Drag a shape — the metrics update live.",
-    guide:
-      "A and B are two predictions of the same ground truth. Move the shapes and watch the metrics change.",
+    advanced: "Advanced",
     dismiss: "Dismiss",
-    help: "Help",
     predictionA: "Prediction A",
     predictionB: "Prediction B",
   },
@@ -107,10 +112,6 @@ const EMPTY_DISTANCE_LABELS: Record<EmptyDistancePolicy, Record<Lang, string>> =
   fixed: { ko: "고정 페널티", en: "Fixed penalty" },
 };
 
-/** The well-configured preset loaded on first render. */
-const DEFAULT_PRESET: SegPreset =
-  SEG_PRESETS.find((p) => p.id === DEFAULT_PRESET_ID) ?? SEG_PRESETS[0];
-
 /** A deep-ish clone so editing the canvas never mutates the shared preset data. */
 function cloneState(state: EngineState): EngineState {
   return {
@@ -119,6 +120,20 @@ function cloneState(state: EngineState): EngineState {
     predictions: state.predictions.map((p) => ({ ...p, shapes: p.shapes.map((s) => ({ ...s })) })),
     grid: { ...state.grid, spacingMm: [...state.grid.spacingMm] as [number, number] },
     policy: { ...state.policy },
+  };
+}
+
+/** The empty boot state: nothing drawn, sharing the presets' grid/policy/tolerance. */
+function emptyState(): EngineState {
+  return {
+    grid: GRID,
+    gt: [],
+    predictions: [
+      { id: "A", shapes: [] },
+      { id: "B", shapes: [] },
+    ],
+    policy: POLICY,
+    nsdToleranceMm: NSD_TOLERANCE_MM,
   };
 }
 
@@ -208,13 +223,6 @@ const selectStyle: CSSProperties = {
   padding: "var(--space-1) var(--space-2)",
 };
 
-const dragHintStyle: CSSProperties = {
-  margin: 0,
-  fontFamily: "var(--font-ui)",
-  fontSize: "var(--text-xs)",
-  color: "var(--c-text-dim)",
-};
-
 const headingStyle: CSSProperties = {
   margin: 0,
   fontFamily: "var(--font-ui)",
@@ -256,6 +264,13 @@ const presetDescriptionStyle: CSSProperties = {
   color: "var(--c-text-dim)",
 };
 
+const captionStyle: CSSProperties = {
+  margin: 0,
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-xs)",
+  color: "var(--c-text-dim)",
+};
+
 const actionRowStyle: CSSProperties = {
   display: "flex",
   flexWrap: "wrap",
@@ -280,8 +295,33 @@ const actionButtonDisabledStyle: CSSProperties = {
   opacity: 0.6,
 };
 
-/** A one-line, dismissible first-visit framing note, styled like UnitsBanner. */
-const guideBannerStyle: CSSProperties = {
+/** The STEP n of 3 progress pill — a small token-styled chip near the canvas. */
+const stepPillStyle: CSSProperties = {
+  alignSelf: "flex-start",
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "var(--space-1) var(--space-3)",
+  fontFamily: "var(--font-mono)",
+  fontSize: "var(--text-xs)",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "var(--c-text)",
+  background: "var(--c-surface-2)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-pill, var(--radius-sm))",
+};
+
+/** The calm, dormant gating line shown in the verdict column before compare. */
+const gatingLineStyle: CSSProperties = {
+  margin: 0,
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-sm)",
+  lineHeight: 1.5,
+  color: "var(--c-text-dim)",
+};
+
+/** A one-time, dismissible thesis banner shown when the comparison unlocks. */
+const thesisBannerStyle: CSSProperties = {
   display: "flex",
   alignItems: "baseline",
   gap: "var(--space-2)",
@@ -295,16 +335,16 @@ const guideBannerStyle: CSSProperties = {
   lineHeight: 1.4,
 };
 
-const guideGlyphStyle: CSSProperties = {
+const bannerGlyphStyle: CSSProperties = {
   flex: "0 0 auto",
   color: "var(--c-text-dim)",
 };
 
-const guideTextStyle: CSSProperties = {
+const bannerTextStyle: CSSProperties = {
   flex: "1 1 auto",
 };
 
-const guideDismissStyle: CSSProperties = {
+const bannerDismissStyle: CSSProperties = {
   flex: "0 0 auto",
   fontFamily: "var(--font-ui)",
   fontSize: "var(--text-xs)",
@@ -316,7 +356,7 @@ const guideDismissStyle: CSSProperties = {
   lineHeight: 1,
 };
 
-const helpButtonStyle: CSSProperties = {
+const showGuideStyle: CSSProperties = {
   alignSelf: "flex-start",
   fontFamily: "var(--font-ui)",
   fontSize: "var(--text-xs)",
@@ -326,6 +366,19 @@ const helpButtonStyle: CSSProperties = {
   cursor: "pointer",
   padding: 0,
   textDecoration: "underline",
+};
+
+const detailsStyle: CSSProperties = {
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-sm)",
+  color: "var(--c-text)",
+};
+
+const summaryStyle: CSSProperties = {
+  cursor: "pointer",
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-sm)",
+  color: "var(--c-text)",
 };
 
 /** Unicode info / dismiss glyphs (NOT emoji). */
@@ -366,8 +419,11 @@ function legendItems(
   };
 }
 
-/** A labeled row of one-click presets; clicking one loads its full state. */
-function PresetBar({
+/**
+ * A collapsed, opt-in "Load an example" disclosure: one button per preset, plus
+ * a caption framing examples as someone else's worked scene to edit.
+ */
+function LoadExample({
   activeId,
   onSelect,
   lang,
@@ -378,44 +434,62 @@ function PresetBar({
 }) {
   const active = SEG_PRESETS.find((p) => p.id === activeId);
   return (
-    <section style={panelStyle}>
-      <h3 style={headingStyle}>{lang === "ko" ? "프리셋" : "Presets"}</h3>
+    <details style={detailsStyle}>
+      <summary style={summaryStyle}>{LOAD_EXAMPLE[lang]}</summary>
       <div
-        style={presetRowStyle}
-        role="group"
-        aria-label={lang === "ko" ? "분할 프리셋" : "Segmentation presets"}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--space-2)",
+          paddingTop: "var(--space-2)",
+        }}
       >
-        {SEG_PRESETS.map((preset) => {
-          const isActive = preset.id === activeId;
-          return (
-            <button
-              key={preset.id}
-              type="button"
-              aria-pressed={isActive}
-              style={isActive ? presetButtonActiveStyle : presetButtonBaseStyle}
-              onClick={() => onSelect(preset)}
-            >
-              {presetLabel(preset, lang)}
-            </button>
-          );
-        })}
+        <p style={captionStyle}>{LOAD_EXAMPLE_CAPTION[lang]}</p>
+        <div
+          style={presetRowStyle}
+          role="group"
+          aria-label={lang === "ko" ? "분할 프리셋" : "Segmentation presets"}
+        >
+          {SEG_PRESETS.map((preset) => {
+            const isActive = preset.id === activeId;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                aria-pressed={isActive}
+                style={isActive ? presetButtonActiveStyle : presetButtonBaseStyle}
+                onClick={() => onSelect(preset)}
+              >
+                {presetLabel(preset, lang)}
+              </button>
+            );
+          })}
+        </div>
+        {active ? (
+          <p style={presetDescriptionStyle}>{presetDescription(active, lang)}</p>
+        ) : null}
       </div>
-      {active ? <p style={presetDescriptionStyle}>{presetDescription(active, lang)}</p> : null}
-    </section>
+    </details>
   );
 }
 
 export default function Playground() {
   const { lang } = useLang();
   const t = L[lang];
-  const [state, setState] = useState<EngineState>(() => cloneState(DEFAULT_PRESET.state));
-  const [activePresetId, setActivePresetId] = useState<string>(DEFAULT_PRESET.id);
-  const [activeLayer, setActiveLayer] = useState<Layer>("GT");
+  const [state, setState] = useState<EngineState>(() => emptyState());
+  const [activePresetId, setActivePresetId] = useState<string>("");
+  /** User-chosen layer, consulted ONLY once the comparison has unlocked. */
+  const [manualLayer, setManualLayer] = useState<Layer>("GT");
   const [visibleLayers, setVisibleLayers] = useState<Layer[]>(() => [...DEFAULT_VISIBLE_LAYERS]);
   /** Undo stack of prior EngineStates; the last entry is the most recent. */
   const [history, setHistory] = useState<EngineState[]>([]);
   const { rows } = useEngineMetrics(state);
   const { seen, markSeen, reset: resetGuide } = useFirstVisit(GUIDE_SEEN_KEY);
+
+  const stage = flowStage(state);
+  /** activeLayer is DERIVED from the stage; manualLayer wins only in compare. */
+  const activeLayer: Layer = stage === "compare" ? manualLayer : stageLayer(stage)!;
+  const isCompare = stage === "compare";
 
   const legend = legendItems(activePresetId, lang, t);
 
@@ -430,9 +504,13 @@ export default function Playground() {
     setActivePresetId(preset.id);
   };
 
-  /** Write an edited layer's shapes back into the single source-of-truth state. */
+  /**
+   * Write an EDITED layer's shapes back into the single source-of-truth state.
+   * Edit-only: it never sets the active layer (that is derived from the stage)
+   * and is never used for a plain layer switch (the canvas uses onSelectLayer
+   * for that). Detaching from any preset records the prior state for Undo.
+   */
   const handleLayerChange = (layer: Layer, shapes: Shape[]) => {
-    setActiveLayer(layer);
     setActivePresetId("");
     pushHistory(state);
     setState((prev) => {
@@ -465,12 +543,18 @@ export default function Playground() {
     setActivePresetId("");
   };
 
-  /** Re-apply the currently active preset's state (no-op snapshot if none active). */
+  /** Reset-to-empty: clear the canvas, restart at STEP 1, recorded for Undo. */
   const handleReset = () => {
-    const preset = SEG_PRESETS.find((p) => p.id === activePresetId) ?? DEFAULT_PRESET;
     pushHistory(state);
-    setState(cloneState(preset.state));
-    setActivePresetId(preset.id);
+    setState(emptyState());
+    setActivePresetId("");
+    setManualLayer("GT");
+  };
+
+  /** Re-arm the guided flow: show the thesis banner again AND clear to empty. */
+  const handleShowGuideAgain = () => {
+    resetGuide();
+    handleReset();
   };
 
   /** Empty the active layer's shapes, recording the prior state for Undo. */
@@ -503,34 +587,11 @@ export default function Playground() {
     <div style={pageStyle}>
       <style>{RESPONSIVE_ORDER_CSS}</style>
 
-      {!seen ? (
-        <aside role="note" style={guideBannerStyle}>
-          <span aria-hidden="true" style={guideGlyphStyle}>
-            {INFO_GLYPH}
-          </span>
-          <span style={guideTextStyle}>{t.guide}</span>
-          <button
-            type="button"
-            style={guideDismissStyle}
-            aria-label={t.dismiss}
-            onClick={markSeen}
-          >
-            <span aria-hidden="true">{DISMISS_GLYPH}</span>
-          </button>
-        </aside>
-      ) : (
-        <button type="button" style={helpButtonStyle} onClick={resetGuide}>
-          {t.help}
-        </button>
-      )}
-
-      <PresetBar activeId={activePresetId} onSelect={selectPreset} lang={lang} />
-
       <PredictionLegend a={legend.a} b={legend.b} />
 
       <div style={splitStyle}>
         <div style={columnStyle} className="pg-canvas-col">
-          <p style={dragHintStyle}>{t.dragHint}</p>
+          <span style={stepPillStyle}>{stepPill(stageStep(stage), lang)}</span>
 
           <CanvasEditor
             grid={state.grid}
@@ -538,6 +599,13 @@ export default function Playground() {
             predictions={state.predictions}
             activeLayer={activeLayer}
             onChange={handleLayerChange}
+            onSelectLayer={setManualLayer}
+            lockedLayers={lockedLayersFor(stage)}
+            prompt={
+              stage !== "compare"
+                ? { text: STAGE_PROMPT[stage][lang], layer: stageLayer(stage)! }
+                : undefined
+            }
             visibleLayers={visibleLayers}
             onToggleLayerVisibility={toggleLayerVisibility}
           />
@@ -554,91 +622,124 @@ export default function Playground() {
                 {t.undo}
               </button>
               <button type="button" style={actionButtonStyle} onClick={handleReset}>
-                {t.reset}
+                {RESET_TO_EMPTY[lang]}
               </button>
               <button type="button" style={actionButtonStyle} onClick={handleClearLayer}>
                 {t.clearLayer}
               </button>
             </div>
+            <button type="button" style={showGuideStyle} onClick={handleShowGuideAgain}>
+              {SHOW_GUIDE_AGAIN[lang]}
+            </button>
           </section>
 
-          <section style={panelStyle}>
-            <h3 style={headingStyle}>{lang === "ko" ? "컨트롤" : "Controls"}</h3>
-            <div style={controlsRowStyle}>
-              <label style={fieldStyle}>
-                <span style={labelStyle}>
-                  {lang === "ko" ? "NSD 허용 오차" : "NSD tolerance"}:{" "}
-                  <span style={valueBadgeStyle}>{tolerance.toFixed(1)} mm</span>
-                </span>
-                <input
-                  type="range"
-                  min={NSD_MIN}
-                  max={NSD_MAX}
-                  step={NSD_STEP}
-                  value={tolerance}
-                  aria-label="NSD tolerance (mm)"
-                  onChange={(e) => setNsdTolerance(Number(e.target.value))}
-                />
-              </label>
+          <LoadExample activeId={activePresetId} onSelect={selectPreset} lang={lang} />
 
-              <label style={fieldStyle}>
-                <span style={labelStyle}>
-                  {lang === "ko" ? "빈 Dice 정책" : "Empty Dice policy"}
-                </span>
-                <select
-                  style={selectStyle}
-                  value={state.policy.emptyDice}
-                  aria-label="Empty Dice policy"
-                  onChange={(e) => setPolicy({ emptyDice: e.target.value as EmptyDicePolicy })}
-                >
-                  {EMPTY_DICE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {EMPTY_DICE_LABELS[opt][lang]}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          {isCompare ? (
+            <details style={detailsStyle}>
+              <summary style={summaryStyle}>{t.advanced}</summary>
+              <div style={controlsRowStyle}>
+                <label style={fieldStyle}>
+                  <span style={labelStyle}>
+                    {lang === "ko" ? "NSD 허용 오차" : "NSD tolerance"}:{" "}
+                    <span style={valueBadgeStyle}>{tolerance.toFixed(1)} mm</span>
+                  </span>
+                  <input
+                    type="range"
+                    min={NSD_MIN}
+                    max={NSD_MAX}
+                    step={NSD_STEP}
+                    value={tolerance}
+                    aria-label="NSD tolerance (mm)"
+                    onChange={(e) => setNsdTolerance(Number(e.target.value))}
+                  />
+                </label>
 
-              <label style={fieldStyle}>
-                <span style={labelStyle}>
-                  {lang === "ko" ? "빈 거리 정책" : "Empty distance policy"}
-                </span>
-                <select
-                  style={selectStyle}
-                  value={state.policy.emptyDistance}
-                  aria-label="Empty distance policy"
-                  onChange={(e) =>
-                    setPolicy({ emptyDistance: e.target.value as EmptyDistancePolicy })
-                  }
-                >
-                  {EMPTY_DISTANCE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {EMPTY_DISTANCE_LABELS[opt][lang]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          </section>
+                <label style={fieldStyle}>
+                  <span style={labelStyle}>
+                    {lang === "ko" ? "빈 Dice 정책" : "Empty Dice policy"}
+                  </span>
+                  <select
+                    style={selectStyle}
+                    value={state.policy.emptyDice}
+                    aria-label="Empty Dice policy"
+                    onChange={(e) => setPolicy({ emptyDice: e.target.value as EmptyDicePolicy })}
+                  >
+                    {EMPTY_DICE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {EMPTY_DICE_LABELS[opt][lang]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label style={fieldStyle}>
+                  <span style={labelStyle}>
+                    {lang === "ko" ? "빈 거리 정책" : "Empty distance policy"}
+                  </span>
+                  <select
+                    style={selectStyle}
+                    value={state.policy.emptyDistance}
+                    aria-label="Empty distance policy"
+                    onChange={(e) =>
+                      setPolicy({ emptyDistance: e.target.value as EmptyDistancePolicy })
+                    }
+                  >
+                    {EMPTY_DISTANCE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {EMPTY_DISTANCE_LABELS[opt][lang]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </details>
+          ) : null}
 
           <UnitsBanner spacingMm={[1, 1]} />
         </div>
 
         <div style={columnStyle} className="pg-verdict-col">
-          <section style={panelStyle}>
-            <h3 style={headingStyle}>{t.verdict}</h3>
-            <DisagreementInsight rows={rows} />
-          </section>
+          {isCompare ? (
+            <>
+              {!seen ? (
+                <aside role="note" style={thesisBannerStyle}>
+                  <span aria-hidden="true" style={bannerGlyphStyle}>
+                    {INFO_GLYPH}
+                  </span>
+                  <span style={bannerTextStyle}>{THESIS_BANNER[lang]}</span>
+                  <button
+                    type="button"
+                    style={bannerDismissStyle}
+                    aria-label={t.dismiss}
+                    onClick={markSeen}
+                  >
+                    <span aria-hidden="true">{DISMISS_GLYPH}</span>
+                  </button>
+                </aside>
+              ) : null}
 
-          <section style={panelStyle}>
-            <h3 style={headingStyle}>{t.allMetrics}</h3>
-            <MetricTable rows={rows} showRelativeCue />
-          </section>
+              <section style={panelStyle}>
+                <h3 style={headingStyle}>{t.verdict}</h3>
+                <DisagreementInsight rows={rows} />
+              </section>
 
-          <section style={panelStyle}>
-            <h3 style={headingStyle}>{t.chart}</h3>
-            <MetricBarChart rows={rows} />
-          </section>
+              <section style={panelStyle}>
+                <h3 style={headingStyle}>{t.allMetrics}</h3>
+                <MetricTable rows={rows} showRelativeCue />
+              </section>
+
+              <section style={panelStyle}>
+                <h3 style={headingStyle}>{t.chart}</h3>
+                <MetricBarChart rows={rows} />
+              </section>
+            </>
+          ) : (
+            <section style={panelStyle}>
+              <h3 style={headingStyle}>{t.verdict}</h3>
+              <p style={gatingLineStyle}>{STAGE_GATING_LINE[stage][lang]}</p>
+            </section>
+          )}
         </div>
       </div>
     </div>

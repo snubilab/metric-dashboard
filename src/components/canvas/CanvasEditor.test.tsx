@@ -7,6 +7,21 @@ import type { Shape } from "../../types/engine";
 
 const grid = makeGrid(16, 16, [1, 1]);
 
+/** 16x16 grid mapped onto a 160px canvas: 10px == 1 grid cell. */
+const stubRect = (canvas: HTMLCanvasElement) => {
+  vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
+    left: 0,
+    top: 0,
+    width: 160,
+    height: 160,
+    right: 160,
+    bottom: 160,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+  } as DOMRect);
+};
+
 describe("CanvasEditor", () => {
   it("renders a canvas element", () => {
     render(
@@ -22,7 +37,7 @@ describe("CanvasEditor", () => {
     expect(canvas).toBeInTheDocument();
   });
 
-  it("renders the toolbar buttons", () => {
+  it("renders the create-tool buttons", () => {
     render(
       <LanguageProvider initialLang="en">
         <CanvasEditor
@@ -35,12 +50,15 @@ describe("CanvasEditor", () => {
       </LanguageProvider>,
     );
     expect(screen.getByRole("button", { name: /circle/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /box/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /rectangle/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /pencil/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /move/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /delete/i })).toBeInTheDocument();
   });
 
-  it("renders the toolbar buttons in Korean by default", () => {
+  it("renders the create-tool buttons in Korean by default", () => {
     render(
       <CanvasEditor
         grid={grid}
@@ -50,11 +68,13 @@ describe("CanvasEditor", () => {
         onChange={() => {}}
       />,
     );
-    expect(screen.getByRole("button", { name: "원 추가" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "박스 추가" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "선택 / 이동" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "원" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "사각형" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "연필" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "선택 / 이동" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "삭제" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "그리기" })).toBeInTheDocument();
   });
 
   it("renders a layer selector with GT / A / B options", () => {
@@ -72,7 +92,34 @@ describe("CanvasEditor", () => {
     expect(screen.getByRole("button", { name: "B" })).toBeInTheDocument();
   });
 
-  it("appends a circle to the active layer when add-circle is clicked", () => {
+  it("treats circle / rect / pencil as pressed create-modes (default circle)", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+
+    const circle = screen.getByRole("button", { name: /circle/i });
+    const rect = screen.getByRole("button", { name: /rectangle/i });
+    const pencil = screen.getByRole("button", { name: /pencil/i });
+
+    // Default tool is "circle".
+    expect(circle).toHaveAttribute("aria-pressed", "true");
+    expect(rect).toHaveAttribute("aria-pressed", "false");
+    expect(pencil).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(rect);
+    expect(circle).toHaveAttribute("aria-pressed", "false");
+    expect(rect).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("emits exactly one onChange with a circle on a press-drag-release", () => {
     const onChange = vi.fn();
     const existing: Shape[] = [{ kind: "box", x: 1, y: 1, w: 2, h: 2 }];
     render(
@@ -89,6 +136,14 @@ describe("CanvasEditor", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /circle/i }));
 
+    const canvas = document.querySelector("canvas")!;
+    stubRect(canvas);
+
+    // Drag from grid (2,2) -> (10,10): an 8x8 bbox, well above min size.
+    fireEvent.pointerDown(canvas, { clientX: 20, clientY: 20, pointerId: 1 });
+    fireEvent.pointerMove(canvas, { clientX: 100, clientY: 100, pointerId: 1 });
+    fireEvent.pointerUp(canvas, { clientX: 100, clientY: 100, pointerId: 1 });
+
     expect(onChange).toHaveBeenCalledTimes(1);
     const [layer, shapes] = onChange.mock.calls[0];
     expect(layer).toBe("GT");
@@ -97,7 +152,7 @@ describe("CanvasEditor", () => {
     expect(shapes[shapes.length - 1].kind).toBe("circle");
   });
 
-  it("appends a box to the active layer when add-box is clicked", () => {
+  it("emits exactly one onChange with a box on a Rectangle press-drag-release", () => {
     const onChange = vi.fn();
     render(
       <LanguageProvider initialLang="en">
@@ -111,16 +166,26 @@ describe("CanvasEditor", () => {
       </LanguageProvider>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /box/i }));
+    fireEvent.click(screen.getByRole("button", { name: /rectangle/i }));
+
+    const canvas = document.querySelector("canvas")!;
+    stubRect(canvas);
+
+    fireEvent.pointerDown(canvas, { clientX: 20, clientY: 20, pointerId: 1 });
+    fireEvent.pointerMove(canvas, { clientX: 90, clientY: 70, pointerId: 1 });
+    fireEvent.pointerUp(canvas, { clientX: 90, clientY: 70, pointerId: 1 });
 
     expect(onChange).toHaveBeenCalledTimes(1);
     const [layer, shapes] = onChange.mock.calls[0];
     expect(layer).toBe("A");
     expect(shapes).toHaveLength(1);
     expect(shapes[0].kind).toBe("box");
+    // Normalized drag: x=2, y=2, w=7, h=5.
+    expect(shapes[0]).toMatchObject({ kind: "box", x: 2, y: 2, w: 7, h: 5 });
   });
 
-  it("renders a Draw tool button", () => {
+  it("emits no onChange for a sub-min-size tap with Circle", () => {
+    const onChange = vi.fn();
     render(
       <LanguageProvider initialLang="en">
         <CanvasEditor
@@ -128,14 +193,49 @@ describe("CanvasEditor", () => {
           gt={[]}
           predictions={[]}
           activeLayer="GT"
-          onChange={() => {}}
+          onChange={onChange}
         />
       </LanguageProvider>,
     );
-    expect(screen.getByRole("button", { name: /draw/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /circle/i }));
+
+    const canvas = document.querySelector("canvas")!;
+    stubRect(canvas);
+
+    // Press and release at the same point: zero-area tap.
+    fireEvent.pointerDown(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
+    fireEvent.pointerUp(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 
-  it("appends a polygon to the active layer after a freehand drag", () => {
+  it("emits no onChange for a sub-min-size tap with Rectangle", () => {
+    const onChange = vi.fn();
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={onChange}
+        />
+      </LanguageProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /rectangle/i }));
+
+    const canvas = document.querySelector("canvas")!;
+    stubRect(canvas);
+
+    fireEvent.pointerDown(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
+    fireEvent.pointerUp(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("appends a polygon to the active layer after a Pencil freehand drag", () => {
     const onChange = vi.fn();
     const existing: Shape[] = [{ kind: "circle", cx: 1, cy: 1, r: 1 }];
     render(
@@ -150,24 +250,10 @@ describe("CanvasEditor", () => {
       </LanguageProvider>,
     );
 
-    // Activate the Draw tool.
-    fireEvent.click(screen.getByRole("button", { name: /draw/i }));
+    fireEvent.click(screen.getByRole("button", { name: /pencil/i }));
 
     const canvas = document.querySelector("canvas")!;
-    // jsdom reports a zero-size rect; map screen coords to grid via 16x16 grid.
-    // With width/height 0 the mapper clamps; provide a stub rect via spy so the
-    // drag spans distinct cells.
-    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
-      left: 0,
-      top: 0,
-      width: 160,
-      height: 160,
-      right: 160,
-      bottom: 160,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    } as DOMRect);
+    stubRect(canvas);
 
     // Drag across a square-ish path: (0,0) -> (8,0) -> (8,8) -> (0,8).
     fireEvent.pointerDown(canvas, { clientX: 0, clientY: 0, pointerId: 1 });
@@ -187,7 +273,7 @@ describe("CanvasEditor", () => {
     expect(polygon.points.length).toBeGreaterThanOrEqual(3);
   });
 
-  it("does not append a shape when a freehand drag has too few points", () => {
+  it("does not append a shape when a Pencil drag has too few points", () => {
     const onChange = vi.fn();
     render(
       <LanguageProvider initialLang="en">
@@ -201,20 +287,10 @@ describe("CanvasEditor", () => {
       </LanguageProvider>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /draw/i }));
+    fireEvent.click(screen.getByRole("button", { name: /pencil/i }));
 
     const canvas = document.querySelector("canvas")!;
-    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
-      left: 0,
-      top: 0,
-      width: 160,
-      height: 160,
-      right: 160,
-      bottom: 160,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    } as DOMRect);
+    stubRect(canvas);
 
     // A single point (no movement) cannot form a polygon.
     fireEvent.pointerDown(canvas, { clientX: 0, clientY: 0, pointerId: 1 });
@@ -239,21 +315,6 @@ describe("CanvasEditor", () => {
       screen.getByRole("button", { name: "Select / Move" }),
     ).toBeInTheDocument();
   });
-
-  const stubRect = (canvas: HTMLCanvasElement) => {
-    // 16x16 grid mapped onto a 160px canvas: 10px == 1 grid cell.
-    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
-      left: 0,
-      top: 0,
-      width: 160,
-      height: 160,
-      right: 160,
-      bottom: 160,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    } as DOMRect);
-  };
 
   it("resizes the selected box when dragging a corner handle (onChange path)", () => {
     const onChange = vi.fn();
@@ -292,7 +353,6 @@ describe("CanvasEditor", () => {
     expect(layer).toBe("GT");
     const resized = shapes[0];
     expect(resized.kind).toBe("box");
-    // Anchored top-left stays at (2,2); corner moved to (12,12): w=h=10.
     expect(resized.x).toBe(2);
     expect(resized.y).toBe(2);
     expect(resized.w).toBe(10);
@@ -300,9 +360,6 @@ describe("CanvasEditor", () => {
   });
 
   it("draws only the layers in visibleLayers (precedence over showLayers)", () => {
-    // Smoke test: with visibleLayers set, rendering must not throw and the
-    // canvas must still mount. getContext returns null under jsdom, so we only
-    // assert the component renders without error.
     const onChange = vi.fn();
     render(
       <CanvasEditor
@@ -350,7 +407,6 @@ describe("CanvasEditor", () => {
       </LanguageProvider>,
     );
 
-    // GT and A are visible -> "Hide ..." ; B is hidden -> "Show ...".
     fireEvent.click(screen.getByRole("button", { name: /Hide GT/i }));
     expect(onToggle).toHaveBeenCalledWith("GT");
 
@@ -371,67 +427,46 @@ describe("CanvasEditor", () => {
       </LanguageProvider>,
     );
 
-    // The glyph spans are aria-hidden, so partial text still resolves the
-    // accessible name; the glyph itself must be present in the button text.
-    expect(screen.getByRole("button", { name: /Add circle/i }).textContent).toContain("◯");
-    expect(screen.getByRole("button", { name: /Add box/i }).textContent).toContain("▢");
-    expect(screen.getByRole("button", { name: /Draw/i }).textContent).toContain("✎");
-    expect(screen.getByRole("button", { name: /Select \/ Move/i }).textContent).toContain("↔");
-    expect(screen.getByRole("button", { name: /Delete/i }).textContent).toContain("✕");
-  });
-
-  it("marks the selected mode tool as active (aria-pressed)", () => {
-    render(
-      <LanguageProvider initialLang="en">
-        <CanvasEditor
-          grid={grid}
-          gt={[]}
-          predictions={[]}
-          activeLayer="GT"
-          onChange={() => {}}
-        />
-      </LanguageProvider>,
-    );
-
-    const drawButton = screen.getByRole("button", { name: /Draw/i });
-    const moveButton = screen.getByRole("button", { name: /Select \/ Move/i });
-
-    // Initial tool is "circle" (a momentary action), so no mode tool is pressed.
-    expect(drawButton).toHaveAttribute("aria-pressed", "false");
-    expect(moveButton).toHaveAttribute("aria-pressed", "false");
-
-    fireEvent.click(drawButton);
-    expect(drawButton).toHaveAttribute("aria-pressed", "true");
-    expect(moveButton).toHaveAttribute("aria-pressed", "false");
-
-    fireEvent.click(moveButton);
-    expect(moveButton).toHaveAttribute("aria-pressed", "true");
-    expect(drawButton).toHaveAttribute("aria-pressed", "false");
-  });
-
-  it("keeps add-circle / add-box as momentary actions (no pressed state)", () => {
-    render(
-      <LanguageProvider initialLang="en">
-        <CanvasEditor
-          grid={grid}
-          gt={[]}
-          predictions={[]}
-          activeLayer="GT"
-          onChange={() => {}}
-        />
-      </LanguageProvider>,
-    );
-
-    // Momentary action buttons never expose a persistent active state.
     expect(
-      screen.getByRole("button", { name: /Add circle/i }),
-    ).not.toHaveAttribute("aria-pressed");
+      screen.getByRole("button", { name: /Circle/i }).textContent,
+    ).toContain("◯");
     expect(
-      screen.getByRole("button", { name: /Add box/i }),
-    ).not.toHaveAttribute("aria-pressed");
+      screen.getByRole("button", { name: /Rectangle/i }).textContent,
+    ).toContain("▢");
+    expect(
+      screen.getByRole("button", { name: /Pencil/i }).textContent,
+    ).toContain("✎");
+    expect(
+      screen.getByRole("button", { name: /Select \/ Move/i }).textContent,
+    ).toContain("↔");
+    expect(
+      screen.getByRole("button", { name: /Delete/i }).textContent,
+    ).toContain("✕");
   });
 
-  it("shows the empty-state hint when the active layer has no shapes", () => {
+  it("disables locked layer buttons while leaving the rest enabled", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[
+            { id: "A", shapes: [] },
+            { id: "B", shapes: [] },
+          ]}
+          activeLayer="GT"
+          onChange={() => {}}
+          lockedLayers={["A", "B"]}
+        />
+      </LanguageProvider>,
+    );
+
+    expect(screen.getByRole("button", { name: "A" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "B" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "GT" })).toBeEnabled();
+  });
+
+  it("enables all layer buttons when lockedLayers is absent (backward compatible)", () => {
     render(
       <LanguageProvider initialLang="en">
         <CanvasEditor
@@ -443,22 +478,80 @@ describe("CanvasEditor", () => {
         />
       </LanguageProvider>,
     );
-    expect(screen.getByText(/No shapes — start with "Add circle"\./)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "GT" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "A" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "B" })).toBeEnabled();
   });
 
-  it("hides the empty-state hint once a shape exists", () => {
+  it("calls onSelectLayer (not onChange) for a pure layer switch when provided", () => {
+    const onChange = vi.fn();
+    const onSelectLayer = vi.fn();
     render(
       <LanguageProvider initialLang="en">
         <CanvasEditor
           grid={grid}
-          gt={[{ kind: "circle", cx: 5, cy: 5, r: 3 }]}
+          gt={[]}
+          predictions={[{ id: "A", shapes: [] }]}
+          activeLayer="GT"
+          onChange={onChange}
+          onSelectLayer={onSelectLayer}
+        />
+      </LanguageProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "A" }));
+    expect(onSelectLayer).toHaveBeenCalledWith("A");
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("falls back to onChange for a layer switch when onSelectLayer is absent", () => {
+    const onChange = vi.fn();
+    const aShapes: Shape[] = [{ kind: "circle", cx: 3, cy: 3, r: 2 }];
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[{ id: "A", shapes: aShapes }]}
+          activeLayer="GT"
+          onChange={onChange}
+        />
+      </LanguageProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "A" }));
+    expect(onChange).toHaveBeenCalledWith("A", aShapes);
+  });
+
+  it("renders the step prompt text, layer-colored, when prompt is provided", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+          prompt={{ text: "Draw the ground truth", layer: "GT" }}
+        />
+      </LanguageProvider>,
+    );
+    expect(screen.getByText("Draw the ground truth")).toBeInTheDocument();
+  });
+
+  it("falls back to the legacy empty hint when prompt is absent", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
           predictions={[]}
           activeLayer="GT"
           onChange={() => {}}
         />
       </LanguageProvider>,
     );
-    expect(screen.queryByText(/No shapes/)).toBeNull();
+    expect(screen.getByText(/No shapes/)).toBeInTheDocument();
   });
 
   it("shows the Korean empty-state hint by default", () => {
@@ -471,8 +564,36 @@ describe("CanvasEditor", () => {
         onChange={() => {}}
       />,
     );
-    expect(
-      screen.getByText('도형이 없습니다 — "원 추가"로 시작하세요'),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/도형이 없습니다/)).toBeInTheDocument();
+  });
+
+  it("survives a theme redraw with a preview drag in progress (smoke)", () => {
+    render(
+      <LanguageProvider initialLang="en">
+        <CanvasEditor
+          grid={grid}
+          gt={[]}
+          predictions={[]}
+          activeLayer="GT"
+          onChange={() => {}}
+        />
+      </LanguageProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /circle/i }));
+    const canvas = document.querySelector("canvas")!;
+    stubRect(canvas);
+
+    // Start a drag so a preview is set, then flip the theme.
+    fireEvent.pointerDown(canvas, { clientX: 20, clientY: 20, pointerId: 1 });
+    fireEvent.pointerMove(canvas, { clientX: 100, clientY: 100, pointerId: 1 });
+
+    expect(() => {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }).not.toThrow();
+    expect(canvas).toBeInTheDocument();
+
+    // Clean up the in-progress drag.
+    fireEvent.pointerUp(canvas, { clientX: 100, clientY: 100, pointerId: 1 });
   });
 });
