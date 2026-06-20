@@ -115,16 +115,19 @@ const LAYER_COLOR_VAR: Record<Layer, string> = {
 const ALL_LAYERS: Layer[] = ["GT", "A", "B"];
 /** Translucent fill — kept light so overlapping layers don't blend into mud. */
 const FILL_ALPHA = 0.18;
-/** Per-layer stroke dash so overlapping layers stay distinguishable. */
+/** Distinct stroke dash per layer so coincident outlines stay distinguishable
+ * (GT solid, A dashed, B dotted) — when B's outline sits on GT's, the solid
+ * green still shows between B's dots. */
 const LAYER_DASH: Record<Layer, number[]> = {
   GT: [],
   A: [9, 6],
-  B: [],
+  B: [2, 5],
 };
 /** Short on-canvas tag drawn near each shape so every blob is identifiable. */
 const LAYER_TAG: Record<Layer, string> = { GT: "GT", A: "A", B: "B" };
-/** Vertical tag offset (canvas px) so GT/A tags don't collide when shapes coincide. */
-const LAYER_TAG_DY: Record<Layer, number> = { GT: 0, A: -16, B: 0 };
+/** Vertical tag offset (canvas px), staggered so GT/A/B tags never overlap when
+ * shapes share a top edge (they stack GT → A → B upward). */
+const LAYER_TAG_DY: Record<Layer, number> = { GT: 0, A: -15, B: -30 };
 /** Canvas backing-store size in device pixels (independent of CSS layout). */
 const CANVAS_PX = 480;
 /** Half-size of a square resize handle, in canvas pixels. */
@@ -223,7 +226,7 @@ function paintLabel(
   ctx.textAlign = "center";
   ctx.textBaseline = "bottom";
   ctx.lineJoin = "round";
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 6;
   ctx.strokeStyle = halo;
   ctx.strokeText(text, x, y);
   ctx.fillStyle = color;
@@ -327,6 +330,23 @@ export function CanvasEditor({
   const drawPathRef = useRef<Vec2[] | null>(null);
   const [drawPath, setDrawPath] = useState<Vec2[] | null>(null);
 
+  // The canvas colors come from CSS tokens read at draw time, so a light/dark
+  // theme switch (which flips the document's data-theme) must force a redraw —
+  // otherwise the canvas keeps the previous theme's colors. Bump a counter on
+  // every data-theme change and feed it into the draw effect's deps.
+  const [themeVersion, setThemeVersion] = useState(0);
+  useEffect(() => {
+    if (typeof MutationObserver === "undefined" || typeof document === "undefined") {
+      return;
+    }
+    const observer = new MutationObserver(() => setThemeVersion((v) => v + 1));
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   // visibleLayers takes precedence over showLayers; both default to all.
   const visibleLayers = visibleLayersProp ?? showLayers ?? ALL_LAYERS;
   const activeShapes = shapesForLayer(activeLayer, gt, predictions);
@@ -358,8 +378,10 @@ export function CanvasEditor({
     }
 
     // Tag each shape (GT/A/B) on top so overlapping blobs are identifiable.
-    const tagFont = `700 13px ${resolveColor(canvas, "--font-ui") || "system-ui, sans-serif"}`;
-    const tagHalo = resolveColor(canvas, "--c-surface") || "#fff";
+    // Halo uses the page background (--c-bg) so the glyph sits in a theme-aware
+    // knockout bubble that lifts it off the colored fills, in light and dark.
+    const tagFont = `700 14px ${resolveColor(canvas, "--font-ui") || "system-ui, sans-serif"}`;
+    const tagHalo = resolveColor(canvas, "--c-bg") || "#fff";
     for (const layer of visibleLayers) {
       const color = resolveColor(canvas, LAYER_COLOR_VAR[layer]);
       for (const shape of shapesForLayer(layer, gt, predictions)) {
@@ -415,6 +437,7 @@ export function CanvasEditor({
     tool,
     selectedIndex,
     activeShapes,
+    themeVersion,
   ]);
 
   // A selection belongs to one (layer, tool) context; drop it when either
