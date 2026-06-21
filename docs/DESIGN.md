@@ -63,10 +63,16 @@ three views** with the **same shape**. When you add a topic, match these exactly
   preview.
 - The preview is **calm and read-only** — a **visual** (read-only canvas) + a
   **legend** + a **clean metric table**. **No sliders, no interactive controls** in
-  Scenarios (that is the Playground's job). Segmentation uses `ShapeCanvas` +
-  `IdentityLegend` + `MetricTable`; detection uses `DetectionScenePreview` +
-  `DetectionMetricTable` (which carries its own GT/FP/FN legend). A new topic
-  mirrors this trio.
+  Scenarios (that is the Playground's job). Both topics teach the thesis with an
+  **A-vs-B rank-flip comparison**: segmentation uses `ShapeCanvas` +
+  `IdentityLegend` + `MetricTable` (prediction A vs B); detection uses **two**
+  `DetectionScenePreview` canvases (detector A and detector B on the shared GT) +
+  a box-color legend + the **same** `MetricTable` fed by `detComparisonRows`, so
+  "which detector wins" visibly flips by metric (e.g. A wins AP50, B wins AP75).
+  Every scenario's flip must be numerically true under the engine
+  (`comparison.test.ts` guards it). `DetectionMetricTable` (single-detector
+  Metric|Value) remains only as a fallback for a scenario with no detector B. A
+  new topic mirrors this A-vs-B trio.
 
 ---
 

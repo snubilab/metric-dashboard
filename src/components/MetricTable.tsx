@@ -33,7 +33,7 @@ const L = {
     disagreementMarker: "지표 순위 불일치",
     higherIsBetter: "높을수록 좋음",
     lowerIsBetter: "낮을수록 좋음",
-    boldLegend: "굵게 = 해당 지표에서 더 우수",
+    boldLegend: "굵게 = 해당 지표에서 우세",
     leadsA: "A 우세",
     leadsB: "B 우세",
     tie: "비슷",

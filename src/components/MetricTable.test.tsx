@@ -74,7 +74,7 @@ describe("MetricTable", () => {
     expect(screen.getByText("예측 A")).toBeInTheDocument();
     expect(screen.getByText("예측 B")).toBeInTheDocument();
     expect(screen.getByText("순위 불일치")).toBeInTheDocument();
-    expect(screen.getByText("굵게 = 해당 지표에서 더 우수")).toBeInTheDocument();
+    expect(screen.getByText("굵게 = 해당 지표에서 우세")).toBeInTheDocument();
   });
 
   it("explains the bold convention in the English legend", () => {
