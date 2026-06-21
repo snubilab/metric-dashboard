@@ -25,6 +25,7 @@
      already passes as text in both themes, so it needs no variant. */
   --c-pred-b-text: #b45309; /* amber ~2.1:1 → ~5:1 */
   --c-gt-text: #047857; /* green ~3.4:1 → ~5.5:1 */
+  --c-warn-text: #c2261d; /* red ~3.9:1 → ~5.9:1 (labels; --c-warn stays for marks) */
 
   /* Neutrals — light (default): bright, slightly cool */
   --c-bg: #f7f9fc;
@@ -81,4 +82,5 @@
      marks here (the darker light-mode variants would only reach ~3:1 on slate). */
   --c-pred-b-text: #f59e0b;
   --c-gt-text: #009e73;
+  --c-warn-text: #f87171; /* lighter red so warn labels clear AA on slate */
 }
