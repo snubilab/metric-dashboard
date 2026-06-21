@@ -182,8 +182,23 @@ export function DetectionCanvas({
   }, [activeLayer, tool]);
 
   const activeBoxes = activeLayer === "GT" ? gt : preds;
-  const emitActive = (next: DetBox[]) =>
-    activeLayer === "GT" ? onChangeGt(next) : onChangePreds(next);
+
+  /** A history snapshot is owed before the next ACTUAL mutation of the current
+   * gesture. Armed at gesture start (pointerdown / slider grab) and consumed on
+   * the first real emit — so a selection-only click (e.g. tapping a box to reveal
+   * its confidence slider) or a sub-min-size create never records a no-op undo. */
+  const snapshotPendingRef = useRef(false);
+  const consumeSnapshot = () => {
+    if (snapshotPendingRef.current) {
+      onEditStart?.();
+      snapshotPendingRef.current = false;
+    }
+  };
+  const emitActive = (next: DetBox[]) => {
+    consumeSnapshot();
+    if (activeLayer === "GT") onChangeGt(next);
+    else onChangePreds(next);
+  };
 
   const isEmpty = gt.length === 0 && preds.length === 0;
   const minGrid = (MIN_DRAW_PX / CANVAS_PX) * grid.width;
@@ -270,6 +285,10 @@ export function DetectionCanvas({
     const rect = canvas.getBoundingClientRect();
     const { x, y } = screenToGrid(e.clientX, e.clientY, rect, grid);
 
+    // Arm a per-gesture snapshot; it only fires if this gesture actually mutates
+    // (consumed in emitActive), so selection-only clicks add no undo frame.
+    snapshotPendingRef.current = true;
+
     if (tool === "rect") {
       dragStartRef.current = [x, y];
       setPreview(null);
@@ -286,7 +305,6 @@ export function DetectionCanvas({
           const dx = handles[i][0] - x;
           const dy = handles[i][1] - y;
           if (dx * dx + dy * dy <= r2) {
-            onEditStart?.();
             resizeRef.current = { index: selectedIndex, handle: i };
             canvas.setPointerCapture?.(e.pointerId);
             return;
@@ -307,13 +325,11 @@ export function DetectionCanvas({
       return;
     }
     if (tool === "delete") {
-      onEditStart?.();
       emitActive(activeBoxes.filter((_, i) => i !== hit));
       return;
     }
     if (tool === "move") {
       setSelectedIndex(hit);
-      onEditStart?.();
       dragRef.current = { index: hit, lastX: x, lastY: y };
       canvas.setPointerCapture?.(e.pointerId);
     }
@@ -378,7 +394,6 @@ export function DetectionCanvas({
         activeLayer === "GT"
           ? detBoxFromDrag(start[0], start[1], x, y)
           : detBoxFromDrag(start[0], start[1], x, y, DEFAULT_CONFIDENCE);
-      onEditStart?.();
       emitActive([...activeBoxes, box]);
       return;
     }
@@ -400,6 +415,7 @@ export function DetectionCanvas({
 
   const onConfidenceChange = (value: number) => {
     if (selectedIndex == null) return;
+    consumeSnapshot();
     const next = preds.map((b, i) =>
       i === selectedIndex ? withConfidence(b, value) : b,
     );
@@ -607,8 +623,12 @@ export function DetectionCanvas({
             step={0.01}
             value={selectedBox.confidence ?? 0}
             aria-label={CONFIDENCE_LABEL[lang]}
-            onPointerDown={() => onEditStart?.()}
-            onKeyDown={() => onEditStart?.()}
+            onPointerDown={() => {
+              snapshotPendingRef.current = true;
+            }}
+            onKeyDown={() => {
+              snapshotPendingRef.current = true;
+            }}
             onChange={(e) => onConfidenceChange(Number(e.target.value))}
           />
           <span

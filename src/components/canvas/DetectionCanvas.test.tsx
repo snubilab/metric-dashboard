@@ -133,6 +133,31 @@ describe("DetectionCanvas", () => {
     expect(slider.disabled).toBe(true);
   });
 
+  it("onEditStart fires once on an actual move, never on a selection-only click", () => {
+    // codex P3 regression: tapping a box with the move tool (to reveal its
+    // confidence slider) must NOT push an undo snapshot; only a real mutation does.
+    const onEditStart = vi.fn();
+    const { canvas } = renderCanvas({
+      activeLayer: "PRED",
+      gt: [{ x: 2, y: 2, w: 6, h: 6 }],
+      preds: [{ x: 2, y: 2, w: 6, h: 6, confidence: 0.5 }],
+      onEditStart,
+    });
+    fireEvent.click(screen.getByRole("button", { name: /select \/ move/i }));
+
+    // Selection-only click (no movement) → no snapshot.
+    fireEvent.pointerDown(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
+    fireEvent.pointerUp(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
+    expect(onEditStart).not.toHaveBeenCalled();
+
+    // An actual drag (with deltas) snapshots exactly once for the whole gesture.
+    fireEvent.pointerDown(canvas, { clientX: 50, clientY: 50, pointerId: 1 });
+    fireEvent.pointerMove(canvas, { clientX: 70, clientY: 70, pointerId: 1 });
+    fireEvent.pointerMove(canvas, { clientX: 90, clientY: 90, pointerId: 1 });
+    fireEvent.pointerUp(canvas, { clientX: 90, clientY: 90, pointerId: 1 });
+    expect(onEditStart).toHaveBeenCalledTimes(1);
+  });
+
   it("a locked layer renders its layer button disabled but never hidden", () => {
     renderCanvas({ activeLayer: "GT", lockedLayers: ["PRED"] });
     const predButton = screen.getByRole("button", { name: /predictions \(PRED\)/i });
