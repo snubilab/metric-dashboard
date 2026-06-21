@@ -1,73 +1,96 @@
-# React + TypeScript + Vite
+# Metric Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive, bilingual (한국어 / English) web app for **learning how to evaluate
+medical-imaging and machine-learning models** — and, more importantly, for learning
+*why the choice of metric changes the answer*.
 
-Currently, two official plugins are available:
+🔗 **Live:** https://snubilab.github.io/metric-dashboard/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## The core idea
 
-## React Compiler
+Following the [Metrics Reloaded](https://www.nature.com/articles/s41592-023-02151-z)
+framework, this dashboard is built around one thesis:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+> **No single metric is universally "good" or "bad."** Which prediction looks best
+> depends entirely on *which metric you measure it with*. A prediction that wins on
+> overlap (Dice) can lose on boundary accuracy (HD95), and vice versa.
 
-## Expanding the ESLint configuration
+So the app never renders an absolute grade ("good"/"bad") for a metric or a
+prediction. Instead it shows the *trade-offs*: each metric family catches a
+different failure mode, which is why real medical benchmarks always report several
+together.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## What's inside
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Each topic has three views:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **Learn** — plain-language explanations, KaTeX-rendered formulas, hand-built SVG
+  figures, and small interactive mini-simulations. Metric mentions (HD95, NSD, ASSD,
+  Dice, IoU, …) are links that jump straight to that metric's section.
+- **Playground** — draw the ground truth and two competing predictions **from an
+  empty canvas**, and watch every metric update live as you reshape them. See for
+  yourself how prediction A and prediction B swap rankings depending on the metric.
+- **Scenarios** — real clinical scenarios with actual GT / A / B visualizations and a
+  side-by-side metric comparison, so the trade-off is grounded in a concrete decision.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**Topics available today:** Image Segmentation, Object Detection.
+More are stubbed in the sidebar (classification, regression, synthesis, LLM/VLM
+report generation, clinical risk prediction, reader studies) and marked *coming soon*.
+
+## Design & accessibility
+
+- **Colorblind-safe** [Okabe–Ito](https://jfly.uni-koeln.de/color/) palette for the
+  data roles (ground truth / prediction A / prediction B / disagreement).
+- **WCAG-AA** text contrast — readable colour variants for labels, with the bright
+  hues reserved for shapes and marks.
+- **Light and dark** themes; Korean is the default language.
+- Fully static, no backend, no tracking.
+
+## Tech stack
+
+- [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) (strict)
+- [Vite](https://vite.dev/) for dev/build
+- [KaTeX](https://katex.org/) for formula rendering
+- [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) for tests
+- Design-system tokens (CSS custom properties) — components never hard-code colours
+
+## Getting started
+
+```bash
+npm install        # install dependencies
+npm run dev        # start the dev server (http://localhost:5173)
+npm run build      # type-check + production build to dist/
+npm run preview    # preview the production build locally
+npm run test       # run the Vitest suite
+npm run lint       # run ESLint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Requires Node 20+ (CI uses Node 22).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Project structure
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+  app/            # shell: Sidebar, LearnView, ScenariosView, ThemeToggle, …
+  components/     # reusable UI — canvas, figures/, charts/, tables, mini-sims
+  engine/         # pure metric math (Dice, IoU, Hausdorff, matching, …)
+  topics/         # per-topic content + Playground (segmentation, detection)
+  i18n/           # Korean/English message catalogs + language context
+  styles/         # design-system token contract (tokens.css)
+  types/          # shared TypeScript types
+```
+
+Most metric logic lives in `src/engine` as pure, unit-tested functions; the canvas
+and figures only render what those functions compute.
+
+## Deployment
+
+Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds the app and
+publishes `dist/` to GitHub Pages. Because the site is served from a project
+sub-path, `vite.config.ts` sets `base: '/metric-dashboard/'` for production builds
+only (local dev stays at `/`).
+
+## License
+
+Educational project. Content follows the Metrics Reloaded recommendations; see that
+paper for the underlying guidance.
