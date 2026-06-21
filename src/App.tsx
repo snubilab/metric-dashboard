@@ -95,6 +95,17 @@ const headerStyle: React.CSSProperties = {
   background: "var(--c-bg)",
 };
 
+/** Small, white attribution at the very top — discreet on light, legible on dark. */
+const creditStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: "var(--text-xs)",
+  fontFamily: "var(--font-ui)",
+  letterSpacing: "0.02em",
+  color: "#ffffff",
+};
+
+const CREDIT = "리더: 이주희 · 보조: 고예현";
+
 const titleRowStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
@@ -229,6 +240,7 @@ function App() {
       <Sidebar topics={topics} activeId={topic.id} onSelect={setSelectedId} />
       <main className="app-main" style={mainStyle}>
         <header style={headerStyle}>
+          <p style={creditStyle}>{CREDIT}</p>
           <div style={titleRowStyle}>
             <div style={titleGroupStyle}>
               <h1 style={titleStyle}>{title}</h1>
