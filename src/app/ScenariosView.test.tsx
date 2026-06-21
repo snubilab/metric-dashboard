@@ -129,15 +129,21 @@ describe("ScenariosView", () => {
     expect(backgrounds).not.toContain("var(--c-pred-b)");
   });
 
-  it("keeps the DetectionBoard for a detection scenario without adding a ShapeCanvas", () => {
+  it("renders a read-only detection preview AND metric table (unified with segmentation, no slider)", () => {
     renderView(topicWith([detScenario]));
 
     const card = screen.getByRole("article");
-    // Detection cards show the DetectionBoard, not a read-only ShapeCanvas.
+    // Detection cards now mirror segmentation: a read-only box-scene canvas...
+    expect(
+      within(card).getByRole("img", { name: /검출 미리보기|Detection preview/ }),
+    ).toBeInTheDocument();
+    // ...not the segmentation ShapeCanvas...
     expect(
       within(card).queryByRole("img", { name: SHAPE_CANVAS_NAME }),
     ).not.toBeInTheDocument();
-    // The DetectionBoard exposes its confidence-threshold control.
-    expect(within(card).getByLabelText("신뢰도 임계값")).toBeInTheDocument();
+    // ...plus a clean metric table...
+    expect(within(card).getByRole("table")).toBeInTheDocument();
+    // ...and, being read-only like the seg card, NO interactive threshold slider.
+    expect(within(card).queryByLabelText("신뢰도 임계값")).not.toBeInTheDocument();
   });
 });

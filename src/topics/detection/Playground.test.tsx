@@ -58,16 +58,18 @@ function thresholdSlider(): HTMLInputElement {
 }
 
 /**
- * Open the "Load an example" disclosure and load the fixed seed, jumping
- * straight to compare. Both the <summary> and the inner load <button> read
- * "Load an example"; the <button> is the one exposed via role="button".
+ * Open the "Load an example" disclosure and load a named example preset, jumping
+ * straight to compare. Defaults to "Confidence threshold matters" — three correct
+ * high-confidence boxes (0.90 / 0.85 / 0.80) plus two low-confidence false
+ * positives (0.30 / 0.25) — which exercises both the FP-drop and the TP→ghost
+ * threshold lessons.
  */
-function loadExample() {
-  const button = screen.getByRole("button", { name: "Load an example" });
-  // Force the parent <details> open so the inner button is interactable.
-  const details = button.closest("details");
+function loadExample(name = "Confidence threshold matters") {
+  // Force the parent <details> open so the inner preset buttons are interactable.
+  const summary = screen.getByText("Load an example");
+  const details = summary.closest("details");
   if (details) details.open = true;
-  fireEvent.click(button);
+  fireEvent.click(screen.getByRole("button", { name }));
 }
 
 /** Read a TP/FP/FN count numeral by its data-count key. */
@@ -159,35 +161,35 @@ describe("DetectionPlayground (guided empty boot)", () => {
   it("shares ONE threshold: moving the slider updates the numerals", () => {
     renderPlayground();
 
-    // Reach compare with the fixed seed so the threshold has something to move.
+    // Reach compare with an example so the threshold has something to move.
     loadExample();
 
-    // At threshold 0 all four preds are visible: 3 TP, 1 FP, 0 FN.
+    // At threshold 0 all five preds are visible: 3 TP, 2 FP, 0 FN.
     const slider = thresholdSlider();
     expect(slider.value).toBe("0");
     expect(countFor("tp")).toBe(3);
-    expect(countFor("fp")).toBe(1);
+    expect(countFor("fp")).toBe(2);
     expect(countFor("fn")).toBe(0);
 
-    // Raise past 0.33: the stray FP drops below threshold.
+    // Raise past 0.30: both low-confidence stray FPs drop below threshold.
     fireEvent.change(slider, { target: { value: "0.4" } });
     expect(countFor("fp")).toBe(0);
   });
 
-  it("load-example: crossing T=0.60 turns the real TP into a ghost (TP-1, FN+1), AP fixed", () => {
+  it("load-example: crossing the 0.80 box's confidence turns a real TP into a ghost (TP-1, FN+1), AP fixed", () => {
     renderPlayground();
     loadExample();
 
     const slider = thresholdSlider();
     const apBefore = document.querySelector('[data-metric="ap"]')?.textContent;
 
-    // Below 0.60: the mid-confidence pred (conf 0.60) is a genuine TP.
-    fireEvent.change(slider, { target: { value: "0.5" } });
+    // Below 0.80: all three correct boxes (0.90 / 0.85 / 0.80) are genuine TPs.
+    fireEvent.change(slider, { target: { value: "0.7" } });
     const tpBelow = countFor("tp");
     const fnBelow = countFor("fn");
 
-    // Above 0.60: that pred is excluded -> its GT goes FN; TP drops by one.
-    fireEvent.change(slider, { target: { value: "0.7" } });
+    // Above 0.80: the 0.80 box is excluded -> its GT goes FN; TP drops by one.
+    fireEvent.change(slider, { target: { value: "0.85" } });
     expect(countFor("tp")).toBe(tpBelow - 1);
     expect(countFor("fn")).toBe(fnBelow + 1);
 

@@ -15,7 +15,8 @@
 
 import type { Scenario, Topic } from "../types/topic";
 import { ClinicalContext } from "../components/ClinicalContext";
-import { DetectionBoard } from "../components/DetectionBoard";
+import { DetectionMetricTable } from "../components/DetectionMetricTable";
+import { DetectionScenePreview } from "../components/canvas/DetectionScenePreview";
 import { MetricTable } from "../components/MetricTable";
 import { ShapeCanvas } from "../components/canvas/ShapeCanvas";
 import { useEngineMetrics } from "../components/metrics/useEngineMetrics";
@@ -31,6 +32,7 @@ const L = {
     teachingPoint: "핵심",
     empty: "이 주제에 대한 시나리오가 아직 없습니다.",
     canvasLabel: "분할 미리보기",
+    detectionCanvasLabel: "검출 미리보기",
     gt: "정답(GT)",
     predA: "예측 A",
     predB: "예측 B",
@@ -39,6 +41,7 @@ const L = {
     teachingPoint: "Teaching point",
     empty: "No scenarios available for this topic yet.",
     canvasLabel: "Segmentation preview",
+    detectionCanvasLabel: "Detection preview",
     gt: "Ground truth (GT)",
     predA: "Prediction A",
     predB: "Prediction B",
@@ -196,8 +199,19 @@ function ScenarioPreview({ scenario, lang }: { scenario: Scenario; lang: Lang })
   const { state } = scenario;
   const detections = state.detections;
   if (detections) {
+    // Detection scenario: mirror the segmentation card — a calm read-only box
+    // visual (GT/TP/FP/FN colored) above a clean Metric | Value table + legend.
     return (
-      <DetectionBoard gt={detections.gtObjects} preds={detections.boxes} />
+      <div style={segPreviewStyle}>
+        <DetectionScenePreview
+          grid={state.grid}
+          gt={detections.gtObjects}
+          preds={detections.boxes}
+          maxPx={PREVIEW_MAX_PX}
+          ariaLabel={L[lang].detectionCanvasLabel}
+        />
+        <DetectionMetricTable gt={detections.gtObjects} preds={detections.boxes} />
+      </div>
     );
   }
 

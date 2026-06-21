@@ -49,6 +49,8 @@ import {
   THESIS_BANNER,
   stepPill,
 } from "./detGuidedCopy";
+import { DET_PRESETS } from "./presets";
+import type { DetPreset } from "./presets";
 
 /** The board scale shared with the detection scenes (a 256-cell square grid). */
 const GRID: Grid = { width: 256, height: 256, spacingMm: [1, 1] };
@@ -65,25 +67,13 @@ const DEFAULT_AP_METHOD: ApMethod = "coco101";
 /** localStorage key for the one-time compare (thesis) banner's dismissed flag. */
 const GUIDE_SEEN_KEY = "md-detection-playground-guide-seen";
 
-/**
- * The FIXED "Load an example" seed. Three ground-truth lesions; four predictions
- * — two confident matches, one genuine MID-confidence match (the third pred,
- * IoU 0.653 >= 0.5 at confidence 0.60), and one stray false positive. Raising
- * the threshold past 0.60 converts that real TP into a ghost (recall down,
- * precision up, F1 moves) while AP and the PR curve stay fixed — the lesson.
- */
-const SEED_GT: DetBox[] = [
-  { x: 30, y: 40, w: 44, h: 44 },
-  { x: 140, y: 60, w: 40, h: 40 },
-  { x: 80, y: 150, w: 36, h: 36 },
-];
-
-const SEED_PREDS: DetBox[] = [
-  { x: 31, y: 41, w: 44, h: 44, confidence: 0.94 },
-  { x: 141, y: 61, w: 40, h: 40, confidence: 0.82 },
-  { x: 84, y: 154, w: 36, h: 36, confidence: 0.6 },
-  { x: 210, y: 200, w: 30, h: 30, confidence: 0.33 },
-];
+/** A preset's button label / one-line description for the active language. */
+function presetLabel(preset: DetPreset, lang: "ko" | "en"): string {
+  return lang === "ko" ? preset.labelKo : preset.label;
+}
+function presetDescription(preset: DetPreset, lang: "ko" | "en"): string {
+  return lang === "ko" ? preset.descriptionKo : preset.description;
+}
 
 /** Bilingual copy for the editing-action row and framing affordances. */
 const L = {
@@ -276,6 +266,12 @@ const summaryStyle: CSSProperties = {
   color: "var(--c-text)",
 };
 
+const presetRowStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "var(--space-2)",
+};
+
 const exampleButtonStyle: CSSProperties = {
   fontFamily: "var(--font-ui)",
   fontSize: "var(--text-sm)",
@@ -285,6 +281,21 @@ const exampleButtonStyle: CSSProperties = {
   borderRadius: "var(--radius-sm)",
   padding: "var(--space-2) var(--space-3)",
   cursor: "pointer",
+};
+
+const exampleButtonActiveStyle: CSSProperties = {
+  ...exampleButtonStyle,
+  // Use the full `border` shorthand so a re-render never mixes shorthand +
+  // longhand for the same property. GT green marks the active example.
+  border: "1px solid var(--c-gt)",
+  color: "var(--c-gt-text)",
+};
+
+const presetDescriptionStyle: CSSProperties = {
+  margin: 0,
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-sm)",
+  color: "var(--c-text-dim)",
 };
 
 /** A single undo snapshot: the full drawn state at a point in time. */
@@ -304,6 +315,8 @@ export function DetectionPlayground() {
   /** The active drawing layer. Auto-advances with the guided stage (GT → PRED)
    * via the effect below; the user can also override it by clicking a layer chip. */
   const [manualLayer, setManualLayer] = useState<DetLayer>("GT");
+  /** Which loaded example is currently shown (""=none/hand-drawn), for the highlight. */
+  const [activePresetId, setActivePresetId] = useState<string>("");
   /** Undo stack of prior snapshots; the last entry is the most recent. */
   const [history, setHistory] = useState<Snapshot[]>([]);
   const { seen, markSeen, reset: resetGuide } = useFirstVisit(GUIDE_SEEN_KEY);
@@ -331,8 +344,15 @@ export function DetectionPlayground() {
   const pushHistory = () =>
     setHistory((prev) => [...prev, { gt: cloneBoxes(gt), preds: cloneBoxes(preds) }]);
 
-  const handleChangeGt = (next: DetBox[]) => setGt(next);
-  const handleChangePreds = (next: DetBox[]) => setPreds(next);
+  // A hand edit detaches from any loaded example, so the highlight clears.
+  const handleChangeGt = (next: DetBox[]) => {
+    setGt(next);
+    setActivePresetId("");
+  };
+  const handleChangePreds = (next: DetBox[]) => {
+    setPreds(next);
+    setActivePresetId("");
+  };
 
   /** Pop the last snapshot off the history stack, restoring it. */
   const handleUndo = () => {
@@ -350,6 +370,7 @@ export function DetectionPlayground() {
     setPreds([]);
     setThreshold(DEFAULT_THRESHOLD);
     setManualLayer("GT");
+    setActivePresetId("");
   };
 
   /** Re-arm the guided flow: show the thesis banner again AND clear to empty. */
@@ -358,14 +379,17 @@ export function DetectionPlayground() {
     handleReset();
   };
 
-  /** Load the fixed seed scene, jumping straight to compare. */
-  const handleLoadExample = () => {
+  /** Load one of the example scenes, jumping straight to compare. */
+  const handleSelectPreset = (preset: DetPreset) => {
     pushHistory();
-    setGt(cloneBoxes(SEED_GT));
-    setPreds(cloneBoxes(SEED_PREDS));
+    setGt(cloneBoxes(preset.gtObjects));
+    setPreds(cloneBoxes(preset.boxes));
     setThreshold(DEFAULT_THRESHOLD);
     setManualLayer("GT");
+    setActivePresetId(preset.id);
   };
+
+  const activePreset = DET_PRESETS.find((p) => p.id === activePresetId);
 
   const canUndo = history.length > 0;
 
@@ -426,11 +450,25 @@ export function DetectionPlayground() {
                 paddingTop: "var(--space-2)",
               }}
             >
-              <div role="group" aria-label={t.presetsLabel}>
-                <button type="button" style={exampleButtonStyle} onClick={handleLoadExample}>
-                  {LOAD_EXAMPLE[lang]}
-                </button>
+              <div style={presetRowStyle} role="group" aria-label={t.presetsLabel}>
+                {DET_PRESETS.map((preset) => {
+                  const isActive = preset.id === activePresetId;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      aria-pressed={isActive}
+                      style={isActive ? exampleButtonActiveStyle : exampleButtonStyle}
+                      onClick={() => handleSelectPreset(preset)}
+                    >
+                      {presetLabel(preset, lang)}
+                    </button>
+                  );
+                })}
               </div>
+              {activePreset ? (
+                <p style={presetDescriptionStyle}>{presetDescription(activePreset, lang)}</p>
+              ) : null}
             </div>
           </details>
         </div>
