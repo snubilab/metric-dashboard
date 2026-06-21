@@ -163,13 +163,15 @@ export function SensAtFpFigure() {
         />
         <circle data-role="fp-low" cx={lowX} cy={sameY} r={4} fill="var(--c-warn)" />
         <circle data-role="fp-high" cx={highX} cy={sameY} r={4} fill="var(--c-warn)" />
-        <text x={lowX} y={sameY - 6} textAnchor="middle" fill="var(--c-warn)" style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}>
+        {/* The shared sensitivity caption sits on the top row; the per-FP
+            read-offs drop below the dashed line so none of them overlap. */}
+        <text x={lowX} y={sameY + 16} textAnchor="middle" fill="var(--c-warn)" style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}>
           {t.lowFp}
         </text>
-        <text x={highX} y={sameY - 6} textAnchor="end" fill="var(--c-warn)" style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}>
+        <text x={highX} y={sameY + 16} textAnchor="end" fill="var(--c-warn)" style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}>
           {t.highFp}
         </text>
-        <text x={MARGIN.left + plotW / 2} y={MARGIN.top + 4} textAnchor="middle" fill="var(--c-warn)" style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}>
+        <text x={MARGIN.left + plotW / 2} y={MARGIN.top} textAnchor="middle" fill="var(--c-warn)" style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}>
           {t.same}
         </text>
       </svg>

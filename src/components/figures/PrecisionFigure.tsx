@@ -8,7 +8,7 @@
  */
 
 import { useLang } from "../../i18n/LanguageContext";
-import { SvgPanelCaption } from "./detPanels";
+import { SvgPanelCaption, SvgWarnMark } from "./detPanels";
 
 const L = {
   ko: {
@@ -94,25 +94,18 @@ export default function PrecisionFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
           {t.misleading}
         </text>
-        <path
-          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
-          fill="none"
-          stroke="var(--c-warn)"
-          strokeWidth={1.5}
-        />
-        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
-          !
-        </text>
+        <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
 
         <g transform={`translate(${PANEL_CX}, 96)`}>
           {/* Large GT region; most of it is left unpredicted (hatched warn) */}
           <circle cx={0} cy={0} r={44} fill="url(#prec-hatch)" stroke="var(--c-gt)" strokeWidth={2} />
           {/* Small easy core that the prediction marks — all of it correct */}
           <circle cx={-2} cy={4} r={15} fill="var(--c-pred-a)" fillOpacity={0.7} stroke="var(--c-pred-a)" strokeWidth={2} />
-          <text x={-2} y={7} fill="var(--c-surface)" textAnchor="middle" fontSize="8">
+          {/* Label sits above the small core (outside it) so it stays legible */}
+          <text x={-2} y={-16} fill="var(--c-pred-a)" textAnchor="middle" fontSize="9">
             {t.core}
           </text>
           <text x={0} y={-50} fill="var(--c-warn)" textAnchor="middle" fontSize="9">

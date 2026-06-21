@@ -45,9 +45,31 @@ const LUNA16_OPERATING_POINTS = [0.125, 0.25, 0.5, 1, 2, 4, 8] as const;
 const MARGIN = { top: 16, right: 16, bottom: 40, left: 48 };
 const AXIS_TICK_LENGTH = 4;
 const Y_TICKS = [0, 0.25, 0.5, 0.75, 1];
+/** Min horizontal gap (px) between two x-axis tick LABELS before we thin them. */
+const X_LABEL_MIN_GAP = 30;
 
 function formatFp(fp: number): string {
   return fp < 1 ? String(fp) : String(Math.round(fp));
+}
+
+/**
+ * Greedily pick which operating points get a TEXT label so labels never collide
+ * at narrow widths: keep every guide line, but only label a tick when it clears
+ * the previously-labelled one by `X_LABEL_MIN_GAP`. On a log axis the low ticks
+ * (0.125 / 0.25 / 0.5) crowd at the left, so some lose their label (not their
+ * line) when the chart is small.
+ */
+function labelledFps(operatingPoints: number[], x: (fp: number) => number): Set<number> {
+  const keep = new Set<number>();
+  let lastX = -Infinity;
+  for (const fp of operatingPoints) {
+    const px = x(fp);
+    if (px - lastX >= X_LABEL_MIN_GAP) {
+      keep.add(fp);
+      lastX = px;
+    }
+  }
+  return keep;
 }
 
 export function FROCCurve({
@@ -75,6 +97,9 @@ export function FROCCurve({
   const curvePoints = points
     .map((p) => `${x(clampFp(p.fpPerScan))},${y(p.sensitivity)}`)
     .join(" ");
+
+  // Which operating points show a text label (all keep their guide line).
+  const xLabelled = labelledFps(operatingPoints, x);
 
   return (
     <svg
@@ -134,14 +159,16 @@ export function FROCCurve({
             stroke="var(--c-border)"
             strokeDasharray="2 4"
           />
-          <text
-            x={x(fp)}
-            y={MARGIN.top + plotH + AXIS_TICK_LENGTH + 12}
-            textAnchor="middle"
-            fill="var(--c-text-dim)"
-          >
-            {formatFp(fp)}
-          </text>
+          {xLabelled.has(fp) && (
+            <text
+              x={x(fp)}
+              y={MARGIN.top + plotH + AXIS_TICK_LENGTH + 12}
+              textAnchor="middle"
+              fill="var(--c-text-dim)"
+            >
+              {formatFp(fp)}
+            </text>
+          )}
         </g>
       ))}
 

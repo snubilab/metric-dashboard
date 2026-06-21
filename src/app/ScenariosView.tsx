@@ -47,11 +47,23 @@ const L = {
 
 const galleryStyle: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 32rem), 1fr))",
   gap: "var(--space-6)",
   fontFamily: "var(--font-ui)",
   color: "var(--c-text)",
 };
+
+/**
+ * Fixed TWO-column gallery (collapsing to one only on narrow screens), so the
+ * layout is identical between Korean and English — an auto-fill track count
+ * would otherwise shift with the language's content width. `minmax(0, 1fr)`
+ * lets wide canvases/tables shrink instead of forcing a third implied column.
+ */
+const GALLERY_GRID_CSS = `
+.scen-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 760px) {
+  .scen-gallery { grid-template-columns: minmax(0, 1fr); }
+}
+`;
 
 const cardStyle: React.CSSProperties = {
   display: "flex",
@@ -232,11 +244,14 @@ export function ScenariosView({ topic }: ScenariosViewProps) {
     return <p style={emptyStyle}>{L[lang].empty}</p>;
   }
   return (
-    <div style={galleryStyle}>
-      {scenarios.map((scenario) => (
-        <ScenarioCard key={scenario.id} scenario={scenario} lang={lang} />
-      ))}
-    </div>
+    <>
+      <style>{GALLERY_GRID_CSS}</style>
+      <div className="scen-gallery" style={galleryStyle}>
+        {scenarios.map((scenario) => (
+          <ScenarioCard key={scenario.id} scenario={scenario} lang={lang} />
+        ))}
+      </div>
+    </>
   );
 }
 

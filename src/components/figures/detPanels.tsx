@@ -137,6 +137,17 @@ export function SvgPanelCaption({ text, x, y, maxWidth, fill }: SvgPanelCaptionP
   );
 }
 
+/** A small warning triangle + "!" centered at (x, y), for flagging a misleading
+ * SVG panel. Positioned independently of the panel title so it never overlaps it. */
+export function SvgWarnMark({ x, y, fill = "var(--c-warn)" }: { x: number; y: number; fill?: string }) {
+  return (
+    <g aria-hidden="true">
+      <path d={`M ${x} ${y - 11} l 6 11 l -12 0 z`} fill="none" stroke={fill} strokeWidth={1.5} strokeLinejoin="round" />
+      <text x={x} y={y - 1} fill={fill} textAnchor="middle" fontSize="8">!</text>
+    </g>
+  );
+}
+
 /** Localized chrome strings, resolved by the caller via useLang(). */
 export interface PanelStrings {
   /** Root aria-label — must mention the concept AND the misleading case. */

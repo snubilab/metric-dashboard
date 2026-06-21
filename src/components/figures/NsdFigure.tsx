@@ -8,7 +8,7 @@
  */
 
 import { useLang } from "../../i18n/LanguageContext";
-import { SvgPanelCaption } from "./detPanels";
+import { SvgPanelCaption, SvgWarnMark } from "./detPanels";
 
 const L = {
   ko: {
@@ -118,7 +118,8 @@ export default function NsdFigure() {
             />
           );
         })}
-        <text x={X1 - 2} y={refY(X1) - TAU_TIGHT - 6} fill="var(--c-text-dim)" textAnchor="end">
+        {/* Lifted into the empty upper-right corner, clear of the boundary dots and band edge */}
+        <text x={X1 - 2} y={refY(X1) - TAU_TIGHT - 18} fill="var(--c-text-dim)" textAnchor="end">
           {t.tau}
         </text>
       </g>
@@ -126,18 +127,10 @@ export default function NsdFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX - 8} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
           {t.misleading}
         </text>
-        <path
-          d={`M ${PANEL_CX + 30} ${TAG_Y - 11} l 6 11 l -12 0 z`}
-          fill="none"
-          stroke="var(--c-warn)"
-          strokeWidth={1.5}
-        />
-        <text x={PANEL_CX + 30} y={TAG_Y - 1} fill="var(--c-warn)" textAnchor="middle" fontSize="8">
-          !
-        </text>
+        <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
 
         <g transform={`translate(${PANEL_CX}, 96)`}>
           {/* A loose tolerance band swallows the bad boundary */}
