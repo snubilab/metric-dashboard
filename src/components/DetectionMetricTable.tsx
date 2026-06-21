@@ -47,9 +47,9 @@ const L = {
     f1: "F1",
     ap50: "AP50",
     apRange: "AP@[.5:.95]",
-    legendMatched: "정답 · 일치",
-    legendFp: "위양성",
-    legendMissed: "놓침",
+    legendGt: "정답(GT)",
+    legendTp: "일치 예측(TP)",
+    legendFp: "위양성(FP)",
   },
   en: {
     metric: "Metric",
@@ -62,9 +62,9 @@ const L = {
     f1: "F1",
     ap50: "AP50",
     apRange: "AP@[.5:.95]",
-    legendMatched: "GT · matched",
-    legendFp: "false positive",
-    legendMissed: "missed",
+    legendGt: "ground truth (GT)",
+    legendTp: "matched prediction (TP)",
+    legendFp: "false positive (FP)",
   },
 } as const;
 
@@ -221,15 +221,15 @@ export function DetectionMetricTable({
       <div style={legendStyle}>
         <span style={legendItemStyle}>
           <span aria-hidden="true" style={swatchStyle("var(--c-gt-text)")} />
-          {t.legendMatched}
+          {t.legendGt}
+        </span>
+        <span style={legendItemStyle}>
+          <span aria-hidden="true" style={swatchStyle("var(--c-pred-a)")} />
+          {t.legendTp}
         </span>
         <span style={legendItemStyle}>
           <span aria-hidden="true" style={swatchStyle("var(--c-warn-text)")} />
           {t.legendFp}
-        </span>
-        <span style={legendItemStyle}>
-          <span aria-hidden="true" style={swatchStyle("var(--c-text-dim)")} />
-          {t.legendMissed}
         </span>
       </div>
     </div>

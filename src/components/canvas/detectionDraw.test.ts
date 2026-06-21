@@ -49,17 +49,18 @@ function recordingCtx() {
 }
 
 describe("roleColorVar", () => {
-  it("maps matched and tp to --c-gt", () => {
+  it("maps a matched GT to --c-gt and a correct prediction (tp) to --c-pred-a", () => {
+    // GT and prediction are distinct colors so a hit never merges into one blob.
     expect(roleColorVar("matched")).toBe("--c-gt");
-    expect(roleColorVar("tp")).toBe("--c-gt");
+    expect(roleColorVar("tp")).toBe("--c-pred-a");
   });
 
-  it("maps fp to --c-warn", () => {
+  it("maps both error roles (fp false alarm, fn missed lesion) to --c-warn", () => {
     expect(roleColorVar("fp")).toBe("--c-warn");
+    expect(roleColorVar("fn")).toBe("--c-warn");
   });
 
-  it("maps fn and below to --c-text-dim", () => {
-    expect(roleColorVar("fn")).toBe("--c-text-dim");
+  it("maps a threshold-demoted prediction (below) to --c-text-dim", () => {
     expect(roleColorVar("below")).toBe("--c-text-dim");
   });
 });

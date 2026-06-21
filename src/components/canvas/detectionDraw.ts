@@ -8,13 +8,15 @@
  * detection has its own layer ontology (GT-matched / pred-TP / pred-FP / GT-FN /
  * pred-below) and its primitive is a `DetBox`, not a `Shape`.
  *
- * Role → token (spec.canvasPlan.matchColoring):
- *   - GT matched      -> --c-gt    solid stroke + translucent fill
- *   - GT FN           -> --c-text-dim DASHED stroke + translucent grey fill + 'FN' chip
- *   - pred TP         -> --c-gt    solid stroke + 'TP' chip
- *   - pred FP         -> --c-warn  solid stroke + translucent red fill + 'FP' chip
- *   - pred below      -> ghosted: low-alpha fill + thin dotted --c-text-dim stroke
- * Every ABOVE pred (TP/FP) also carries a 2dp confidence numeral chip.
+ * GT and predictions are distinct by BOTH color and style, so a matched GT never
+ * merges with its prediction into one same-colored blob (the old design did):
+ *   - GT (matched OR FN) -> --c-gt     DASHED, hollow outline — the "truth template"
+ *   - pred TP            -> --c-pred-a  solid stroke + translucent blue fill + 'TP' chip
+ *   - pred FP            -> --c-warn   solid stroke + translucent red fill + 'FP' chip
+ *   - GT FN              -> an 'FN' chip in --c-warn on the dashed GT outline
+ *   - pred below         -> ghosted: faint fill + dotted --c-text-dim stroke
+ * A correct hit reads as a FILLED BLUE prediction box sitting inside a GREEN DASHED
+ * GT outline. Every ABOVE pred (TP/FP) also carries a 2dp confidence numeral chip.
  *
  * All drawing bails when `ctx` is null (jsdom returns null from getContext); the
  * role→token mapping (`roleColorVar`) stays pure for unit tests.
@@ -57,24 +59,26 @@ type Role = GtRole | PredRole;
 
 /** Ghost fill alpha for below-threshold preds (kept very faint). */
 const GHOST_FILL_ALPHA = 0.05;
-/** Dash for a GT false negative (still-visible but un-claimed). */
-const FN_DASH = [6, 4];
+/** Dash for every GT box — the "truth template" is always a dashed outline. */
+const GT_DASH = [6, 4];
 /** Dotted dash for a below-threshold ghost pred. */
 const GHOST_DASH = [2, 4];
 
 /**
- * The token custom-property name for a role's stroke/fill color. Pure: matched
- * and tp share --c-gt (the overlap reads as one matched blob), fp is --c-warn,
- * fn and below are the dim neutral.
+ * The token custom-property name for a role's chip/marker color. Pure. GT-matched
+ * stays --c-gt; a correct prediction (tp) is --c-pred-a (blue, matching the PRED
+ * layer); both error roles (fp = false alarm, fn = missed lesion) are --c-warn; a
+ * threshold-demoted prediction (below) is the dim neutral.
  */
 export function roleColorVar(role: Role): string {
   switch (role) {
     case "matched":
-    case "tp":
       return "--c-gt";
+    case "tp":
+      return "--c-pred-a";
     case "fp":
-      return "--c-warn";
     case "fn":
+      return "--c-warn";
     case "below":
       return "--c-text-dim";
   }
@@ -83,6 +87,24 @@ export function roleColorVar(role: Role): string {
 /** Wrap a `DetBox` as a box `Shape` so the Shape-typed `paintShape` accepts it. */
 function asBoxShape(box: DetBox) {
   return { kind: "box", x: box.x, y: box.y, w: box.w, h: box.h } as const;
+}
+
+/** Stroke a hollow (no-fill) box outline in the given dash — used for every GT box. */
+function strokeBox(
+  ctx: CanvasRenderingContext2D,
+  box: DetBox,
+  color: string,
+  dash: number[],
+  scaleX: number,
+  scaleY: number,
+): void {
+  ctx.beginPath();
+  ctx.rect(box.x * scaleX, box.y * scaleY, box.w * scaleX, box.h * scaleY);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.setLineDash(dash);
+  ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 /**
@@ -105,30 +127,29 @@ export function drawDetectionScene(
 
   ctx.clearRect(0, 0, width, height);
 
-  // Identity mode (still drawing): GT in --c-gt, predictions in --c-pred-a, no
-  // match roles — so a ground-truth box never reads as a false negative before
-  // there is any prediction to miss it.
+  // GT is ALWAYS the dashed, hollow "truth template" — a green outline with no
+  // fill — so it stays visually distinct from the filled prediction boxes and
+  // never merges with a same-colored prediction. Matched and FN GT look the same;
+  // the FN chip (added in paintChips) marks a miss.
+  const gtColor = resolveColor(canvas, "--c-gt");
+  gt.forEach((box) => strokeBox(ctx, box, gtColor, GT_DASH, scaleX, scaleY));
+
+  // Identity mode (still drawing): predictions in --c-pred-a, no match roles — so
+  // a ground-truth box never reads as a false negative before a prediction exists.
   if (!classification) {
-    const gtColor = resolveColor(canvas, "--c-gt");
     const predColor = resolveColor(canvas, "--c-pred-a");
-    gt.forEach((box) => paintShape(ctx, asBoxShape(box), gtColor, scaleX, scaleY, []));
     preds.forEach((box) => paintShape(ctx, asBoxShape(box), predColor, scaleX, scaleY, []));
     if (opts.showChips !== false) paintChips(ctx, canvas, opts, scaleX, scaleY);
     return;
   }
 
-  // GT boxes: matched -> solid green; fn -> dashed dim grey.
-  gt.forEach((box, i) => {
-    const role = classification.gtRoles[i] ?? "fn";
-    const color = resolveColor(canvas, roleColorVar(role));
-    const dash = role === "fn" ? FN_DASH : [];
-    paintShape(ctx, asBoxShape(box), color, scaleX, scaleY, dash);
-  });
-
-  // Prediction boxes: tp -> green; fp -> red; below -> ghosted dotted dim.
+  // Compare mode: predictions are FILLED — blue when correct (TP, matching the PRED
+  // layer color), red when a false positive (FP); a below-threshold pred ghosts.
+  const tpColor = resolveColor(canvas, "--c-pred-a");
+  const fpColor = resolveColor(canvas, "--c-warn");
+  const ghostColor = resolveColor(canvas, "--c-text-dim");
   preds.forEach((box, i) => {
     const role = classification.predRoles[i] ?? "below";
-    const color = resolveColor(canvas, roleColorVar(role));
     if (role === "below") {
       // Ghost: very faint fill, but a FULL-opacity dotted dim outline so a
       // demoted prediction stays clearly visible (≈5.5:1) — the dotted pattern,
@@ -137,17 +158,17 @@ export function drawDetectionScene(
       ctx.beginPath();
       ctx.rect(box.x * scaleX, box.y * scaleY, box.w * scaleX, box.h * scaleY);
       ctx.globalAlpha = GHOST_FILL_ALPHA;
-      ctx.fillStyle = color;
+      ctx.fillStyle = ghostColor;
       ctx.fill();
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = ghostColor;
       ctx.lineWidth = 1.75;
       ctx.setLineDash(GHOST_DASH);
       ctx.stroke();
       ctx.setLineDash([]);
       return;
     }
-    paintShape(ctx, asBoxShape(box), color, scaleX, scaleY, []);
+    paintShape(ctx, asBoxShape(box), role === "tp" ? tpColor : fpColor, scaleX, scaleY, []);
   });
 
   if (opts.showChips !== false) paintChips(ctx, canvas, opts, scaleX, scaleY);
