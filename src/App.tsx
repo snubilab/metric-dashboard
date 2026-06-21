@@ -66,6 +66,8 @@ const SHELL_CSS = `
 .app-sidebar { min-width: 15rem; height: 100%; overflow-y: auto; border-right: 1px solid var(--c-border); }
 .app-main { overflow: hidden; height: 100%; }
 .app-body { overflow-y: auto; padding: var(--space-8); }
+.app-credit { color: #000000; }
+[data-theme="dark"] .app-credit { color: #ffffff; }
 @media (max-width: 720px) {
   .app-shell { grid-template-columns: 1fr; height: auto; min-height: 100svh; }
   .app-sidebar { min-width: 0; height: auto; max-height: 38vh; border-right: none; border-bottom: 1px solid var(--c-border); }
@@ -95,13 +97,13 @@ const headerStyle: React.CSSProperties = {
   background: "var(--c-bg)",
 };
 
-/** Small, white attribution at the very top — discreet on light, legible on dark. */
+/** Small attribution at the very top — color is theme-aware (black on light, white
+ *  on dark) via the `.app-credit` class so it stays legible in both themes. */
 const creditStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "var(--text-xs)",
   fontFamily: "var(--font-ui)",
   letterSpacing: "0.02em",
-  color: "#ffffff",
 };
 
 const CREDIT = "리더: 이주희 · 보조: 고예현";
@@ -254,7 +256,7 @@ function App() {
       <Sidebar topics={topics} activeId={topic.id} onSelect={setSelectedId} />
       <main className="app-main" style={mainStyle}>
         <header style={headerStyle}>
-          <p style={creditStyle}>{CREDIT}</p>
+          <p className="app-credit" style={creditStyle}>{CREDIT}</p>
           <div style={titleRowStyle}>
             <div style={titleGroupStyle}>
               <h1 style={titleStyle}>{title}</h1>
