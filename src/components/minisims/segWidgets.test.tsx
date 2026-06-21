@@ -59,6 +59,22 @@ describe("DiceOverlapSim", () => {
     const after = readNumeral(container, "dice");
     expect(after).toBeLessThan(before);
   });
+
+  it("renders a live ShapeCanvas alongside the metric", () => {
+    renderEn(<DiceOverlapSim config={config("dice-overlap", "dice")} />);
+
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    expect(screen.getByText("Dice")).toBeInTheDocument();
+  });
+
+  it("does not throw when the primary slider moves with the canvas mounted", () => {
+    renderEn(<DiceOverlapSim config={config("dice-overlap", "dice")} />);
+
+    expect(() =>
+      fireEvent.change(screen.getByLabelText(/pred offset/i), { target: { value: "55" } }),
+    ).not.toThrow();
+    expect(screen.getByRole("img")).toBeInTheDocument();
+  });
 });
 
 describe("Hd95StrayFpSim", () => {
@@ -81,6 +97,22 @@ describe("Hd95StrayFpSim", () => {
     const hdFar = readNumeral(container, "hd");
 
     expect(hdFar).toBeGreaterThan(hdNear);
+  });
+
+  it("renders a live ShapeCanvas alongside the metrics", () => {
+    renderEn(<Hd95StrayFpSim config={config("hd95-stray-fp", "hd95")} />);
+
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    expect(screen.getByText("HD95")).toBeInTheDocument();
+  });
+
+  it("does not throw when the primary slider moves with the canvas mounted", () => {
+    renderEn(<Hd95StrayFpSim config={config("hd95-stray-fp", "hd95")} />);
+
+    expect(() =>
+      fireEvent.change(screen.getByLabelText(/stray fp distance/i), { target: { value: "50" } }),
+    ).not.toThrow();
+    expect(screen.getByRole("img")).toBeInTheDocument();
   });
 });
 
@@ -111,6 +143,22 @@ describe("NsdToleranceSim", () => {
 
     expect(loose).toBeGreaterThanOrEqual(tight);
   });
+
+  it("renders a live ShapeCanvas alongside the metric", () => {
+    renderEn(<NsdToleranceSim config={config("nsd-tolerance", "nsd", { nsdToleranceMm: 2 })} />);
+
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    expect(screen.getByText("NSD")).toBeInTheDocument();
+  });
+
+  it("does not throw when the primary slider moves with the canvas mounted", () => {
+    renderEn(<NsdToleranceSim config={config("nsd-tolerance", "nsd", { nsdToleranceMm: 2 })} />);
+
+    expect(() =>
+      fireEvent.change(screen.getByLabelText(/tolerance/i), { target: { value: "10" } }),
+    ).not.toThrow();
+    expect(screen.getByRole("img")).toBeInTheDocument();
+  });
 });
 
 describe("LesionMissedSim", () => {
@@ -133,6 +181,25 @@ describe("LesionMissedSim", () => {
 
     expect(readNumeral(container, "lesion-sensitivity")).toBeCloseTo(0.5, 2);
     expect(readNumeral(container, "voxel-dice")).toBeGreaterThan(0.9);
+  });
+
+  it("renders a live ShapeCanvas alongside the metrics", () => {
+    const { container } = renderEn(
+      <LesionMissedSim config={config("lesion-missed", "lesionSensitivity")} />,
+    );
+
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    const lesionCell = container.querySelector('[data-metric="lesion-sensitivity"]') as HTMLElement;
+    expect(within(lesionCell).getByText(/lesion sensitivity/i)).toBeInTheDocument();
+  });
+
+  it("does not throw when the primary toggle flips with the canvas mounted", () => {
+    renderEn(<LesionMissedSim config={config("lesion-missed", "lesionSensitivity")} />);
+
+    expect(() =>
+      fireEvent.click(screen.getByLabelText(/include small lesion/i)),
+    ).not.toThrow();
+    expect(screen.getByRole("img")).toBeInTheDocument();
   });
 });
 

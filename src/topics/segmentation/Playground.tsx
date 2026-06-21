@@ -44,7 +44,6 @@ import type { SegPreset } from "./presets";
 import { flowStage, lockedLayersFor, stageLayer, stageStep } from "./flowStage";
 import {
   LOAD_EXAMPLE,
-  LOAD_EXAMPLE_CAPTION,
   RESET_TO_EMPTY,
   SHOW_GUIDE_AGAIN,
   STAGE_GATING_LINE,
@@ -264,13 +263,6 @@ const presetDescriptionStyle: CSSProperties = {
   color: "var(--c-text-dim)",
 };
 
-const captionStyle: CSSProperties = {
-  margin: 0,
-  fontFamily: "var(--font-ui)",
-  fontSize: "var(--text-xs)",
-  color: "var(--c-text-dim)",
-};
-
 const actionRowStyle: CSSProperties = {
   display: "flex",
   flexWrap: "wrap",
@@ -444,7 +436,6 @@ function LoadExample({
           paddingTop: "var(--space-2)",
         }}
       >
-        <p style={captionStyle}>{LOAD_EXAMPLE_CAPTION[lang]}</p>
         <div
           style={presetRowStyle}
           role="group"

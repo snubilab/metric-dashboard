@@ -17,6 +17,7 @@ import { rasterize } from "../../engine/raster/rasterize";
 import { surfaceDice } from "../../engine/metrics/boundary";
 import { useLang } from "../../i18n/LanguageContext";
 import { AnimatedMetric } from "../AnimatedMetric";
+import { ShapeCanvas } from "../canvas/ShapeCanvas";
 import { MetricCell, MetricStrip, Slider, WidgetCard } from "./widgetChrome";
 import { circleShape, gtCircle, predCircle } from "./seedGeometry";
 
@@ -28,6 +29,7 @@ const L = {
     nsdLabel: "NSD",
     toleranceLabel: "허용오차",
     toleranceSlider: "허용오차 (mm)",
+    canvasAria: "정답 경계와 예측 경계를 보여주는 그림",
   },
   en: {
     title: "NSD and the tolerance band",
@@ -36,8 +38,12 @@ const L = {
     nsdLabel: "NSD",
     toleranceLabel: "Tolerance",
     toleranceSlider: "Tolerance (mm)",
+    canvasAria: "The ground-truth boundary and the prediction boundary",
   },
 } as const;
+
+/** Compact canvas size for the inline mini-sim preview. */
+const CANVAS_MAX_PX = 240;
 
 const GT_FALLBACK = { cx: 64, cy: 64, r: 30 };
 const PRED_FALLBACK = { cx: 70, cy: 64, r: 30 };
@@ -59,16 +65,26 @@ export default function NsdToleranceSim({ config }: NsdToleranceSimProps) {
 
   const [toleranceMm, setToleranceMm] = useState(state.nsdToleranceMm ?? 2);
 
+  // Build GT + prediction boundaries once so the canvas mirrors the metric.
+  const gtShape: Shape = useMemo(() => circleShape(gtSeed), [gtSeed]);
+  const predShape: Shape = useMemo(() => circleShape(predSeed), [predSeed]);
+
   const nsdValue = useMemo(() => {
-    const gtShape: Shape = circleShape(gtSeed);
-    const predShape: Shape = circleShape(predSeed);
     const gtMask = rasterize(grid, [gtShape]);
     const predMask = rasterize(grid, [predShape]);
     return surfaceDice(grid, gtMask, predMask, toleranceMm, policy);
-  }, [gtSeed, predSeed, grid, policy, toleranceMm]);
+  }, [gtShape, predShape, grid, policy, toleranceMm]);
 
   return (
     <WidgetCard title={t.title} caption={t.caption}>
+      <ShapeCanvas
+        grid={grid}
+        gt={[gtShape]}
+        predictions={[{ id: "A", shapes: [predShape] }]}
+        maxPx={CANVAS_MAX_PX}
+        ariaLabel={t.canvasAria}
+      />
+
       <MetricStrip>
         <MetricCell metricKey="nsd">
           <AnimatedMetric value={nsdValue} label={t.nsdLabel} decimals={3} />

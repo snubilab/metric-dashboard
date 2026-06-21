@@ -19,6 +19,7 @@ import { dice } from "../../engine/metrics/overlap";
 import { hd, hd95 } from "../../engine/metrics/boundary";
 import { useLang } from "../../i18n/LanguageContext";
 import { AnimatedMetric } from "../AnimatedMetric";
+import { ShapeCanvas } from "../canvas/ShapeCanvas";
 import { MetricCell, MetricStrip, Slider, WidgetCard } from "./widgetChrome";
 import { circleShape, gtCircle } from "./seedGeometry";
 
@@ -28,14 +29,19 @@ const L = {
     caption:
       "거의 완벽한 예측에 멀리 떨어진 작은 점 하나가 있습니다. Dice는 추가된 몇 픽셀을 거의 알아채지 못하지만, HD는 가장 나쁜 단일 지점이므로 떨어진 점까지의 전체 거리만큼 치솟습니다. HD95는 이상치의 일부를 흡수해 둘 사이에 자리합니다.",
     strayDistance: "떠도는 FP 거리 (mm)",
+    canvasAria: "정답, 예측, 그리고 멀리 떨어진 거짓양성 점을 보여주는 그림",
   },
   en: {
     title: "Stray false positive: Dice vs HD vs HD95",
     caption:
       "A near-perfect prediction with one tiny stray blob far away. Dice hardly notices the few extra pixels, but HD jumps to the full stray distance because it is the single worst point. HD95 absorbs part of the outlier, landing between the two.",
     strayDistance: "Stray FP distance (mm)",
+    canvasAria: "Ground truth, prediction, and a far-away stray false-positive blob",
   },
 } as const;
+
+/** Compact canvas size for the inline mini-sim preview. */
+const CANVAS_MAX_PX = 240;
 
 const FALLBACK = { cx: 40, cy: 64, r: 24 };
 const STRAY_RADIUS = 3;
@@ -54,15 +60,20 @@ export default function Hd95StrayFpSim({ config }: Hd95StrayFpSimProps) {
 
   const [strayDistance, setStrayDistance] = useState(0);
 
-  const { diceValue, hdValue, hd95Value } = useMemo(() => {
-    const main: Shape = circleShape(seed);
-    const gtMask = rasterize(grid, [main]);
-
-    const predShapes: Shape[] = [main];
+  // Build GT + prediction (main mass plus the optional stray blob) once so the
+  // canvas draws the very shapes that drive the three metrics.
+  const gtShapes: Shape[] = useMemo(() => [circleShape(seed)], [seed]);
+  const predShapes: Shape[] = useMemo(() => {
+    const shapes: Shape[] = [circleShape(seed)];
     if (strayDistance > 0) {
       const strayX = Math.min(grid.width - STRAY_RADIUS, seed.cx + seed.r + strayDistance);
-      predShapes.push(circleShape({ cx: strayX, cy: seed.cy, r: STRAY_RADIUS }));
+      shapes.push(circleShape({ cx: strayX, cy: seed.cy, r: STRAY_RADIUS }));
     }
+    return shapes;
+  }, [seed, grid, strayDistance]);
+
+  const { diceValue, hdValue, hd95Value } = useMemo(() => {
+    const gtMask = rasterize(grid, gtShapes);
     const predMask = rasterize(grid, predShapes);
 
     return {
@@ -70,10 +81,18 @@ export default function Hd95StrayFpSim({ config }: Hd95StrayFpSimProps) {
       hdValue: hd(grid, gtMask, predMask, policy),
       hd95Value: hd95(grid, gtMask, predMask, policy),
     };
-  }, [seed, grid, policy, strayDistance]);
+  }, [gtShapes, predShapes, grid, policy]);
 
   return (
     <WidgetCard title={t.title} caption={t.caption}>
+      <ShapeCanvas
+        grid={grid}
+        gt={gtShapes}
+        predictions={[{ id: "A", shapes: predShapes }]}
+        maxPx={CANVAS_MAX_PX}
+        ariaLabel={t.canvasAria}
+      />
+
       <MetricStrip>
         <MetricCell metricKey="dice">
           <AnimatedMetric value={diceValue} label="Dice" decimals={3} />

@@ -18,6 +18,7 @@ import { rasterize } from "../../engine/raster/rasterize";
 import { lesionWise } from "../../engine/metrics/lesionwise";
 import { useLang } from "../../i18n/LanguageContext";
 import { AnimatedMetric } from "../AnimatedMetric";
+import { ShapeCanvas } from "../canvas/ShapeCanvas";
 import { MetricCell, MetricStrip, Toggle, WidgetCard } from "./widgetChrome";
 import { circleShape } from "./seedGeometry";
 
@@ -29,6 +30,7 @@ const L = {
     voxelDice: "복셀 Dice",
     lesionSensitivity: "병변 민감도",
     includeLesion: "예측에 작은 병변 포함",
+    canvasAria: "정답 병변들과 그중 하나가 빠진 예측을 보여주는 그림",
   },
   en: {
     title: "A missed lesion that voxel Dice ignores",
@@ -37,8 +39,12 @@ const L = {
     voxelDice: "Voxel Dice",
     lesionSensitivity: "Lesion sensitivity",
     includeLesion: "Include small lesion in prediction",
+    canvasAria: "Ground-truth lesions and the prediction with one lesion missing",
   },
 } as const;
+
+/** Compact canvas size for the inline mini-sim preview. */
+const CANVAS_MAX_PX = 240;
 
 const ORGAN = { cx: 44, cy: 64, r: 28 };
 const LESION = { cx: 100, cy: 64, r: 5 };
@@ -57,11 +63,16 @@ export default function LesionMissedSim({ config }: LesionMissedSimProps) {
 
   const [includeLesion, setIncludeLesion] = useState(true);
 
+  // Build GT (organ + lesion) and the prediction (lesion optionally dropped)
+  // once so the canvas draws the exact shapes that drive the metrics.
+  const gtShapes: Shape[] = useMemo(() => [circleShape(ORGAN), circleShape(LESION)], []);
+  const predShapes: Shape[] = useMemo(
+    () => (includeLesion ? [circleShape(ORGAN), circleShape(LESION)] : [circleShape(ORGAN)]),
+    [includeLesion],
+  );
+
   const { voxelDice, lesionSensitivity } = useMemo(() => {
-    const organ: Shape = circleShape(ORGAN);
-    const lesion: Shape = circleShape(LESION);
-    const gtMask = rasterize(grid, [organ, lesion]);
-    const predShapes: Shape[] = includeLesion ? [organ, lesion] : [organ];
+    const gtMask = rasterize(grid, gtShapes);
     const predMask = rasterize(grid, predShapes);
     const result = lesionWise(grid, gtMask, predMask, {
       criterion: "iou",
@@ -69,7 +80,7 @@ export default function LesionMissedSim({ config }: LesionMissedSimProps) {
       policy,
     });
     return { voxelDice: result.voxelDice, lesionSensitivity: result.lesionSensitivity };
-  }, [grid, policy, includeLesion]);
+  }, [grid, policy, gtShapes, predShapes]);
 
   // The lesion-sensitivity drop is the alarming signal: tone it "warn" once the
   // lesion is excluded so the user's eye lands on the metric that exposes the miss.
@@ -77,6 +88,14 @@ export default function LesionMissedSim({ config }: LesionMissedSimProps) {
 
   return (
     <WidgetCard title={t.title} caption={t.caption}>
+      <ShapeCanvas
+        grid={grid}
+        gt={gtShapes}
+        predictions={[{ id: "A", shapes: predShapes }]}
+        maxPx={CANVAS_MAX_PX}
+        ariaLabel={t.canvasAria}
+      />
+
       <MetricStrip>
         <MetricCell metricKey="voxel-dice">
           <AnimatedMetric value={voxelDice} label={t.voxelDice} decimals={3} />
