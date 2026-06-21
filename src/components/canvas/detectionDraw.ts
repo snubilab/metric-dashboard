@@ -128,17 +128,19 @@ export function drawDetectionScene(
   ctx.clearRect(0, 0, width, height);
 
   // GT is ALWAYS the dashed, hollow "truth template" — a green outline with no
-  // fill — so it stays visually distinct from the filled prediction boxes and
-  // never merges with a same-colored prediction. Matched and FN GT look the same;
-  // the FN chip (added in paintChips) marks a miss.
+  // fill. It is painted LAST (on top of the filled prediction boxes) so a tight
+  // match still shows the green dashed truth around/over the blue prediction;
+  // matched and FN GT look the same, and the FN chip marks a miss.
   const gtColor = resolveColor(canvas, "--c-gt");
-  gt.forEach((box) => strokeBox(ctx, box, gtColor, GT_DASH, scaleX, scaleY));
+  const paintGt = () =>
+    gt.forEach((box) => strokeBox(ctx, box, gtColor, GT_DASH, scaleX, scaleY));
 
   // Identity mode (still drawing): predictions in --c-pred-a, no match roles — so
   // a ground-truth box never reads as a false negative before a prediction exists.
   if (!classification) {
     const predColor = resolveColor(canvas, "--c-pred-a");
     preds.forEach((box) => paintShape(ctx, asBoxShape(box), predColor, scaleX, scaleY, []));
+    paintGt();
     if (opts.showChips !== false) paintChips(ctx, canvas, opts, scaleX, scaleY);
     return;
   }
@@ -170,6 +172,7 @@ export function drawDetectionScene(
     }
     paintShape(ctx, asBoxShape(box), role === "tp" ? tpColor : fpColor, scaleX, scaleY, []);
   });
+  paintGt();
 
   if (opts.showChips !== false) paintChips(ctx, canvas, opts, scaleX, scaleY);
 }
