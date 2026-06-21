@@ -21,6 +21,7 @@ import { BenchmarkTable } from "../components/BenchmarkTable";
 import { SectionNav } from "./SectionNav";
 import { useLang } from "../i18n/LanguageContext";
 import type { Lang } from "../i18n/LanguageContext";
+import { splitMetricText } from "../components/metrics/metricTextLinks";
 
 interface LearnViewProps {
   topic: Topic;
@@ -98,6 +99,36 @@ const listStyle: React.CSSProperties = {
   color: "var(--c-text)",
 };
 
+/** List variant with a leading icon per item (no bullet). */
+const iconListStyle: React.CSSProperties = {
+  ...listStyle,
+  listStyleType: "none",
+  paddingLeft: 0,
+  gap: "var(--space-2)",
+};
+
+const iconItemStyle: React.CSSProperties = {
+  display: "flex",
+  gap: "var(--space-2)",
+  alignItems: "baseline",
+};
+
+/** Leading markers: a check on features, a warning on caveats (per request). */
+const FEATURE_ICON = "✓";
+const CAVEAT_ICON = "⚠️";
+
+/** Inline metric link rendered as a reset button styled like a text link. */
+const metricLinkStyle: React.CSSProperties = {
+  background: "none",
+  border: "none",
+  padding: 0,
+  font: "inherit",
+  color: "var(--c-pred-a)",
+  textDecoration: "underline",
+  textUnderlineOffset: "2px",
+  cursor: "pointer",
+};
+
 const L = {
   ko: {
     featuresLabel: "특징",
@@ -155,16 +186,63 @@ function renderFormula(formula: string): string {
   return katex.renderToString(formula, { throwOnError: false, displayMode: true });
 }
 
-function LabeledList({ label, items }: { label: string; items: string[] }) {
+/**
+ * Render prose, turning metric-name mentions (HD95, NSD, ASSD, Dice, …) into
+ * links that jump to that metric's section. A token pointing at the section it
+ * already sits in (`currentId`) stays plain text — no self-links.
+ */
+function MetricText({ text, currentId }: { text: string; currentId: string }) {
+  return (
+    <>
+      {splitMetricText(text).map((seg, i) =>
+        seg.sectionId && seg.sectionId !== currentId ? (
+          <button
+            key={i}
+            type="button"
+            style={metricLinkStyle}
+            onClick={() => jumpToSection(seg.sectionId as string)}
+          >
+            {seg.text}
+          </button>
+        ) : (
+          <span key={i}>{seg.text}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+function LabeledList({
+  label,
+  items,
+  currentId,
+  icon,
+  iconColor,
+}: {
+  label: string;
+  items: string[];
+  currentId: string;
+  icon?: string;
+  iconColor?: string;
+}) {
   if (items.length === 0) {
     return null;
   }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
       <h4 style={subListLabelStyle}>{label}</h4>
-      <ul style={listStyle}>
+      <ul style={icon ? iconListStyle : listStyle}>
         {items.map((item, index) => (
-          <li key={index}>{item}</li>
+          <li key={index} style={icon ? iconItemStyle : undefined}>
+            {icon && (
+              <span aria-hidden="true" style={{ flex: "0 0 auto", color: iconColor }}>
+                {icon}
+              </span>
+            )}
+            <span>
+              <MetricText text={item} currentId={currentId} />
+            </span>
+          </li>
         ))}
       </ul>
     </div>
@@ -184,13 +262,28 @@ function Section({ section, lang }: { section: MetricSection; lang: Lang }) {
         />
       )}
       {section.figure && <MetricFigure figure={section.figure} />}
-      <p style={meaningStyle}>{section.meaning}</p>
-      <LabeledList label={L[lang].featuresLabel} items={section.features} />
-      <LabeledList label={L[lang].caveatsLabel} items={section.caveats} />
+      <p style={meaningStyle}>
+        <MetricText text={section.meaning} currentId={section.id} />
+      </p>
+      <LabeledList
+        label={L[lang].featuresLabel}
+        items={section.features}
+        currentId={section.id}
+        icon={FEATURE_ICON}
+        iconColor="var(--c-gt-text)"
+      />
+      <LabeledList
+        label={L[lang].caveatsLabel}
+        items={section.caveats}
+        currentId={section.id}
+        icon={CAVEAT_ICON}
+      />
       {section.complements && (
         <div style={calloutStyle}>
           <h4 style={calloutLabelStyle}>{L[lang].complementsLabel}</h4>
-          <p style={calloutTextStyle}>{section.complements}</p>
+          <p style={calloutTextStyle}>
+            <MetricText text={section.complements} currentId={section.id} />
+          </p>
         </div>
       )}
       {section.miniSim && <MiniSim config={section.miniSim} />}
