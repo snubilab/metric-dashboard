@@ -258,6 +258,11 @@ function paintChips(
   );
   requests.forEach((req, i) => {
     const pos = positions[i];
-    paintTagBadge(ctx, req.text, pos.cx, pos.yBottom, req.color, ring, font);
+    // Keep every chip fully on-canvas: a box near the top edge (or a tall
+    // de-collided stack) can push a chip's top above y=0 and clip it. Clamp the
+    // chip's bottom so its whole TAG_CHIP_H band stays visible (drops onto the
+    // box's top edge rather than off-canvas).
+    const yBottom = Math.max(pos.yBottom, TAG_CHIP_H + 2);
+    paintTagBadge(ctx, req.text, pos.cx, yBottom, req.color, ring, font);
   });
 }
