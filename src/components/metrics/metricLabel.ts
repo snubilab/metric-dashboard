@@ -10,6 +10,7 @@ import type { Lang } from "../../i18n/LanguageContext";
 
 const KO_METRIC_LABELS: Record<string, string> = {
   sensitivity: "민감도",
+  recall: "재현율",
   precision: "정밀도",
   nsd: "표면 Dice (NSD)",
   surfaceDice: "표면 Dice (NSD)",

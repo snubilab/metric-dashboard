@@ -20,6 +20,7 @@ import { DetectionScenePreview } from "../components/canvas/DetectionScenePrevie
 import { MetricTable } from "../components/MetricTable";
 import { ShapeCanvas } from "../components/canvas/ShapeCanvas";
 import { useEngineMetrics } from "../components/metrics/useEngineMetrics";
+import { detComparisonRows } from "../components/metrics/detComparisonRows";
 import { useLang } from "../i18n/LanguageContext";
 import type { Lang } from "../i18n/LanguageContext";
 
@@ -36,6 +37,11 @@ const L = {
     gt: "정답(GT)",
     predA: "예측 A",
     predB: "예측 B",
+    detectorA: "검출기 A",
+    detectorB: "검출기 B",
+    gtBox: "정답(GT)",
+    tpBox: "일치(TP)",
+    fpBox: "위양성(FP)",
   },
   en: {
     teachingPoint: "Teaching point",
@@ -45,6 +51,11 @@ const L = {
     gt: "Ground truth (GT)",
     predA: "Prediction A",
     predB: "Prediction B",
+    detectorA: "Detector A",
+    detectorB: "Detector B",
+    gtBox: "ground truth (GT)",
+    tpBox: "matched (TP)",
+    fpBox: "false positive (FP)",
   },
 } as const;
 
@@ -195,22 +206,106 @@ function MetricTablePreview({ state }: { state: Scenario["state"] }) {
 /** Max rendered canvas width in CSS px; keeps the scenario card compact. */
 const PREVIEW_MAX_PX = 300;
 
+/** Per-canvas cap when the A/B detector pair sits side by side. */
+const DET_PAIR_MAX_PX = 220;
+
+const detPairStyle: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "var(--space-4)",
+};
+
+const detFigureStyle: React.CSSProperties = {
+  margin: 0,
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--space-2)",
+  flex: "1 1 160px",
+  minWidth: 0,
+};
+
+const detCaptionStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: "var(--text-xs)",
+  fontWeight: 600,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "var(--c-text-dim)",
+  fontFamily: "var(--font-ui)",
+};
+
+/** Box-color legend for the detection scene canvases (GT / TP / FP). */
+function DetectionBoxLegend({ lang }: { lang: Lang }) {
+  const t = L[lang];
+  return (
+    <div style={legendStyle}>
+      <span style={legendItemStyle}>
+        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-gt)")} />
+        <span style={nameStyle("var(--c-gt-text)")}>{t.gtBox}</span>
+      </span>
+      <span style={legendItemStyle}>
+        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-pred-a)")} />
+        <span style={nameStyle("var(--c-pred-a)")}>{t.tpBox}</span>
+      </span>
+      <span style={legendItemStyle}>
+        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-warn)")} />
+        <span style={nameStyle("var(--c-warn-text)")}>{t.fpBox}</span>
+      </span>
+    </div>
+  );
+}
+
 function ScenarioPreview({ scenario, lang }: { scenario: Scenario; lang: Lang }) {
   const { state } = scenario;
   const detections = state.detections;
   if (detections) {
-    // Detection scenario: mirror the segmentation card — a calm read-only box
-    // visual (GT/TP/FP/FN colored) above a clean Metric | Value table + legend.
+    const { gtObjects, boxes, boxesB } = detections;
+    // A-vs-B detection scenario: mirror segmentation's thesis. Two detectors on
+    // the SAME GT, side by side (each box-colored GT/TP/FP), above the SAME
+    // rank-flip MetricTable segmentation uses — so "which detector is better"
+    // visibly depends on which metric you read.
+    if (boxesB) {
+      const rows = detComparisonRows(gtObjects, boxes, boxesB);
+      return (
+        <div style={segPreviewStyle}>
+          <div style={detPairStyle}>
+            <figure style={detFigureStyle}>
+              <figcaption style={detCaptionStyle}>{L[lang].detectorA}</figcaption>
+              <DetectionScenePreview
+                grid={state.grid}
+                gt={gtObjects}
+                preds={boxes}
+                maxPx={DET_PAIR_MAX_PX}
+                ariaLabel={L[lang].detectorA}
+              />
+            </figure>
+            <figure style={detFigureStyle}>
+              <figcaption style={detCaptionStyle}>{L[lang].detectorB}</figcaption>
+              <DetectionScenePreview
+                grid={state.grid}
+                gt={gtObjects}
+                preds={boxesB}
+                maxPx={DET_PAIR_MAX_PX}
+                ariaLabel={L[lang].detectorB}
+              />
+            </figure>
+          </div>
+          <DetectionBoxLegend lang={lang} />
+          <MetricTable rows={rows} />
+        </div>
+      );
+    }
+    // Single-detector fallback: a calm read-only visual + Metric | Value table.
     return (
       <div style={segPreviewStyle}>
         <DetectionScenePreview
           grid={state.grid}
-          gt={detections.gtObjects}
-          preds={detections.boxes}
+          gt={gtObjects}
+          preds={boxes}
           maxPx={PREVIEW_MAX_PX}
           ariaLabel={L[lang].detectionCanvasLabel}
         />
-        <DetectionMetricTable gt={detections.gtObjects} preds={detections.boxes} />
+        <DetectionMetricTable gt={gtObjects} preds={boxes} />
       </div>
     );
   }

@@ -258,9 +258,13 @@ export const detectionScenarios: Scenario[] = [
       luna16BoxesB,
     ),
     teachingPoint:
-      "FROC makes the false-positive burden explicit: every gain in lesion " +
-      "sensitivity is bought with more false marks per scan. A single " +
-      "sensitivity number is meaningless without the FP/scan it was measured at.",
+      "Two detectors, same scans. A is aggressive — it catches every nodule " +
+      "(recall 1.0) but buries each scan in false marks (precision 0.16). B is " +
+      "conservative — almost no false marks (precision 1.0) but it misses a " +
+      "fifth of the nodules (recall 0.8). Recall favors A; precision and F1 " +
+      "favor B. Which one you would deploy depends on whether a missed cancer " +
+      "or reader fatigue costs more — so read recall and precision together, " +
+      "never one alone.",
     reference:
       "Setio AAA, et al. Validation, comparison, and combination of algorithms " +
       "for automatic detection of pulmonary nodules in CT images: the LUNA16 " +
@@ -284,11 +288,14 @@ export const detectionScenarios: Scenario[] = [
         "IoU 0.75 none of the boxes qualify, so AP75 collapses — the same model, " +
         "judged by localization tightness.",
     },
-    state: detectionState(RSNA_GT, rsnaPreds),
+    state: detectionState(RSNA_GT, rsnaPreds, rsnaPredsB),
     teachingPoint:
-      "A high AP50 paired with a low AP75 is the signature of a model that " +
-      "finds objects but localizes them loosely. Always read AP50, AP75, and " +
-      "AP@[.5:.95] together rather than quoting one in isolation.",
+      "Two detectors on the same opacities. A finds all of them but localizes " +
+      "loosely — high AP50 (1.0) yet low AP@[.5:.95] (0.30). B localizes tightly " +
+      "but on fewer opacities — lower AP50 (0.66) yet higher AP@[.5:.95] (0.66). " +
+      "AP50 ranks A first; AP@[.5:.95] ranks B first. Which detector localizes " +
+      "more tightly flips with the IoU bar you judge at, so quote AP50, AP75, " +
+      "and AP@[.5:.95] together rather than one in isolation.",
     reference: "RSNA Pneumonia Detection Challenge. 2018.",
   },
   {
@@ -311,11 +318,15 @@ export const detectionScenarios: Scenario[] = [
     state: detectionState(
       flatten(deepLesionScans.gtPerScan),
       flatten(deepLesionScans.detectionsPerScan),
+      deepLesionBoxesB,
     ),
     teachingPoint:
-      "Sensitivity at a fixed FP/image fixes the false-positive budget so two " +
-      "detectors can be compared fairly — but the budget must match the " +
-      "clinical workflow, and FP/image is not interchangeable with FP/scan.",
+      "Two detectors against the same lesions. A reaches full sensitivity " +
+      "(recall 1.0) but pays in false marks (precision 0.40); B keeps every mark " +
+      "true (precision 1.0) but misses a quarter of the lesions (recall 0.75). " +
+      "Recall favors A; precision and F1 favor B — the same precision-vs-recall " +
+      "fork, now at the lesion level. The fairest read fixes a false-positive " +
+      "budget first, then compares sensitivity at it.",
     reference:
       "Yan K, Wang X, Lu L, Summers RM. DeepLesion: automated mining of " +
       "large-scale lesion annotations and universal lesion detection with deep " +
@@ -341,11 +352,15 @@ export const detectionScenarios: Scenario[] = [
     state: detectionState(
       flatten(camelyon16Scans.gtPerScan),
       flatten(camelyon16Scans.detectionsPerScan),
+      camelyon16BoxesB,
     ),
     teachingPoint:
-      "On whole-slide images the FROC is plotted against FP/image: lesion-level " +
-      "sensitivity is meaningful only once the per-image false-positive load a " +
-      "pathologist would tolerate is fixed.",
+      "Two detectors on the same slides. A flags every metastasis (recall 1.0) " +
+      "but with false marks per image (precision 0.44); B is precise " +
+      "(precision 1.0) but misses a quarter (recall 0.75). Recall favors A; " +
+      "precision and F1 favor B. On whole-slide images the choice hangs on the " +
+      "per-image false-positive load a pathologist will tolerate — fix that " +
+      "budget before picking one.",
     reference:
       "Ehteshami Bejnordi B, et al. Diagnostic assessment of deep learning " +
       "algorithms for detection of lymph node metastases in women with breast " +

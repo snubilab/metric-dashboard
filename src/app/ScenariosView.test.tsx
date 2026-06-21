@@ -67,6 +67,29 @@ const detScenario: Scenario = {
   teachingPoint: "teaching",
 };
 
+/** A detection scenario with a second detector (boxesB) → renders the A-vs-B view.
+ *  A is aggressive (hits both GT + a false box); B is conservative (one clean hit,
+ *  misses the other GT) — so recall favors A and precision favors B (a rank flip). */
+const detScenarioAB: Scenario = {
+  ...detScenario,
+  id: "det-ab",
+  state: {
+    ...detScenario.state,
+    detections: {
+      gtObjects: [
+        { x: 10, y: 10, w: 20, h: 20 },
+        { x: 100, y: 100, w: 20, h: 20 },
+      ],
+      boxes: [
+        { x: 10, y: 10, w: 20, h: 20, confidence: 0.9 },
+        { x: 100, y: 100, w: 20, h: 20, confidence: 0.8 },
+        { x: 200, y: 50, w: 16, h: 16, confidence: 0.6 },
+      ],
+      boxesB: [{ x: 10, y: 10, w: 20, h: 20, confidence: 0.95 }],
+    },
+  },
+};
+
 function topicWith(scenarios: Scenario[]): Topic {
   return {
     id: "t",
@@ -145,5 +168,20 @@ describe("ScenariosView", () => {
     expect(within(card).getByRole("table")).toBeInTheDocument();
     // ...and, being read-only like the seg card, NO interactive threshold slider.
     expect(within(card).queryByLabelText("신뢰도 임계값")).not.toBeInTheDocument();
+  });
+
+  it("renders an A-vs-B detector comparison (two canvases + a rank-flip table) when a scenario has two detectors", () => {
+    renderView(topicWith([detScenarioAB]));
+
+    const card = screen.getByRole("article");
+    // Two detector canvases, side by side — the thesis made visual.
+    expect(within(card).getByRole("img", { name: /검출기 A|Detector A/ })).toBeInTheDocument();
+    expect(within(card).getByRole("img", { name: /검출기 B|Detector B/ })).toBeInTheDocument();
+    // The SAME A-vs-B comparison table segmentation uses.
+    expect(within(card).getByRole("table")).toBeInTheDocument();
+    // Read-only: no interactive slider.
+    expect(within(card).queryByLabelText("신뢰도 임계값")).not.toBeInTheDocument();
+    // The rank-flip marker fires: A and B win different metrics (recall vs precision).
+    expect(within(card).getByText("순위 불일치")).toBeInTheDocument();
   });
 });
