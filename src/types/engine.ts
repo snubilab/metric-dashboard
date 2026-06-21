@@ -34,7 +34,10 @@ export interface EngineState {
   grid: Grid;
   gt: Shape[];
   predictions: PredictionLayer[];
-  detections?: { boxes: DetBox[]; gtObjects: DetBox[] };
+  // `boxes` is detector A; `boxesB` (optional) is a second detector for the A-vs-B
+  // Scenario comparison. The Playground uses only `boxes`; when `boxesB` is present
+  // a Scenario renders the two detectors side by side with a rank-flip metric table.
+  detections?: { boxes: DetBox[]; gtObjects: DetBox[]; boxesB?: DetBox[] };
   policy: DegeneratePolicy;
   nsdToleranceMm?: number;
 }

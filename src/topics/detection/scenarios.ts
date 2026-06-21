@@ -23,8 +23,12 @@ import type { Scenario } from "../../types/topic";
 const DEFAULT_GRID = { width: 256, height: 256, spacingMm: [1, 1] as [number, number] };
 const DEFAULT_POLICY = { emptyDice: "one" as const, emptyDistance: "undefined" as const };
 
-/** Wraps a detection scene in an otherwise-empty EngineState. */
-function detectionState(gtObjects: DetBox[], boxes: DetBox[]): EngineState {
+/**
+ * Wraps a detection scene in an otherwise-empty EngineState. When `boxesB` is
+ * supplied it becomes detector B, enabling the Scenarios A-vs-B rank-flip table;
+ * two-argument calls leave `boxesB` undefined (single-detector scenes).
+ */
+function detectionState(gtObjects: DetBox[], boxes: DetBox[], boxesB?: DetBox[]): EngineState {
   return {
     grid: DEFAULT_GRID,
     gt: [],
@@ -32,7 +36,7 @@ function detectionState(gtObjects: DetBox[], boxes: DetBox[]): EngineState {
       { id: "A", shapes: [] },
       { id: "B", shapes: [] },
     ],
-    detections: { boxes, gtObjects },
+    detections: { boxes, gtObjects, boxesB },
     policy: DEFAULT_POLICY,
   };
 }
@@ -106,6 +110,18 @@ export const luna16Scans = {
   ] as DetBox[][],
 };
 
+// Detector B for LUNA16: a CONSERVATIVE operating point. It marks only the four
+// confident nodules — tight, exact boxes at high confidence — and never fires on
+// the flood of false candidates or the subtle fifth nodule. Result: precision
+// 1.0 but recall only 0.8 (the subtle nodule is missed), the mirror image of the
+// aggressive detector A. Flip: recall -> A, precision -> B.
+export const luna16BoxesB: DetBox[] = [
+  { x: 50, y: 50, w: 20, h: 20, confidence: 0.95 },
+  { x: 80, y: 90, w: 18, h: 18, confidence: 0.92 },
+  { x: 30, y: 120, w: 22, h: 22, confidence: 0.9 },
+  { x: 100, y: 100, w: 16, h: 16, confidence: 0.88 },
+];
+
 // --- (b) RSNA pneumonia boxes: AP50 high, AP75 low ---------------------------
 // Three pneumonia opacities on a chest X-ray. Every predicted box is shifted ~10
 // px (IoU ~0.60 with its target), so all three match at IoU 0.50 (AP50 high) but
@@ -122,6 +138,16 @@ export const rsnaPreds: DetBox[] = [
   { x: 200, y: 200, w: 40, h: 40, confidence: 0.3 },
 ];
 export const rsnaGt = RSNA_GT;
+// Detector B for RSNA: a TIGHT-but-incomplete detector. Its boxes sit exactly on
+// the reference (IoU 1.0), so they survive even the strict IoU thresholds, but it
+// only fires on two of the three opacities and misses the third. Detector A's
+// loose boxes all match at IoU 0.50 (AP50 high) yet collapse by IoU 0.75; detector
+// B keeps its two matches across the whole [.5:.95] range. Flip: AP50/recall -> A,
+// AP@[.5:.95] -> B.
+export const rsnaPredsB: DetBox[] = [
+  { x: 20, y: 20, w: 40, h: 40, confidence: 0.95 },
+  { x: 120, y: 30, w: 40, h: 40, confidence: 0.9 },
+];
 
 // --- (c) DeepLesion universal lesion detection: sensitivity at 5 FP/image ----
 // A single CT slice with four lesions of varying conspicuity and a spray of
@@ -151,6 +177,17 @@ export const deepLesionScans = {
     ],
   ] as DetBox[][],
 };
+
+// Detector B for DeepLesion: high-PRECISION, fewer marks. It confidently catches
+// three of the four lesions with tight boxes and emits no false positives, so its
+// precision is 1.0 while its recall is 0.75 — the opposite tradeoff to detector A,
+// which catches all four lesions but only at 0.40 precision amid its false marks.
+// Flip: recall -> A, precision/F1 -> B.
+export const deepLesionBoxesB: DetBox[] = [
+  { x: 40, y: 40, w: 30, h: 30, confidence: 0.95 },
+  { x: 120, y: 60, w: 24, h: 24, confidence: 0.9 },
+  { x: 70, y: 140, w: 20, h: 20, confidence: 0.85 },
+];
 
 // --- (d) CAMELYON16 metastasis detection: FP/image ---------------------------
 // Three whole-slide images with lymph-node metastases. Sensitivity is read
@@ -184,6 +221,17 @@ export const camelyon16Scans = {
   ] as DetBox[][],
 };
 
+// Detector B for CAMELYON16: a CONSERVATIVE pathology detector. It reports only
+// the three confident metastatic foci with tight boxes and tolerates no benign
+// mimics, giving precision 1.0 but recall 0.75 (the borderline small metastasis is
+// missed). Detector A admits every focus plus the mimics: recall 1.0 at 0.44
+// precision. Flip: recall -> A, precision/F1 -> B.
+export const camelyon16BoxesB: DetBox[] = [
+  { x: 60, y: 60, w: 24, h: 24, confidence: 0.95 },
+  { x: 100, y: 120, w: 20, h: 20, confidence: 0.9 },
+  { x: 40, y: 160, w: 18, h: 18, confidence: 0.85 },
+];
+
 export const detectionScenarios: Scenario[] = [
   {
     id: "luna16-nodule-fp-burden",
@@ -207,6 +255,7 @@ export const detectionScenarios: Scenario[] = [
     state: detectionState(
       flatten(luna16Scans.gtPerScan),
       flatten(luna16Scans.detectionsPerScan),
+      luna16BoxesB,
     ),
     teachingPoint:
       "FROC makes the false-positive burden explicit: every gain in lesion " +

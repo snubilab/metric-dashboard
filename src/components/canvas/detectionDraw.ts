@@ -61,6 +61,13 @@ type Role = GtRole | PredRole;
 const GHOST_FILL_ALPHA = 0.05;
 /** Dash for every GT box — the "truth template" is always a dashed outline. */
 const GT_DASH = [6, 4];
+/**
+ * Canvas px to OUTSET the GT outline by. When a TP prediction shares a GT's bounds
+ * (IoU≈1), a same-sized GT outline would sit one pixel off the filled prediction's
+ * border and read as a single two-tone box; outsetting makes GT a visible dashed
+ * FRAME around the prediction, so the two stay clearly distinct.
+ */
+const GT_OUTSET = 3;
 /** Dotted dash for a below-threshold ghost pred. */
 const GHOST_DASH = [2, 4];
 
@@ -89,7 +96,10 @@ function asBoxShape(box: DetBox) {
   return { kind: "box", x: box.x, y: box.y, w: box.w, h: box.h } as const;
 }
 
-/** Stroke a hollow (no-fill) box outline in the given dash — used for every GT box. */
+/**
+ * Stroke a hollow (no-fill) GT box as a dashed outline, OUTSET by `GT_OUTSET` px so
+ * it frames any coincident prediction instead of merging into a two-tone border.
+ */
 function strokeBox(
   ctx: CanvasRenderingContext2D,
   box: DetBox,
@@ -99,7 +109,12 @@ function strokeBox(
   scaleY: number,
 ): void {
   ctx.beginPath();
-  ctx.rect(box.x * scaleX, box.y * scaleY, box.w * scaleX, box.h * scaleY);
+  ctx.rect(
+    box.x * scaleX - GT_OUTSET,
+    box.y * scaleY - GT_OUTSET,
+    box.w * scaleX + GT_OUTSET * 2,
+    box.h * scaleY + GT_OUTSET * 2,
+  );
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;
   ctx.setLineDash(dash);
