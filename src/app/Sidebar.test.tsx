@@ -21,7 +21,7 @@ describe("Sidebar", () => {
   it("renders group headers and topic titles", () => {
     renderEn(<Sidebar topics={topics} activeId="segmentation" onSelect={() => {}} />);
 
-    expect(screen.getByText("Discriminative (classical)")).toBeInTheDocument();
+    expect(screen.getByText("Discriminative")).toBeInTheDocument();
     expect(screen.getByText("Generative")).toBeInTheDocument();
     expect(screen.getByText("Image Segmentation")).toBeInTheDocument();
     expect(screen.getByText("Image Classification")).toBeInTheDocument();

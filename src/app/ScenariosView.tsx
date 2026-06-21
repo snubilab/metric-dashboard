@@ -211,6 +211,7 @@ function ScenarioPreview({ scenario, lang }: { scenario: Scenario; lang: Lang })
         gt={state.gt}
         predictions={state.predictions}
         maxPx={PREVIEW_MAX_PX}
+        fit
         ariaLabel={L[lang].canvasLabel}
       />
       <IdentityLegend lang={lang} hasA={hasA} hasB={hasB} />

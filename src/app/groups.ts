@@ -17,7 +17,7 @@ export interface Group {
 
 /** Ordered metric families, top to bottom, as rendered in the sidebar. */
 export const GROUPS: readonly Group[] = [
-  { id: "discriminative", label: "Discriminative (classical)" },
+  { id: "discriminative", label: "Discriminative" },
   { id: "generative", label: "Generative" },
   { id: "language", label: "Language & multimodal" },
   { id: "clinical", label: "Clinical evaluation" },

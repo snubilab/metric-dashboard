@@ -34,7 +34,6 @@ import { MetricTable } from "../../components/MetricTable";
 import { PredictionLegend } from "../../components/PredictionLegend";
 import type { PredictionLegendItem } from "../../components/PredictionLegend";
 import { DisagreementInsight } from "../../components/DisagreementInsight";
-import { MetricBarChart } from "../../components/charts/MetricBarChart";
 import { useEngineMetrics } from "../../components/metrics/useEngineMetrics";
 import { useFirstVisit } from "../../components/useFirstVisit";
 import { useLang } from "../../i18n/LanguageContext";
@@ -717,12 +716,7 @@ export default function Playground() {
 
               <section style={panelStyle}>
                 <h3 style={headingStyle}>{t.allMetrics}</h3>
-                <MetricTable rows={rows} showRelativeCue />
-              </section>
-
-              <section style={panelStyle}>
-                <h3 style={headingStyle}>{t.chart}</h3>
-                <MetricBarChart rows={rows} />
+                <MetricTable rows={rows} showRelativeCue showBars />
               </section>
             </>
           ) : (

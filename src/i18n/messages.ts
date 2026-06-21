@@ -25,7 +25,7 @@ const en: Messages = {
   "tab.scenarios": "Scenarios",
 
   // Sidebar group headers
-  "group.discriminative": "Discriminative (classical)",
+  "group.discriminative": "Discriminative",
   "group.generative": "Generative",
   "group.language": "Language & multimodal",
   "group.clinical": "Clinical evaluation",
@@ -57,7 +57,7 @@ const ko: Messages = {
   "tab.scenarios": "시나리오",
 
   // Sidebar group headers
-  "group.discriminative": "판별 (고전적)",
+  "group.discriminative": "판별",
   "group.generative": "생성",
   "group.language": "언어 및 멀티모달",
   "group.clinical": "임상 평가",

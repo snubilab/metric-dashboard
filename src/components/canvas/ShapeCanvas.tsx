@@ -28,6 +28,13 @@ export interface ShapeCanvasProps {
   visibleLayers?: Layer[];
   /** Max rendered width in CSS px; defaults to 320. */
   maxPx?: number;
+  /**
+   * Scale+center the shapes to fill the canvas (a "fit to content" view) so tiny
+   * scenes stay legible. Relative sizes within the scene are preserved. Static
+   * previews (Scenarios) set this; mini-sims leave it off so a shape visibly
+   * grows/moves as a slider changes.
+   */
+  fit?: boolean;
   /** Accessible name for the canvas (bilingual text is the caller's job). */
   ariaLabel: string;
 }
@@ -41,6 +48,7 @@ export function ShapeCanvas({
   predictions,
   visibleLayers,
   maxPx,
+  fit,
   ariaLabel,
 }: ShapeCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -70,8 +78,8 @@ export function ShapeCanvas({
     const ctx = canvas.getContext("2d");
     // jsdom returns null here; bail so tests exercise behavior, not pixels.
     if (!ctx) return;
-    drawScene(ctx, canvas, { grid, gt, predictions, visibleLayers });
-  }, [grid, gt, predictions, visibleLayers, themeVersion]);
+    drawScene(ctx, canvas, { grid, gt, predictions, visibleLayers, fit });
+  }, [grid, gt, predictions, visibleLayers, fit, themeVersion]);
 
   return (
     <canvas

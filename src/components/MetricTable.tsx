@@ -75,6 +75,25 @@ interface MetricTableProps {
    * ScenariosView consumer renders unchanged.
    */
   showRelativeCue?: boolean;
+  /**
+   * When true, each A/B value cell draws a proportional tinted bar behind the
+   * number (length = |value| / max(|a|,|b|) within the row, A in Pred-A, B in
+   * Pred-B) — folding the per-metric bar comparison INTO the table instead of a
+   * separate chart. Defaults to false so other consumers render a plain table.
+   */
+  showBars?: boolean;
+}
+
+/** Smallest denominator so an all-zero row doesn't divide by zero. */
+const BAR_EPS = 1e-9;
+
+/** A value cell's in-row bar fraction (0..1), guarding non-finite values. */
+function barFraction(value: number, a: number, b: number): number {
+  if (!Number.isFinite(value)) return 0;
+  const fa = Number.isFinite(a) ? Math.abs(a) : 0;
+  const fb = Number.isFinite(b) ? Math.abs(b) : 0;
+  const denom = Math.max(fa, fb, BAR_EPS);
+  return Math.min(Math.abs(value) / denom, 1);
 }
 
 /** Which prediction leads a row, or "na" when a value is non-finite. */
@@ -243,7 +262,56 @@ function valueCellStyle(side: Winner, rowWinner: Winner, flagged: boolean): Reac
   };
 }
 
-export function MetricTable({ rows, showRelativeCue = false }: MetricTableProps) {
+/** A value cell's number drawn over a proportional, tinted in-row bar. */
+function ValueWithBar({
+  value,
+  unit,
+  color,
+  fraction,
+}: {
+  value: number;
+  unit?: string;
+  color: string;
+  fraction: number;
+}) {
+  return (
+    <span
+      style={{
+        position: "relative",
+        display: "inline-flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        minWidth: "100%",
+      }}
+    >
+      {fraction > 0 && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            right: 0,
+            top: "50%",
+            transform: "translateY(-50%)",
+            height: "1.1em",
+            width: `${fraction * 100}%`,
+            background: color,
+            opacity: 0.2,
+            borderRadius: "var(--radius-sm)",
+          }}
+        />
+      )}
+      <span style={{ position: "relative" }}>
+        <AnimatedMetric value={value} unit={unit} decimals={DECIMALS} size="sm" />
+      </span>
+    </span>
+  );
+}
+
+export function MetricTable({
+  rows,
+  showRelativeCue = false,
+  showBars = false,
+}: MetricTableProps) {
   const { lang } = useLang();
   const t = L[lang];
   const disagreements = detectDisagreements(rows);
@@ -303,10 +371,28 @@ export function MetricTable({ rows, showRelativeCue = false }: MetricTableProps)
                   {meaning && <div style={meaningStyle}>{meaning}</div>}
                 </th>
                 <td style={valueCellStyle("A", rowWinner, flagged)}>
-                  <AnimatedMetric value={row.a} unit={row.unit} decimals={DECIMALS} size="sm" />
+                  {showBars ? (
+                    <ValueWithBar
+                      value={row.a}
+                      unit={row.unit}
+                      color="var(--c-pred-a)"
+                      fraction={barFraction(row.a, row.a, row.b)}
+                    />
+                  ) : (
+                    <AnimatedMetric value={row.a} unit={row.unit} decimals={DECIMALS} size="sm" />
+                  )}
                 </td>
                 <td style={valueCellStyle("B", rowWinner, flagged)}>
-                  <AnimatedMetric value={row.b} unit={row.unit} decimals={DECIMALS} size="sm" />
+                  {showBars ? (
+                    <ValueWithBar
+                      value={row.b}
+                      unit={row.unit}
+                      color="var(--c-pred-b)"
+                      fraction={barFraction(row.b, row.a, row.b)}
+                    />
+                  ) : (
+                    <AnimatedMetric value={row.b} unit={row.unit} decimals={DECIMALS} size="sm" />
+                  )}
                 </td>
               </tr>
             );

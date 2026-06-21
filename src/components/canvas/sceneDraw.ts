@@ -50,9 +50,36 @@ export const TAG_CHIP_RADIUS = 4;
 
 const ALL_LAYERS: Layer[] = ["GT", "A", "B"];
 
+/** Side/bottom padding (canvas px) when fitting shapes to the canvas. */
+const FIT_PAD = 16;
+/** Extra TOP padding so up-to-three stacked GT/A/B badges clear the canvas top. */
+const FIT_PAD_TOP = 62;
+
 interface PredictionInput {
   id: "A" | "B";
   shapes: Shape[];
+}
+
+/** Axis-aligned grid-coordinate bounds of a shape list, or null when empty. */
+export function boundsOfShapes(
+  shapes: Shape[],
+): { minX: number; minY: number; maxX: number; maxY: number } | null {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  const extend = (x0: number, y0: number, x1: number, y1: number) => {
+    if (x0 < minX) minX = x0;
+    if (y0 < minY) minY = y0;
+    if (x1 > maxX) maxX = x1;
+    if (y1 > maxY) maxY = y1;
+  };
+  for (const s of shapes) {
+    if (s.kind === "circle") extend(s.cx - s.r, s.cy - s.r, s.cx + s.r, s.cy + s.r);
+    else if (s.kind === "box") extend(s.x, s.y, s.x + s.w, s.y + s.h);
+    else for (const [px, py] of s.points) extend(px, py, px, py);
+  }
+  return minX === Infinity ? null : { minX, minY, maxX, maxY };
 }
 
 /** Read a CSS custom property off an element, falling back to `var(...)`. */
@@ -61,7 +88,12 @@ export function resolveColor(el: HTMLElement, cssVar: string): string {
   return value || `var(${cssVar})`;
 }
 
-/** Fill + stroke a single shape in the supplied color, with an optional dash. */
+/**
+ * Fill + stroke a single shape in the supplied color, with an optional dash.
+ * Geometry maps grid→canvas as `g * scale + offset`; offsets default to 0 (the
+ * plain grid mapping). Stroke width is in canvas px and does NOT scale, so a
+ * fit-zoomed preview keeps crisp 2.5px outlines.
+ */
 export function paintShape(
   ctx: CanvasRenderingContext2D,
   shape: Shape,
@@ -69,12 +101,14 @@ export function paintShape(
   scaleX: number,
   scaleY: number,
   dash: number[] = [],
+  offsetX = 0,
+  offsetY = 0,
 ): void {
   ctx.beginPath();
   if (shape.kind === "circle") {
     ctx.ellipse(
-      shape.cx * scaleX,
-      shape.cy * scaleY,
+      shape.cx * scaleX + offsetX,
+      shape.cy * scaleY + offsetY,
       shape.r * scaleX,
       shape.r * scaleY,
       0,
@@ -83,15 +117,15 @@ export function paintShape(
     );
   } else if (shape.kind === "box") {
     ctx.rect(
-      shape.x * scaleX,
-      shape.y * scaleY,
+      shape.x * scaleX + offsetX,
+      shape.y * scaleY + offsetY,
       shape.w * scaleX,
       shape.h * scaleY,
     );
   } else {
     shape.points.forEach(([px, py], i) => {
-      const sx = px * scaleX;
-      const sy = py * scaleY;
+      const sx = px * scaleX + offsetX;
+      const sy = py * scaleY + offsetY;
       if (i === 0) ctx.moveTo(sx, sy);
       else ctx.lineTo(sx, sy);
     });
@@ -232,6 +266,15 @@ export interface DrawSceneOptions {
   gt: Shape[];
   predictions: PredictionInput[];
   visibleLayers?: Layer[];
+  /**
+   * When true, scale+center the drawn shapes to fill the canvas (a "fit to
+   * content" view) instead of using the full grid scale. Relative sizes WITHIN
+   * the scene are preserved (uniform scale over the union bbox), so tiny lesions
+   * become legible without distorting the comparison. Used by static previews
+   * (Scenarios); the interactive Playground and mini-sims leave it off so their
+   * fixed grid scale stays stable as shapes move.
+   */
+  fit?: boolean;
 }
 
 /**
@@ -250,14 +293,35 @@ export function drawScene(
   const visibleLayers = opts.visibleLayers ?? ALL_LAYERS;
   const width = (canvas as HTMLCanvasElement).width;
   const height = (canvas as HTMLCanvasElement).height;
-  const scaleX = width / grid.width;
-  const scaleY = height / grid.height;
+
+  // Default: plain grid mapping (g * scale, no offset). Fit mode: a uniform
+  // scale over the union bbox of all visible shapes, centered, with extra top
+  // room for the badge stack — so tiny scenes (e.g. a small lesion) read clearly.
+  let scaleX = width / grid.width;
+  let scaleY = height / grid.height;
+  let offsetX = 0;
+  let offsetY = 0;
+  if (opts.fit) {
+    const all = visibleLayers.flatMap((l) => shapesForLayer(l, gt, predictions));
+    const b = boundsOfShapes(all);
+    if (b) {
+      const bw = Math.max(b.maxX - b.minX, 1e-3);
+      const bh = Math.max(b.maxY - b.minY, 1e-3);
+      const availW = width - 2 * FIT_PAD;
+      const availH = height - FIT_PAD_TOP - FIT_PAD;
+      const s = Math.min(availW / bw, availH / bh);
+      scaleX = s;
+      scaleY = s;
+      offsetX = FIT_PAD + (availW - bw * s) / 2 - b.minX * s;
+      offsetY = FIT_PAD_TOP + (availH - bh * s) / 2 - b.minY * s;
+    }
+  }
 
   ctx.clearRect(0, 0, width, height);
   for (const layer of visibleLayers) {
     const color = resolveColor(canvas, LAYER_COLOR_VAR[layer]);
     for (const shape of shapesForLayer(layer, gt, predictions)) {
-      paintShape(ctx, shape, color, scaleX, scaleY, LAYER_DASH[layer]);
+      paintShape(ctx, shape, color, scaleX, scaleY, LAYER_DASH[layer], offsetX, offsetY);
     }
   }
 
@@ -273,7 +337,13 @@ export function drawScene(
       const [gx, gy] = shapeTop(shape);
       const text = LAYER_TAG[layer];
       const halfW = (Math.ceil(ctx.measureText(text).width) + 10) / 2;
-      return { text, color, cx: gx * scaleX, yBottom: gy * scaleY - 2, halfW };
+      return {
+        text,
+        color,
+        cx: gx * scaleX + offsetX,
+        yBottom: gy * scaleY + offsetY - 2,
+        halfW,
+      };
     });
   });
 
