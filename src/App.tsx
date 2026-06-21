@@ -11,7 +11,7 @@
  * All visual values come from the design-system token custom properties.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Topic, TopicGroup } from "./types/topic";
 import { TOPICS, orderedTopics } from "./app/topicRegistry";
 import { Sidebar } from "./app/Sidebar";
@@ -226,6 +226,20 @@ function App() {
   const t = useT();
   const { lang } = useLang();
 
+  // Switching tab or topic swaps the whole panel — reset to the top so the
+  // reader starts at the beginning instead of mid-scroll from the prior view.
+  // Covers both layouts: the desktop inner-scroll container (.app-body) and the
+  // mobile document scroll. scrollTop assignment is used (not scrollTo) so it is
+  // a no-op-safe property write under jsdom.
+  const bodyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = 0;
+    }
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [activeTab, selectedId]);
+
   const topics = useMemo(() => orderedTopics(), []);
   const topic = useMemo(
     () => TOPICS.find((candidate) => candidate.id === selectedId) ?? topics[0],
@@ -270,7 +284,7 @@ function App() {
             })}
           </div>
         </header>
-        <div className="app-body" style={bodyStyle}>
+        <div className="app-body" style={bodyStyle} ref={bodyRef}>
           {isAvailable ? (
             <TopicBody topic={topic} tab={activeTab} />
           ) : (
