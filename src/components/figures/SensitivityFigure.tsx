@@ -86,7 +86,7 @@ export default function SensitivityFigure() {
         <text x={-14} y={4} fill="var(--c-text)" textAnchor="middle">
           {t.tp}
         </text>
-        <text x={28} y={4} fill="var(--c-warn)" textAnchor="middle">
+        <text x={28} y={4} fill="var(--c-warn-text)" textAnchor="middle">
           {t.fn}
         </text>
       </g>
@@ -94,7 +94,7 @@ export default function SensitivityFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn-text)" textAnchor="middle">
           {t.misleading}
         </text>
         <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
@@ -107,11 +107,11 @@ export default function SensitivityFigure() {
           <text x={-6} y={6} fill="var(--c-text)" textAnchor="middle" fontSize="9">
             {t.gt}
           </text>
-          <text x={42} y={-34} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          <text x={42} y={-34} fill="var(--c-warn-text)" textAnchor="middle" fontSize="9">
             {t.flood}
           </text>
         </g>
-        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn-text)" />
       </g>
     </svg>
   );

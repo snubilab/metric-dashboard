@@ -107,7 +107,7 @@ export function FrocFigure() {
           x={x(FP_MAX) - 6}
           y={y(1) + 14}
           textAnchor="end"
-          fill="var(--c-warn)"
+          fill="var(--c-warn-text)"
           style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}
         >
           {t.label}

@@ -20,12 +20,14 @@
   --c-pred-b: #f59e0b; /* prediction B — clean amber (crisper on white than #e69f00) */
   --c-warn: #e5484d; /* disagreement / HD95 spikes — clean red (crisper on white than #d55e00) */
 
-  /* Text-legible variants of the data hues that fail AA as text on white (the
-     bright versions stay for MARKS — swatches, canvas, chart bars). Pred-A blue
-     already passes as text in both themes, so it needs no variant. */
+  /* Text-legible variants of the data hues that fail AA as text on the light
+     surfaces (the bright versions stay for MARKS — swatches, canvas, chart bars,
+     SVG shape strokes/fills). Use the -text variant for any <text> label. */
   --c-pred-b-text: #b45309; /* amber ~2.1:1 → ~5:1 */
   --c-gt-text: #047857; /* green ~3.4:1 → ~5.5:1 */
   --c-warn-text: #c2261d; /* red ~3.9:1 → ~5.9:1 (labels; --c-warn stays for marks) */
+  --c-pred-a-text: #0369a1; /* blue — source #0072b2 is borderline (~4.66:1) and thin
+                               anti-aliased label strokes render lighter; ~5.2:1 here */
 
   /* Neutrals — light (default): bright, slightly cool */
   --c-bg: #f7f9fc;
@@ -83,4 +85,5 @@
   --c-pred-b-text: #f59e0b;
   --c-gt-text: #009e73;
   --c-warn-text: #f87171; /* lighter red so warn labels clear AA on slate */
+  --c-pred-a-text: #56b4e9; /* matches the lifted pred-a mark; bright enough on slate */
 }

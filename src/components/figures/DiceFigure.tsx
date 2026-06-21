@@ -78,10 +78,10 @@ export default function DiceFigure() {
           <circle cx={30} cy={0} r={36} fill="var(--c-pred-a)" fillOpacity={0.18} stroke="var(--c-pred-a)" strokeWidth={2} />
           {/* Shaded intersection (prediction circle clipped to GT) */}
           <circle cx={30} cy={0} r={36} fill="var(--c-warn)" fillOpacity={0.42} clipPath={`url(#${clipId})`} />
-          <text x={-30} y={-44} fill="var(--c-gt)" textAnchor="middle">
+          <text x={-30} y={-44} fill="var(--c-gt-text)" textAnchor="middle">
             {t.gt}
           </text>
-          <text x={30} y={-44} fill="var(--c-pred-a)" textAnchor="middle">
+          <text x={30} y={-44} fill="var(--c-pred-a-text)" textAnchor="middle">
             {t.pred}
           </text>
         </g>
@@ -90,7 +90,7 @@ export default function DiceFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn-text)" textAnchor="middle">
           {t.misleading}
         </text>
         <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
@@ -101,11 +101,11 @@ export default function DiceFigure() {
           <circle cx={-12} cy={0} r={42} fill="var(--c-pred-a)" fillOpacity={0.3} stroke="var(--c-pred-a)" strokeWidth={2} />
           {/* Tiny separate GT lesion, completely missed by prediction */}
           <circle cx={62} cy={-26} r={7} fill="var(--c-warn)" fillOpacity={0.18} stroke="var(--c-warn)" strokeWidth={2} strokeDasharray="3 2" />
-          <text x={62} y={-38} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          <text x={62} y={-38} fill="var(--c-warn-text)" textAnchor="middle" fontSize="9">
             {t.miss}
           </text>
         </g>
-        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn-text)" />
       </g>
     </svg>
   );

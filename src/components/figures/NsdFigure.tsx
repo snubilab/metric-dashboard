@@ -127,7 +127,7 @@ export default function NsdFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn-text)" textAnchor="middle">
           {t.misleading}
         </text>
         <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
@@ -145,11 +145,11 @@ export default function NsdFigure() {
           {/* Reference and a clearly bad, jagged prediction — both inside the band */}
           <polyline points={curvePoints(refY, 0)} fill="none" stroke="var(--c-gt)" strokeWidth={2} />
           <polyline points={curvePoints(badY, 0)} fill="none" stroke="var(--c-pred-a)" strokeWidth={2} />
-          <text x={X1 - 2} y={refY(X1) - TAU_LOOSE - 4} fill="var(--c-warn)" textAnchor="end" fontSize="9">
+          <text x={X1 - 2} y={refY(X1) - TAU_LOOSE - 4} fill="var(--c-warn-text)" textAnchor="end" fontSize="9">
             {t.loose}
           </text>
         </g>
-        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn-text)" />
       </g>
     </svg>
   );

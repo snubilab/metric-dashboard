@@ -63,7 +63,7 @@ export function MatchingFigure() {
     >
       {/* GT with a matched TP and a duplicate FP */}
       <rect x={18} y={42} width={78} height={60} fill="none" stroke="var(--c-gt)" strokeWidth={2.5} />
-      <text x={57} y={34} textAnchor="middle" fill="var(--c-gt)">
+      <text x={57} y={34} textAnchor="middle" fill="var(--c-gt-text)">
         {t.gt}
       </text>
       <rect
@@ -77,7 +77,7 @@ export function MatchingFigure() {
         stroke="var(--c-pred-a)"
         strokeWidth={2.5}
       />
-      <text x={64} y={120} textAnchor="middle" fill="var(--c-pred-a)">
+      <text x={64} y={120} textAnchor="middle" fill="var(--c-pred-a-text)">
         {t.tp}
       </text>
       <rect
@@ -92,7 +92,7 @@ export function MatchingFigure() {
         strokeWidth={2}
         strokeDasharray="5 3"
       />
-      <text x={132} y={134} textAnchor="middle" fill="var(--c-warn)">
+      <text x={132} y={134} textAnchor="middle" fill="var(--c-warn-text)">
         {t.fp}
       </text>
 
@@ -108,7 +108,7 @@ export function MatchingFigure() {
         strokeWidth={2.5}
         strokeDasharray="6 4"
       />
-      <text x={182} y={42} textAnchor="middle" fill="var(--c-warn)">
+      <text x={182} y={42} textAnchor="middle" fill="var(--c-warn-text)">
         {t.fn}
       </text>
       <text x={182} y={78} textAnchor="middle" fill="var(--c-text-dim)">
@@ -143,7 +143,7 @@ export function MatchingFigure() {
       <text x={56} y={32} textAnchor="middle" fill="var(--c-text-dim)" style={{ fontFamily: "var(--font-mono)" }}>
         {t.iouLow}
       </text>
-      <text x={56} y={122} textAnchor="middle" fill="var(--c-warn)">
+      <text x={56} y={122} textAnchor="middle" fill="var(--c-warn-text)">
         {t.fpNear}
       </text>
 
@@ -171,7 +171,7 @@ export function MatchingFigure() {
         strokeWidth={2}
         strokeDasharray="5 3"
       />
-      <text x={170} y={122} textAnchor="middle" fill="var(--c-warn)">
+      <text x={170} y={122} textAnchor="middle" fill="var(--c-warn-text)">
         {t.fpDup}
       </text>
     </svg>

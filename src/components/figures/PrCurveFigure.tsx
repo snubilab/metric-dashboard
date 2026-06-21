@@ -200,10 +200,10 @@ export function PrCurveFigure() {
           strokeWidth={2}
           strokeDasharray="5 3"
         />
-        <text x={CHART_W - 18} y={MARGIN.top + 8} textAnchor="end" fill="var(--c-pred-a)" style={{ fontFamily: "var(--font-ui)", fontSize: "var(--text-xs)" }}>
+        <text x={CHART_W - 18} y={MARGIN.top + 8} textAnchor="end" fill="var(--c-pred-a-text)" style={{ fontFamily: "var(--font-ui)", fontSize: "var(--text-xs)" }}>
           {t.good}
         </text>
-        <text x={CHART_W - 18} y={MARGIN.top + 24} textAnchor="end" fill="var(--c-warn)" style={{ fontFamily: "var(--font-ui)", fontSize: "var(--text-xs)" }}>
+        <text x={CHART_W - 18} y={MARGIN.top + 24} textAnchor="end" fill="var(--c-warn-text)" style={{ fontFamily: "var(--font-ui)", fontSize: "var(--text-xs)" }}>
           {t.bad}
         </text>
       </svg>

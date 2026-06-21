@@ -88,13 +88,13 @@ export default function HausdorffFigure() {
         {/* The single worst-case distance arrow */}
         <line x1={-50} y1={-2} x2={56} y2={-18} stroke="var(--c-text-dim)" strokeWidth={2} markerEnd={`url(#${arrowId})`} />
         <circle cx={-50} cy={-2} r={3} fill="var(--c-text-dim)" />
-        <text x={4} y={-26} fill="var(--c-warn)" textAnchor="middle">
+        <text x={4} y={-26} fill="var(--c-warn-text)" textAnchor="middle">
           {t.worst}
         </text>
-        <text x={-46} y={44} fill="var(--c-gt)" textAnchor="middle">
+        <text x={-46} y={44} fill="var(--c-gt-text)" textAnchor="middle">
           {t.gt}
         </text>
-        <text x={42} y={50} fill="var(--c-pred-a)" textAnchor="middle">
+        <text x={42} y={50} fill="var(--c-pred-a-text)" textAnchor="middle">
           {t.pred}
         </text>
       </g>
@@ -102,7 +102,7 @@ export default function HausdorffFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn-text)" textAnchor="middle">
           {t.misleading}
         </text>
         <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
@@ -114,11 +114,11 @@ export default function HausdorffFigure() {
           {/* One stray outlier pixel far away — dominates HD */}
           <rect x={56} y={-44} width={9} height={9} fill="var(--c-warn)" stroke="var(--c-warn)" strokeWidth={1} />
           <line x1={-12} y1={4} x2={56} y2={-40} stroke="var(--c-warn)" strokeWidth={1.5} strokeDasharray="3 3" markerEnd={`url(#${arrowId})`} />
-          <text x={60} y={-50} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          <text x={60} y={-50} fill="var(--c-warn-text)" textAnchor="middle" fontSize="9">
             {t.outlier}
           </text>
         </g>
-        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn-text)" />
       </g>
     </svg>
   );

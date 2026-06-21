@@ -84,13 +84,13 @@ export default function VolumeFigure() {
           markerStart={`url(#${arrowId})`}
           markerEnd={`url(#${arrowId})`}
         />
-        <text x={9} y={-8} fill="var(--c-warn)" textAnchor="middle">
+        <text x={9} y={-8} fill="var(--c-warn-text)" textAnchor="middle">
           {t.delta}
         </text>
-        <text x={-44} y={56} fill="var(--c-gt)" textAnchor="middle">
+        <text x={-44} y={56} fill="var(--c-gt-text)" textAnchor="middle">
           {t.gt}
         </text>
-        <text x={48} y={44} fill="var(--c-pred-a)" textAnchor="middle">
+        <text x={48} y={44} fill="var(--c-pred-a-text)" textAnchor="middle">
           {t.pred}
         </text>
       </g>
@@ -98,7 +98,7 @@ export default function VolumeFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn-text)" textAnchor="middle">
           {t.misleading}
         </text>
         <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
@@ -107,11 +107,11 @@ export default function VolumeFigure() {
           {/* GT and prediction: SAME radius (equal area), displaced so they barely overlap */}
           <circle cx={-34} cy={-8} r={30} fill="var(--c-gt)" fillOpacity={0.35} stroke="var(--c-gt)" strokeWidth={2} />
           <circle cx={34} cy={14} r={30} fill="var(--c-pred-a)" fillOpacity={0.35} stroke="var(--c-pred-a)" strokeWidth={2} />
-          <text x={0} y={-44} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          <text x={0} y={-44} fill="var(--c-warn-text)" textAnchor="middle" fontSize="9">
             {t.same}
           </text>
         </g>
-        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn-text)" />
       </g>
     </svg>
   );

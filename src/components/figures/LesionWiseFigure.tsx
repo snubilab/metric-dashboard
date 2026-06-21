@@ -68,17 +68,17 @@ export default function LesionWiseFigure() {
         {/* TP: GT outline with a matching prediction fill */}
         <circle cx={-54} cy={0} r={24} fill="none" stroke="var(--c-gt)" strokeWidth={2.5} />
         <circle cx={-54} cy={0} r={15} fill="var(--c-pred-a)" fillOpacity={0.55} stroke="var(--c-pred-a)" strokeWidth={2} />
-        <text x={-54} y={42} fill="var(--c-gt)" textAnchor="middle">
+        <text x={-54} y={42} fill="var(--c-gt-text)" textAnchor="middle">
           {t.tp}
         </text>
         {/* FN: GT present, no prediction */}
         <circle cx={2} cy={0} r={22} fill="var(--c-warn)" fillOpacity={0.08} stroke="var(--c-warn)" strokeWidth={2.5} strokeDasharray="6 4" />
-        <text x={2} y={42} fill="var(--c-warn)" textAnchor="middle">
+        <text x={2} y={42} fill="var(--c-warn-text)" textAnchor="middle">
           {t.fn}
         </text>
         {/* FP: spurious prediction with no GT */}
         <circle cx={56} cy={0} r={19} fill="var(--c-pred-b)" fillOpacity={0.5} stroke="var(--c-pred-b)" strokeWidth={2.5} />
-        <text x={56} y={40} fill="var(--c-pred-b)" textAnchor="middle">
+        <text x={56} y={40} fill="var(--c-pred-b-text)" textAnchor="middle">
           {t.fp}
         </text>
       </g>
@@ -86,7 +86,7 @@ export default function LesionWiseFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn-text)" textAnchor="middle">
           {t.misleading}
         </text>
         <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
@@ -100,11 +100,11 @@ export default function LesionWiseFigure() {
           </text>
           {/* One small lesion missed entirely */}
           <circle cx={58} cy={-26} r={8} fill="var(--c-warn)" fillOpacity={0.18} stroke="var(--c-warn)" strokeWidth={2} strokeDasharray="3 2" />
-          <text x={56} y={-40} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          <text x={56} y={-40} fill="var(--c-warn-text)" textAnchor="middle" fontSize="9">
             {t.miss}
           </text>
         </g>
-        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn-text)" />
       </g>
     </svg>
   );

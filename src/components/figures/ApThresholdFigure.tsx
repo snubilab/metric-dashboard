@@ -58,7 +58,7 @@ export function ApThresholdFigure() {
     >
       {/* Ground-truth box */}
       <rect data-role="gt" x={40} y={36} width={86} height={64} fill="none" stroke="var(--c-gt)" strokeWidth={2.5} />
-      <text x={83} y={28} textAnchor="middle" fill="var(--c-gt)">
+      <text x={83} y={28} textAnchor="middle" fill="var(--c-gt-text)">
         GT
       </text>
 
@@ -74,20 +74,20 @@ export function ApThresholdFigure() {
         stroke="var(--c-pred-a)"
         strokeWidth={2.5}
       />
-      <text x={118} y={118} textAnchor="middle" fill="var(--c-pred-a)" style={{ fontFamily: "var(--font-mono)" }}>
+      <text x={118} y={118} textAnchor="middle" fill="var(--c-pred-a-text)" style={{ fontFamily: "var(--font-mono)" }}>
         {t.iou}
       </text>
 
       {/* Loose vs strict outcome */}
       <g data-role="loose">
         <circle cx={172} cy={50} r={5} fill="var(--c-pred-a)" />
-        <text x={182} y={54} fill="var(--c-pred-a)">
+        <text x={182} y={54} fill="var(--c-pred-a-text)">
           {t.tp50}
         </text>
       </g>
       <g data-role="strict">
         <circle cx={172} cy={74} r={5} fill="var(--c-warn)" />
-        <text x={182} y={78} fill="var(--c-warn)">
+        <text x={182} y={78} fill="var(--c-warn-text)">
           {t.fp75}
         </text>
       </g>
@@ -106,13 +106,13 @@ export function ApThresholdFigure() {
       {/* Two bars contrasting AP50 (high) vs AP75 (low). */}
       {/* AP50 — tall, Pred-A */}
       <rect data-role="ap50-bar" x={48} y={30} width={44} height={78} fill="var(--c-pred-a)" fillOpacity={0.85} />
-      <text x={70} y={24} textAnchor="middle" fill="var(--c-pred-a)" style={{ fontFamily: "var(--font-mono)" }}>
+      <text x={70} y={24} textAnchor="middle" fill="var(--c-pred-a-text)" style={{ fontFamily: "var(--font-mono)" }}>
         {t.ap50}
       </text>
 
       {/* AP75 — short, warn */}
       <rect data-role="ap75-bar" x={128} y={78} width={44} height={30} fill="var(--c-warn)" fillOpacity={0.85} />
-      <text x={150} y={72} textAnchor="middle" fill="var(--c-warn)" style={{ fontFamily: "var(--font-mono)" }}>
+      <text x={150} y={72} textAnchor="middle" fill="var(--c-warn-text)" style={{ fontFamily: "var(--font-mono)" }}>
         {t.ap75}
       </text>
 

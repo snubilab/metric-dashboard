@@ -112,10 +112,10 @@ export default function SurfaceDistanceFigure() {
             markerEnd={`url(#${arrowId})`}
           />
         ))}
-        <text x={X0 + 4} y={typicalGtY(X0) - 8} fill="var(--c-gt)" textAnchor="start">
+        <text x={X0 + 4} y={typicalGtY(X0) - 8} fill="var(--c-gt-text)" textAnchor="start">
           {t.gt}
         </text>
-        <text x={X1 - 4} y={typicalPredY(X1) + 16} fill="var(--c-pred-a)" textAnchor="end">
+        <text x={X1 - 4} y={typicalPredY(X1) + 16} fill="var(--c-pred-a-text)" textAnchor="end">
           {t.pred}
         </text>
       </g>
@@ -123,7 +123,7 @@ export default function SurfaceDistanceFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn-text)" textAnchor="middle">
           {t.misleading}
         </text>
         <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
@@ -141,11 +141,11 @@ export default function SurfaceDistanceFigure() {
             strokeWidth={2}
             markerEnd={`url(#${arrowId})`}
           />
-          <text x={30} y={alignedPredY(30) + 14} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          <text x={30} y={alignedPredY(30) + 14} fill="var(--c-warn-text)" textAnchor="middle" fontSize="9">
             {t.spike}
           </text>
         </g>
-        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn-text)" />
       </g>
     </svg>
   );

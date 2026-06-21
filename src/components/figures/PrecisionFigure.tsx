@@ -86,7 +86,7 @@ export default function PrecisionFigure() {
         <text x={-18} y={4} fill="var(--c-text)" textAnchor="middle">
           {t.tp}
         </text>
-        <text x={24} y={4} fill="var(--c-warn)" textAnchor="middle">
+        <text x={24} y={4} fill="var(--c-warn-text)" textAnchor="middle">
           {t.fp}
         </text>
       </g>
@@ -94,7 +94,7 @@ export default function PrecisionFigure() {
 
       {/* ----- Panel 2: misleading ----- */}
       <g transform={`translate(${PANEL_W}, 0)`} data-role="misleading">
-        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn)" textAnchor="middle">
+        <text x={PANEL_CX} y={TAG_Y} fill="var(--c-warn-text)" textAnchor="middle">
           {t.misleading}
         </text>
         <SvgWarnMark x={PANEL_W - 14} y={TAG_Y} />
@@ -105,14 +105,14 @@ export default function PrecisionFigure() {
           {/* Small easy core that the prediction marks — all of it correct */}
           <circle cx={-2} cy={4} r={15} fill="var(--c-pred-a)" fillOpacity={0.7} stroke="var(--c-pred-a)" strokeWidth={2} />
           {/* Label sits above the small core (outside it) so it stays legible */}
-          <text x={-2} y={-16} fill="var(--c-pred-a)" textAnchor="middle" fontSize="9">
+          <text x={-2} y={-16} fill="var(--c-pred-a-text)" textAnchor="middle" fontSize="9">
             {t.core}
           </text>
-          <text x={0} y={-50} fill="var(--c-warn)" textAnchor="middle" fontSize="9">
+          <text x={0} y={-50} fill="var(--c-warn-text)" textAnchor="middle" fontSize="9">
             {t.missed}
           </text>
         </g>
-        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn)" />
+        <SvgPanelCaption text={t.trap} x={PANEL_CX} y={CAPTION_Y} maxWidth={CAPTION_MAX_W} fill="var(--c-warn-text)" />
       </g>
     </svg>
   );

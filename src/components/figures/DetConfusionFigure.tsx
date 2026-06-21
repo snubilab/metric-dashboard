@@ -73,7 +73,7 @@ export function DetConfusionFigure() {
         stroke="var(--c-pred-a)"
         strokeWidth={2.5}
       />
-      <text x={52} y={92} textAnchor="middle" fill="var(--c-pred-a)">
+      <text x={52} y={92} textAnchor="middle" fill="var(--c-pred-a-text)">
         {t.tp}
       </text>
 
@@ -90,7 +90,7 @@ export function DetConfusionFigure() {
         strokeWidth={2}
         strokeDasharray="5 3"
       />
-      <text x={122} y={92} textAnchor="middle" fill="var(--c-warn)">
+      <text x={122} y={92} textAnchor="middle" fill="var(--c-warn-text)">
         {t.fp}
       </text>
 
@@ -109,7 +109,7 @@ export function DetConfusionFigure() {
       <text x={182} y={56} textAnchor="middle" fill="var(--c-text-dim)">
         ?
       </text>
-      <text x={182} y={92} textAnchor="middle" fill="var(--c-warn)">
+      <text x={182} y={92} textAnchor="middle" fill="var(--c-warn-text)">
         {t.fn}
       </text>
 
@@ -157,13 +157,13 @@ export function DetConfusionFigure() {
         </g>
       ))}
 
-      <text x={VIEW_W / 2} y={92} textAnchor="middle" fill="var(--c-warn)">
+      <text x={VIEW_W / 2} y={92} textAnchor="middle" fill="var(--c-warn-text)">
         3 × FN
       </text>
-      <text x={VIEW_W / 2} y={118} textAnchor="middle" fill="var(--c-pred-a)" style={{ fontFamily: "var(--font-mono)" }}>
+      <text x={VIEW_W / 2} y={118} textAnchor="middle" fill="var(--c-pred-a-text)" style={{ fontFamily: "var(--font-mono)" }}>
         {t.p}
       </text>
-      <text x={VIEW_W / 2} y={134} textAnchor="middle" fill="var(--c-warn)" style={{ fontFamily: "var(--font-mono)" }}>
+      <text x={VIEW_W / 2} y={134} textAnchor="middle" fill="var(--c-warn-text)" style={{ fontFamily: "var(--font-mono)" }}>
         {t.r}
       </text>
     </svg>
