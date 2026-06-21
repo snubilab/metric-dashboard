@@ -139,6 +139,23 @@ describe("DetectionPlayground (guided empty boot)", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps the active layer on PRED after compare unlocks (2nd pred lands in preds, not gt)", () => {
+    // Regression for the codex P1: when the first prediction flipped the stage to
+    // compare, a stale manualLayer="GT" snapped the active layer back to GT, so the
+    // NEXT box was appended to gt — corrupting TP/FP/FN. The next pred must stay PRED.
+    renderPlayground();
+
+    drawBox(90, 90, 150, 150); // GT box
+    drawBox(90, 90, 150, 150); // prediction 1 (overlaps GT) -> stage compare
+    drawBox(10, 10, 40, 40); // prediction 2, far away -> MUST land in preds (an FP)
+
+    // Correct: 1 matched TP + 1 stray FP, no misses. If pred 2 had wrongly gone
+    // into gt, we'd instead see a second unmatched GT (FN=1) and FP=0.
+    expect(countFor("tp")).toBe(1);
+    expect(countFor("fp")).toBe(1);
+    expect(countFor("fn")).toBe(0);
+  });
+
   it("shares ONE threshold: moving the slider updates the numerals", () => {
     renderPlayground();
 

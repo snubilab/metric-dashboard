@@ -25,7 +25,7 @@
  * color or font is hardcoded.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import type { DetBox, Grid } from "../../types/engine";
 import { DetectionCanvas } from "../../components/canvas/DetectionCanvas";
@@ -301,7 +301,8 @@ export function DetectionPlayground() {
   const [preds, setPreds] = useState<DetBox[]>([]);
   const [threshold, setThreshold] = useState<number>(DEFAULT_THRESHOLD);
   const [apMethod, setApMethod] = useState<ApMethod>(DEFAULT_AP_METHOD);
-  /** User-chosen layer, consulted ONLY once the comparison has unlocked. */
+  /** The active drawing layer. Auto-advances with the guided stage (GT → PRED)
+   * via the effect below; the user can also override it by clicking a layer chip. */
   const [manualLayer, setManualLayer] = useState<DetLayer>("GT");
   /** Undo stack of prior snapshots; the last entry is the most recent. */
   const [history, setHistory] = useState<Snapshot[]>([]);
@@ -309,23 +310,29 @@ export function DetectionPlayground() {
 
   const state: DetState = { gt, preds };
   const stage = detectionStage(state);
-  /** activeLayer is DERIVED from the stage; manualLayer wins only in compare. */
-  const activeLayer: DetLayer = stage === "compare" ? manualLayer : stageLayer(stage)!;
+  /** The active layer IS the manual layer; the effect below auto-advances it on a
+   * stage change so drawing the first prediction never snaps it back to GT (which
+   * would send the next box into `gt` and corrupt TP/FP/FN). */
+  const activeLayer: DetLayer = manualLayer;
   const isCompare = stage === "compare";
 
-  /** Snapshot the current drawn state onto the undo history before mutating. */
+  // Auto-advance the active layer when the guided stage changes (draw GT → draw
+  // PRED). In compare, stageLayer is null so we keep the user's last layer —
+  // crucially, the first prediction (preds-stage layer was already PRED) stays on
+  // PRED. Between stage changes the user's manual chip clicks persist.
+  useEffect(() => {
+    const layer = stageLayer(stage);
+    if (layer) setManualLayer(layer);
+  }, [stage]);
+
+  /** Snapshot the current drawn state onto the undo history before mutating.
+   * Called once per edit GESTURE (via the canvas onEditStart / parent actions),
+   * not on every emitted change, so one drag or slider sweep is a single Undo. */
   const pushHistory = () =>
     setHistory((prev) => [...prev, { gt: cloneBoxes(gt), preds: cloneBoxes(preds) }]);
 
-  const handleChangeGt = (next: DetBox[]) => {
-    pushHistory();
-    setGt(next);
-  };
-
-  const handleChangePreds = (next: DetBox[]) => {
-    pushHistory();
-    setPreds(next);
-  };
+  const handleChangeGt = (next: DetBox[]) => setGt(next);
+  const handleChangePreds = (next: DetBox[]) => setPreds(next);
 
   /** Pop the last snapshot off the history stack, restoring it. */
   const handleUndo = () => {
@@ -379,6 +386,7 @@ export function DetectionPlayground() {
             confidenceThreshold={threshold}
             onChangeGt={handleChangeGt}
             onChangePreds={handleChangePreds}
+            onEditStart={pushHistory}
             lockedLayers={lockedLayersFor(stage)}
             prompt={
               stage !== "compare"

@@ -27,7 +27,7 @@ import { useLang } from "../../i18n/LanguageContext";
 import type { DetBox, Grid } from "../../types/engine";
 import type { DetLayer } from "../../topics/detection/detFlowStage";
 import { CONFIDENCE_LABEL } from "../../topics/detection/detGuidedCopy";
-import { drawDetectionScene, roleColorVar } from "./detectionDraw";
+import { drawDetectionScene } from "./detectionDraw";
 import { resolveColor } from "./sceneDraw";
 import {
   classifyDetections,
@@ -103,6 +103,12 @@ export interface DetectionCanvasProps {
   confidenceThreshold: number;
   onChangeGt: (next: DetBox[]) => void;
   onChangePreds: (next: DetBox[]) => void;
+  /**
+   * Called once at the START of an edit gesture (create / move / resize / delete
+   * / confidence-drag) so the parent can snapshot undo history per-gesture rather
+   * than on every emitted change — one drag or slider sweep becomes one Undo.
+   */
+  onEditStart?: () => void;
   lockedLayers?: DetLayer[];
   prompt?: { text: string; layer: DetLayer };
   onSelectLayer?: (layer: DetLayer) => void;
@@ -134,6 +140,7 @@ export function DetectionCanvas({
   confidenceThreshold,
   onChangeGt,
   onChangePreds,
+  onEditStart,
   lockedLayers,
   prompt,
   onSelectLayer,
@@ -279,6 +286,7 @@ export function DetectionCanvas({
           const dx = handles[i][0] - x;
           const dy = handles[i][1] - y;
           if (dx * dx + dy * dy <= r2) {
+            onEditStart?.();
             resizeRef.current = { index: selectedIndex, handle: i };
             canvas.setPointerCapture?.(e.pointerId);
             return;
@@ -299,11 +307,13 @@ export function DetectionCanvas({
       return;
     }
     if (tool === "delete") {
+      onEditStart?.();
       emitActive(activeBoxes.filter((_, i) => i !== hit));
       return;
     }
     if (tool === "move") {
       setSelectedIndex(hit);
+      onEditStart?.();
       dragRef.current = { index: hit, lastX: x, lastY: y };
       canvas.setPointerCapture?.(e.pointerId);
     }
@@ -368,6 +378,7 @@ export function DetectionCanvas({
         activeLayer === "GT"
           ? detBoxFromDrag(start[0], start[1], x, y)
           : detBoxFromDrag(start[0], start[1], x, y, DEFAULT_CONFIDENCE);
+      onEditStart?.();
       emitActive([...activeBoxes, box]);
       return;
     }
@@ -586,7 +597,7 @@ export function DetectionCanvas({
             color: "var(--c-text)",
           }}
         >
-          <span style={{ color: `var(${roleColorVar("tp")})`, fontWeight: 600 }}>
+          <span style={{ color: "var(--c-gt-text)", fontWeight: 600 }}>
             {CONFIDENCE_LABEL[lang]}
           </span>
           <input
@@ -596,6 +607,8 @@ export function DetectionCanvas({
             step={0.01}
             value={selectedBox.confidence ?? 0}
             aria-label={CONFIDENCE_LABEL[lang]}
+            onPointerDown={() => onEditStart?.()}
+            onKeyDown={() => onEditStart?.()}
             onChange={(e) => onConfidenceChange(Number(e.target.value))}
           />
           <span
