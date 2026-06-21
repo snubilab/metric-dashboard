@@ -54,10 +54,27 @@ function topicTitleKey(id: string): string {
 
 const DEFAULT_TOPIC_ID = "segmentation";
 
+/**
+ * Layout-critical rules live in a class (not inline) so a media query can
+ * override them: inline styles can't hold breakpoints and always beat a class.
+ * Desktop is the two-pane grid; at ≤720px the shell collapses to one column so
+ * the sidebar stops crushing the content (it becomes a capped, scrollable strip
+ * above the main panel) and the document scrolls naturally instead of the panes.
+ */
+const SHELL_CSS = `
+.app-shell { display: grid; grid-template-columns: auto 1fr; height: 100svh; }
+.app-sidebar { min-width: 15rem; height: 100%; overflow-y: auto; border-right: 1px solid var(--c-border); }
+.app-main { overflow: hidden; height: 100%; }
+.app-body { overflow-y: auto; padding: var(--space-8); }
+@media (max-width: 720px) {
+  .app-shell { grid-template-columns: 1fr; height: auto; min-height: 100svh; }
+  .app-sidebar { min-width: 0; height: auto; max-height: 38vh; border-right: none; border-bottom: 1px solid var(--c-border); }
+  .app-main { overflow: visible; height: auto; }
+  .app-body { padding: var(--space-4); overflow-y: visible; }
+}
+`;
+
 const shellStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "auto 1fr",
-  height: "100svh",
   background: "var(--c-bg)",
   color: "var(--c-text)",
   fontFamily: "var(--font-ui)",
@@ -67,8 +84,6 @@ const mainStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   minWidth: 0,
-  height: "100%",
-  overflow: "hidden",
 };
 
 const headerStyle: React.CSSProperties = {
@@ -131,8 +146,6 @@ function tabStyle(isActive: boolean, isEnabled: boolean): React.CSSProperties {
 const bodyStyle: React.CSSProperties = {
   flex: 1,
   minHeight: 0,
-  overflowY: "auto",
-  padding: "var(--space-8)",
 };
 
 const placeholderStyle: React.CSSProperties = {
@@ -211,9 +224,10 @@ function App() {
   const title = t(topicTitleKey(topic.id)) || topic.title;
 
   return (
-    <div style={shellStyle}>
+    <div className="app-shell" style={shellStyle}>
+      <style>{SHELL_CSS}</style>
       <Sidebar topics={topics} activeId={topic.id} onSelect={setSelectedId} />
-      <main style={mainStyle}>
+      <main className="app-main" style={mainStyle}>
         <header style={headerStyle}>
           <div style={titleRowStyle}>
             <div style={titleGroupStyle}>
@@ -244,7 +258,7 @@ function App() {
             })}
           </div>
         </header>
-        <div style={bodyStyle}>
+        <div className="app-body" style={bodyStyle}>
           {isAvailable ? (
             <TopicBody topic={topic} tab={activeTab} />
           ) : (

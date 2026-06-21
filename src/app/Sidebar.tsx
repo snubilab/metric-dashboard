@@ -19,6 +19,9 @@ interface SidebarProps {
   onSelect: (id: string) => void;
 }
 
+// Layout props (min-width, height, overflow, border) live in the `.app-sidebar`
+// class (see App.tsx SHELL_CSS) so the mobile breakpoint can relax them; keeping
+// them out of this inline object lets the media query win.
 const navStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -26,10 +29,6 @@ const navStyle: React.CSSProperties = {
   padding: "var(--space-4)",
   fontFamily: "var(--font-ui)",
   background: "var(--c-surface)",
-  borderRight: "1px solid var(--c-border)",
-  minWidth: "15rem",
-  height: "100%",
-  overflowY: "auto",
 };
 
 const groupStyle: React.CSSProperties = {
@@ -100,7 +99,7 @@ function topicsForGroup(topics: Topic[], group: TopicGroup): Topic[] {
 export function Sidebar({ topics, activeId, onSelect }: SidebarProps) {
   const t = useT();
   return (
-    <nav aria-label="Topics" style={navStyle}>
+    <nav aria-label="Topics" className="app-sidebar" style={navStyle}>
       {GROUPS.map((group) => {
         const groupTopics = topicsForGroup(topics, group.id);
         if (groupTopics.length === 0) {
