@@ -44,6 +44,12 @@ export interface DrawDetectionOptions {
    * a ground-truth box never reads as "FN" before any prediction exists.
    */
   classification: Classification | null;
+  /**
+   * Whether to paint the per-box role/confidence chips. Defaults to true (the
+   * interactive Playground always labels boxes). A dense read-only preview sets
+   * this false so chips don't pile up and clip at the canvas edge.
+   */
+  showChips?: boolean;
 }
 
 /** Every role recognized by the painter. */
@@ -107,7 +113,7 @@ export function drawDetectionScene(
     const predColor = resolveColor(canvas, "--c-pred-a");
     gt.forEach((box) => paintShape(ctx, asBoxShape(box), gtColor, scaleX, scaleY, []));
     preds.forEach((box) => paintShape(ctx, asBoxShape(box), predColor, scaleX, scaleY, []));
-    paintChips(ctx, canvas, opts, scaleX, scaleY);
+    if (opts.showChips !== false) paintChips(ctx, canvas, opts, scaleX, scaleY);
     return;
   }
 
@@ -144,7 +150,7 @@ export function drawDetectionScene(
     paintShape(ctx, asBoxShape(box), color, scaleX, scaleY, []);
   });
 
-  paintChips(ctx, canvas, opts, scaleX, scaleY);
+  if (opts.showChips !== false) paintChips(ctx, canvas, opts, scaleX, scaleY);
 }
 
 /**

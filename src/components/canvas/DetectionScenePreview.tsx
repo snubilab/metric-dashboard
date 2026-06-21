@@ -3,7 +3,9 @@
  *
  * Renders ground-truth and prediction boxes IDENTICALLY to the interactive
  * detection board by reusing `drawDetectionScene`: GT/matched in green, false
- * positives in red, missed (FN) dimmed, with the same role/confidence chips. No
+ * positives in red, missed (FN) dimmed. Per-box role/confidence chips are shown
+ * only for sparse scenes; a dense scene drops them so they don't pile up and clip
+ * at the small preview's edges (the role colors still carry the picture). No
  * toolbar, no pointer handlers; used by Scenarios to show a static detection so
  * the box visual mirrors how segmentation Scenarios show a `ShapeCanvas`.
  *
@@ -35,6 +37,14 @@ export interface DetectionScenePreviewProps {
 
 /** Canvas backing-store size in device pixels (independent of CSS layout). */
 const CANVAS_PX = 320;
+
+/**
+ * Above this many boxes the per-box confidence chips pile up and clip at the
+ * edges of the small preview, so a dense scene (e.g. a high-false-positive CAD
+ * card) drops them and lets the role colors carry the picture. Sparse scenes
+ * keep their clean chips.
+ */
+const CHIP_DENSITY_LIMIT = 8;
 
 export function DetectionScenePreview({
   grid,
@@ -76,7 +86,8 @@ export function DetectionScenePreview({
       iouThreshold,
       confidenceThreshold: threshold,
     });
-    drawDetectionScene(ctx, canvas, { grid, gt, preds, classification });
+    const showChips = gt.length + preds.length <= CHIP_DENSITY_LIMIT;
+    drawDetectionScene(ctx, canvas, { grid, gt, preds, classification, showChips });
   }, [grid, gt, preds, iouThreshold, threshold, themeVersion]);
 
   return (
