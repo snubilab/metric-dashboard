@@ -186,7 +186,7 @@ export const segmentationLearn: LearnContent = {
         "Here 1 px = 1 mm on a single 2D slice; in clinical practice these are 3D surfaces measured in mm.",
         "Still rises sharply when a stray false-positive blob lands far from the true boundary.",
       ],
-      figure: "hd",
+      figure: "hd95",
       complements:
         "Report with Dice: boundary distance ignores how much region overlaps.",
       miniSim: miniSim("hd95-stray-fp", "hd95", circleState(30, 0)),

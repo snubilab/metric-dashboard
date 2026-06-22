@@ -15,6 +15,7 @@ import IouFigure from "./IouFigure";
 import SensitivityFigure from "./SensitivityFigure";
 import PrecisionFigure from "./PrecisionFigure";
 import HausdorffFigure from "./HausdorffFigure";
+import Hd95Figure from "./Hd95Figure";
 import SurfaceDistanceFigure from "./SurfaceDistanceFigure";
 import NsdFigure from "./NsdFigure";
 import VolumeFigure from "./VolumeFigure";
@@ -40,6 +41,7 @@ const FIGURES: Record<string, ComponentType> = {
   sensitivity: SensitivityFigure,
   precision: PrecisionFigure,
   hd: HausdorffFigure,
+  hd95: Hd95Figure,
   assd: SurfaceDistanceFigure,
   nsd: NsdFigure,
   volume: VolumeFigure,
