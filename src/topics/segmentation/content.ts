@@ -210,7 +210,7 @@ export const segmentationLearn: LearnContent = {
       ],
       figure: "assd",
       complements:
-        "Pairs with HD95 (worst-case boundary error) and Dice (region overlap): averaging dilutes a single large local error.",
+        "Pairs with HD/HD95 (boundary-error tail) and Dice (region overlap): ASSD averages, so it dilutes a single large local error — HD captures the worst-case point, HD95 the robust near-worst-case (95th percentile).",
     },
     {
       id: "nsd",

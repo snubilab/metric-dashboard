@@ -183,7 +183,7 @@ const sections: MetricSection[] = [
     ],
     figure: figureFor("assd"),
     complements:
-      "HD95(최악의 경계 오차) 및 Dice(영역 겹침)와 짝지으세요. 평균을 내면 국소적으로 큰 오차 하나가 희석됩니다.",
+      "HD/HD95(경계 오차 꼬리)와 Dice(영역 겹침)와 짝지으세요. ASSD는 평균이라 국소적으로 큰 오차 하나를 희석합니다 — HD는 최악의 한 점을, HD95는 이상치에 강건한 95퍼센타일 준-최악값을 잡습니다.",
     miniSim: miniSimFor("assd"),
   },
   {
