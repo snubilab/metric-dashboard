@@ -24,14 +24,16 @@ together.
 
 Each topic has three views:
 
-- **Learn** — plain-language explanations, KaTeX-rendered formulas, hand-built SVG
-  figures, and small interactive mini-simulations. Metric mentions (HD95, NSD, ASSD,
-  Dice, IoU, …) are links that jump straight to that metric's section.
-- **Playground** — draw the ground truth and two competing predictions **from an
-  empty canvas**, and watch every metric update live as you reshape them. See for
-  yourself how prediction A and prediction B swap rankings depending on the metric.
-- **Scenarios** — real clinical scenarios with actual GT / A / B visualizations and a
-  side-by-side metric comparison, so the trade-off is grounded in a concrete decision.
+- **Learn** — plain-language explanations, KaTeX-rendered formulas, **an example SVG
+  figure for every metric**, and small interactive mini-simulations. Metric mentions
+  (HD95, NSD, ASSD, Dice, IoU, …) are links that jump straight to that metric's
+  section, and a "how these metrics complement each other" section ties them together.
+- **Playground** — draw the ground truth and competing predictions **from an empty
+  canvas**, and watch every metric recompute live as you reshape them — see for
+  yourself how the ranking flips depending on the metric.
+- **Scenarios** — clinically-grounded worked examples, each a read-only visual plus a
+  side-by-side **A-vs-B rank-flip table** (prediction A vs B for segmentation; detector
+  A vs B for detection), so "which one wins" visibly depends on which metric you read.
 
 **Topics available today:** Image Segmentation, Object Detection.
 More are stubbed in the sidebar (classification, regression, synthesis, LLM/VLM
@@ -45,6 +47,12 @@ report generation, clinical risk prediction, reader studies) and marked *coming 
   hues reserved for shapes and marks.
 - **Light and dark** themes; Korean is the default language.
 - Fully static, no backend, no tracking.
+
+## Project docs
+
+- [`STRATEGY.md`](STRATEGY.md) — what the product is and why (target problem, approach, metrics, investment tracks).
+- [`docs/DESIGN.md`](docs/DESIGN.md) — the design philosophy & spec every new topic, metric, and view must follow (three-view parity, the no-grade thesis, tokens, per-metric figure + complementarity, the verification bar).
+- [`CLAUDE.md`](CLAUDE.md) — concise contributor / AI-assistant guide with the non-negotiables, linking the above.
 
 ## Tech stack
 
