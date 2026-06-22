@@ -61,7 +61,7 @@ export const segmentationScenariosKo: Scenario[] = [
         "합니다.",
       consequence:
         "Dice는 거의 꿈쩍하지 않아 겹침만 보는 리포트에서는 깨끗해 보입니다. 반면 HD95는 " +
-        "멀리 떨어진 덩어리까지의 거리만큼 치솟아 믿을 수 없는 마스크임을 알립니다.",
+        "멀리 떨어진 덩어리까지의 거리만큼 치솟아, 믿을 수 없는 마스크라는 신호를 줍니다.",
     },
     state: stateFor("stray-fp"),
     teachingPoint:
@@ -103,7 +103,7 @@ export const segmentationScenariosKo: Scenario[] = [
         "Dice가 분할 품질의 합격/불합격 기준으로 사용되고 있습니다.",
       consequence:
         "작은 병변에서는 이 작은 오프셋 하나가 Dice를 급격히 떨어뜨립니다. 반면 같은 " +
-        "오프셋도 큰 구조에서는 Dice에 거의 흠집을 내지 못합니다.",
+        "오프셋도 큰 구조에서는 Dice를 거의 떨어뜨리지 못합니다.",
     },
     state: stateFor("small-lesion-instability"),
     teachingPoint:
@@ -165,7 +165,7 @@ export const segmentationScenariosKo: Scenario[] = [
       modality: "뇌 MRI (선별, 음성 사례)",
       atStake:
         "정답이 비어 있는 사례야말로 퇴화(degenerate) 지표를 어떻게 처리할지 정한 정책이 " +
-        "위력을 발휘하는 지점입니다. 통상의 공식으로는 Dice, HD95, NSD가 모두 정의되지 않습니다.",
+        "진가를 드러내는 지점입니다. 통상의 공식으로는 Dice, HD95, NSD가 모두 정의되지 않습니다.",
       consequence:
         "지표를 어떻게 채점하느냐(Dice는 one / zero / NaN, 거리는 undefined / 대각선 / " +
         "고정값)는 모델에 관한 사실이 아니라 정책 선택입니다.",

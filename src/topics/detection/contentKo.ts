@@ -106,7 +106,7 @@ export const detectionLearnKo: LearnContent = {
       ],
       figure: "det-confusion",
       complements:
-        "정밀도와 함께 보고하세요. 병변 검출에서는 FROC를 통해 스캔당 FP와 함께 보고하세요.",
+        "정밀도와 함께 보고하세요. 병변 검출이라면 FROC로 스캔당 FP까지 같이 보고하세요.",
     },
     {
       id: "f1",
