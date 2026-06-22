@@ -62,11 +62,12 @@ const DEFAULT_TOPIC_ID = "segmentation";
  * above the main panel) and the document scrolls naturally instead of the panes.
  */
 const SHELL_CSS = `
-/* Sidebar column is FIXED at the Korean baseline (15rem) — not content-driven
-   (auto) — so the tab width does not jump when toggling 한 / 영 (EN labels are
-   wider; they wrap within the fixed width instead of widening the column). */
-.app-shell { display: grid; grid-template-columns: 15rem 1fr; height: 100svh; }
-.app-sidebar { width: 15rem; height: 100%; overflow-y: auto; border-right: 1px solid var(--c-border); }
+/* Sidebar column is FIXED at the English baseline (18rem ≈ 288px) — not
+   content-driven (auto) — so the tab width never jumps when toggling 한 / 영.
+   English is the wider locale (longest label needs ~283px on one line); pinning
+   to 18rem holds it without wrapping, and Korean (≈240px) sits within it. */
+.app-shell { display: grid; grid-template-columns: 18rem 1fr; height: 100svh; }
+.app-sidebar { width: 18rem; height: 100%; overflow-y: auto; border-right: 1px solid var(--c-border); }
 .app-main { overflow: hidden; height: 100%; }
 .app-body { overflow-y: auto; padding: var(--space-8); }
 .app-credit { color: #000000; }
