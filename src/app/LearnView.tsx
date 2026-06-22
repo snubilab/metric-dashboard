@@ -135,14 +135,19 @@ const L = {
     caveatsLabel: "주의점",
     complementsLabel: "함께 보는 지표",
     complementarityTitle: "지표는 어떻게 서로를 보완하는가",
+    complementsNav: "보완책",
   },
   en: {
     featuresLabel: "Features",
     caveatsLabel: "Caveats",
     complementsLabel: "Pairs well with",
     complementarityTitle: "How these metrics complement each other",
+    complementsNav: "Complementarity",
   },
 } as const;
+
+/** DOM id (and nav id) for the topic-level complementarity section. */
+const COMPLEMENTARITY_ID = "complementarity";
 
 const calloutStyle: React.CSSProperties = {
   display: "flex",
@@ -299,7 +304,7 @@ function ComplementaritySection({
   lang: Lang;
 }) {
   return (
-    <section style={complementaritySectionStyle}>
+    <section id={sectionDomId(COMPLEMENTARITY_ID)} style={complementaritySectionStyle}>
       <h3 style={titleStyle}>{L[lang].complementarityTitle}</h3>
       <CoverageTable intro={complementarity.intro} pairs={complementarity.pairs} />
       <BenchmarkTable benchmarks={complementarity.benchmarks} />
@@ -352,7 +357,16 @@ export function LearnView({ topic }: LearnViewProps) {
   const { lang } = useLang();
   const learn = lang === "ko" && topic.learnKo ? topic.learnKo : topic.learn;
   const sections = learn?.sections ?? [];
-  const activeId = useActiveSection(sections.map((section) => section.id));
+  // The metric sections, plus the topic-level complementarity section ("보완책")
+  // when present — so the floating nav can jump to "how metrics complement
+  // each other" too, and it highlights when scrolled into view.
+  const navSections = [
+    ...sections.map((section) => ({ id: section.id, title: section.title })),
+    ...(learn?.complementarity
+      ? [{ id: COMPLEMENTARITY_ID, title: L[lang].complementsNav }]
+      : []),
+  ];
+  const activeId = useActiveSection(navSections.map((s) => s.id));
 
   if (!learn) {
     return null;
@@ -367,11 +381,7 @@ export function LearnView({ topic }: LearnViewProps) {
         <ComplementaritySection complementarity={learn.complementarity} lang={lang} />
       )}
       {/* Floating island nav: fixed-position, positions itself (see SectionNav). */}
-      <SectionNav
-        sections={learn.sections.map((section) => ({ id: section.id, title: section.title }))}
-        activeId={activeId}
-        onJump={jumpToSection}
-      />
+      <SectionNav sections={navSections} activeId={activeId} onJump={jumpToSection} />
     </div>
   );
 }
