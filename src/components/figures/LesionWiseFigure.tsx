@@ -12,7 +12,7 @@ import { SvgPanelCaption, SvgWarnMark } from "./detPanels";
 
 const L = {
   ko: {
-    aria: "병변 단위 예시: 찾음/놓침/헛검출, 그리고 복셀 Dice는 높지만 병변 하나를 통째로 놓치는 오해 사례",
+    aria: "병변 단위 예시: 찾음/놓침/거짓 검출, 그리고 복셀 Dice는 높지만 병변 하나를 통째로 놓치는 오해 사례",
     typical: "정상 예시",
     misleading: "오해 사례",
     tp: "TP",

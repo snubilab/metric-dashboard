@@ -16,11 +16,11 @@ import { SvgPanelCaption, SvgWarnMark } from "./detPanels";
 const L = {
   ko: {
     aria:
-      "clDice 예시: 중심선이 이어진 혈관과, 부피 Dice는 높지만 끊겨서 중심선이 깨진 혈관 비교",
+      "clDice 예시: 중심선이 이어진 혈관과, 복셀 Dice는 높지만 끊겨서 중심선이 끊긴 혈관 비교",
     typical: "정상 예시",
     misleading: "오해 사례",
     caption: "예측이 혈관을 모두 덮어 중심선이 이어짐 (clDice 높음)",
-    trap: "부피 Dice는 높아도 끊김이 중심선을 깨서 clDice 하락",
+    trap: "복셀 Dice는 높아도 끊김 때문에 중심선이 단절돼 clDice 하락",
     breakLabel: "끊김",
   },
   en: {

@@ -149,7 +149,7 @@ describe("MetricTable", () => {
 
       expect(screen.queryByText("A 우세")).not.toBeInTheDocument();
       expect(screen.queryByText("B 우세")).not.toBeInTheDocument();
-      expect(screen.queryByText("비슷")).not.toBeInTheDocument();
+      expect(screen.queryByText("대등")).not.toBeInTheDocument();
       expect(screen.queryByText("비교 불가")).not.toBeInTheDocument();
     });
 
@@ -180,7 +180,7 @@ describe("MetricTable", () => {
       expect(within(hd95Row).getByText("B 우세")).toBeInTheDocument();
 
       const iouRow = screen.getByText("IoU").closest("tr") as HTMLElement;
-      expect(within(iouRow).getByText("비슷")).toBeInTheDocument();
+      expect(within(iouRow).getByText("대등")).toBeInTheDocument();
     });
 
     it("renders the correct English leads chip per winner", () => {

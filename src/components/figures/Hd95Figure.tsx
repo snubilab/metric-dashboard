@@ -23,7 +23,7 @@ const L = {
     pred: "예측",
     pct: "95퍼센타일",
     caption: "HD95 = 95퍼센타일 경계 거리 (최댓값이 아님)",
-    robustCaption: "이상점은 상위 5%로 잘려 HD95는 낮게 유지 — HD라면 치솟음",
+    robustCaption: "이상점은 상위 5%로 잘려 HD95는 낮게 유지됨 — HD라면 치솟음",
     outlier: "이상점 (상위 5% 제외)",
     kept: "HD95",
   },

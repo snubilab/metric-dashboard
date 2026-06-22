@@ -21,7 +21,7 @@ const L = {
   ko: {
     situation: "상황",
     modality: "영상 방식",
-    atStake: "무엇이 걸려 있나",
+    atStake: "관건",
     consequence: "임상적 영향",
   },
   en: {

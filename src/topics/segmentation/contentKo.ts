@@ -157,7 +157,7 @@ const sections: MetricSection[] = [
     caveats: [
       "3D CT나 MRI에서는 거리를 복셀(voxel) 수가 아니라 물리 단위(mm)로 계산해야 합니다.",
       "여기서는 단일 2D 슬라이스에서 1 px = 1 mm로 두지만, 실제 임상에서는 mm 단위로 측정되는 3D 표면입니다.",
-      "참 경계에서 멀리 떨어진 위양성 덩어리가 생기면 여전히 급격히 커집니다.",
+      "정답 경계에서 멀리 떨어진 위양성 덩어리가 생기면 여전히 급격히 커집니다.",
     ],
     figure: figureFor("hd95"),
     complements:

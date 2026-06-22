@@ -19,7 +19,7 @@ const L = {
     gt: "정답(GT)",
     pred: "예측",
     caption: "ASSD = 경계 간 거리의 평균",
-    trap: "평균이 큰 국소 오차를 희석",
+    trap: "평균이 큰 국소 오차를 희석함",
     spike: "국소 오차",
   },
   en: {

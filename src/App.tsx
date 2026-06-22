@@ -214,7 +214,7 @@ function ComingSoon({ topic }: { topic: Topic }) {
       <h2 style={placeholderTitleStyle}>{t("comingSoon")}</h2>
       <p style={placeholderTextStyle}>
         {lang === "ko"
-          ? `${title} 지표 제품군을 준비하고 있습니다. 학습 콘텐츠, 인터랙티브 플레이그라운드, 임상 시나리오가 이곳에 표시될 예정입니다.`
+          ? `${title} 지표군을 준비하고 있습니다. 학습 콘텐츠, 인터랙티브 플레이그라운드, 임상 시나리오가 이곳에 표시될 예정입니다.`
           : `The ${title} metric family is being prepared. Its learn content, interactive playground, and clinical scenarios will appear here.`}
       </p>
     </div>

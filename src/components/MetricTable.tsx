@@ -36,7 +36,7 @@ const L = {
     boldLegend: "굵게 = 해당 지표에서 우세",
     leadsA: "A 우세",
     leadsB: "B 우세",
-    tie: "비슷",
+    tie: "대등",
     notComparable: "비교 불가",
   },
   en: {

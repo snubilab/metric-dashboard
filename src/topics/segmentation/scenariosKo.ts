@@ -50,10 +50,10 @@ export const segmentationScenariosKo: Scenario[] = [
   },
   {
     id: "stray-fp",
-    title: "떨어져 나간 위양성 덩어리가 HD95를 망가뜨린다",
+    title: "동떨어진 위양성 덩어리가 HD95를 망가뜨린다",
     clinical: {
       situation:
-        "모델이 간 병변은 거의 완벽하게 분할하지만, 시야 안 멀찍이 떨어진 곳에 작고 " +
+        "모델이 간 병변은 거의 완벽하게 분할하지만, 시야 안에서 멀찍이 떨어진 곳에 작고 " +
         "엉뚱한 덩어리 하나를 함께 그려 냅니다.",
       modality: "조영증강 복부 CT",
       atStake:
@@ -65,9 +65,9 @@ export const segmentationScenariosKo: Scenario[] = [
     },
     state: stateFor("stray-fp"),
     teachingPoint:
-      "떨어져 나간 덩어리는 픽셀을 고작 몇 개 더할 뿐이라 Dice는 0.8 이상으로 유지됩니다. " +
-      "그러나 최악의 경계 거리가 이제 멀리 떨어진 덩어리에 닿으면서 HD95는 20mm를 넘어 " +
-      "폭발합니다. Dice는 늘 경계 지표와 함께 봐야 합니다.",
+      "동떨어진 덩어리는 픽셀을 고작 몇 개 더할 뿐이라 Dice는 0.8 이상으로 유지됩니다. " +
+      "그러나 최악의 경계 거리가 이제 멀리 떨어진 덩어리까지 늘어나면서 HD95는 20mm를 넘어 " +
+      "치솟습니다. Dice는 늘 경계 지표와 함께 봐야 합니다.",
     reference: "Taha & Hanbury 2015; HD is very sensitive to outliers.",
   },
   {
@@ -108,7 +108,7 @@ export const segmentationScenariosKo: Scenario[] = [
     state: stateFor("small-lesion-instability"),
     teachingPoint:
       "반지름 5픽셀 병변에서는 4픽셀만 어긋나도 Dice가 벌써 1.0에서 한참 아래로 " +
-      "떨어집니다. 같은 이동량이라도 큰 장기에서는 있으나 마나 한 수준입니다. 결국 Dice는 " +
+      "떨어집니다. 같은 이동량이라도 큰 장기에서는 무시할 만한 수준입니다. 결국 Dice는 " +
       "아주 작은 구조에서 불안정합니다.",
     reference: "Metrics Reloaded — small-structure instability of Dice.",
   },
@@ -145,7 +145,7 @@ export const segmentationScenariosKo: Scenario[] = [
       atStake:
         "배포를 위한 모델 선택이 위원회가 어떤 요약 지표를 신뢰하느냐에 달려 있습니다.",
       consequence:
-        "모델 A와 B는 Dice가 거의 같지만, B에는 멀리 뻗은 경계 돌기가 있어서 HD95는 " +
+        "모델 A와 B는 Dice가 거의 같지만, B에는 멀리 뻗은 경계 돌기가 있어서 HD95 차이는 " +
         "큰 폭으로 벌어집니다.",
     },
     state: stateFor("rank-agree-magnitude-disagree"),
@@ -165,14 +165,14 @@ export const segmentationScenariosKo: Scenario[] = [
       modality: "뇌 MRI (선별, 음성 사례)",
       atStake:
         "정답이 비어 있는 사례야말로 퇴화(degenerate) 지표를 어떻게 처리할지 정한 정책이 " +
-        "진가를 드러내는 지점입니다. 통상의 공식으로는 Dice, HD95, NSD가 모두 정의되지 않습니다.",
+        "비로소 드러나는 지점입니다. 통상의 공식으로는 Dice, HD95, NSD가 모두 정의되지 않습니다.",
       consequence:
         "지표를 어떻게 채점하느냐(Dice는 one / zero / NaN, 거리는 undefined / 대각선 / " +
         "고정값)는 모델에 관한 사실이 아니라 정책 선택입니다.",
     },
     state: stateFor("empty-negative-case"),
     teachingPoint:
-      "정답이 비어 있고 예측이 위양성이면 모든 겹침·거리 지표가 퇴화 분기로 빠집니다. " +
+      "정답이 비어 있고 예측이 위양성이면 모든 겹침·거리 지표가 퇴화 상태에 빠집니다. " +
       "플레이그라운드에서 empty-Dice와 empty-distance 정책을 바꿔 보면, 마스크는 그대로인데 " +
       "보고되는 숫자만 달라집니다. 그러니 어떤 정책을 쓰는지 반드시 밝혀야 합니다.",
     reference: "Metrics Reloaded — handling of empty / negative cases and degenerate metrics.",

@@ -25,10 +25,10 @@ import { circleShape, gtCircle } from "./seedGeometry";
 
 const L = {
   ko: {
-    title: "떠도는 거짓양성: Dice vs HD vs HD95",
+    title: "동떨어진 거짓양성: Dice vs HD vs HD95",
     caption:
       "거의 완벽한 예측에 멀리 떨어진 작은 점 하나가 있습니다. Dice는 추가된 몇 픽셀을 거의 알아채지 못하지만, HD는 가장 나쁜 단일 지점이므로 떨어진 점까지의 전체 거리만큼 치솟습니다. HD95는 이상치의 일부를 흡수해 둘 사이에 자리합니다.",
-    strayDistance: "떠도는 FP 거리 (mm)",
+    strayDistance: "동떨어진 FP 거리 (mm)",
     canvasAria: "정답, 예측, 그리고 멀리 떨어진 거짓양성 점을 보여주는 그림",
   },
   en: {

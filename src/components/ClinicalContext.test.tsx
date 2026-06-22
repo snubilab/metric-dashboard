@@ -39,7 +39,7 @@ describe("ClinicalContext", () => {
 
     expect(screen.getByText("상황")).toBeInTheDocument();
     expect(screen.getByText("영상 방식")).toBeInTheDocument();
-    expect(screen.getByText("무엇이 걸려 있나")).toBeInTheDocument();
+    expect(screen.getByText("관건")).toBeInTheDocument();
     expect(screen.getByText("임상적 영향")).toBeInTheDocument();
   });
 
