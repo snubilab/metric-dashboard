@@ -309,6 +309,7 @@ export const segmentationLearn: LearnContent = {
         "It targets connectivity, so it is not a substitute for region-overlap or boundary metrics.",
         "Less meaningful for blob-like (non-tubular) structures.",
       ],
+      figure: "cldice",
       complements:
         "Pairs with Dice: Dice is blind to broken connectivity.",
     },

@@ -19,6 +19,7 @@ import SurfaceDistanceFigure from "./SurfaceDistanceFigure";
 import NsdFigure from "./NsdFigure";
 import VolumeFigure from "./VolumeFigure";
 import LesionWiseFigure from "./LesionWiseFigure";
+import ClDiceFigure from "./ClDiceFigure";
 import MatchingFigure from "./MatchingFigure";
 import DetConfusionFigure from "./DetConfusionFigure";
 import PrCurveFigure from "./PrCurveFigure";
@@ -43,6 +44,7 @@ const FIGURES: Record<string, ComponentType> = {
   nsd: NsdFigure,
   volume: VolumeFigure,
   lesionwise: LesionWiseFigure,
+  cldice: ClDiceFigure,
   // Detection
   "det-matching": MatchingFigure,
   "det-confusion": DetConfusionFigure,
