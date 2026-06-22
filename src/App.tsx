@@ -108,6 +108,19 @@ const creditStyle: React.CSSProperties = {
 
 const CREDIT = "리더: 이주희 · 보조: 고예현";
 
+/** Maker credit at the very bottom of the content. */
+const FOOTER = "Made by Kim Yeonghyeon · 2026";
+
+const footerStyle: React.CSSProperties = {
+  marginTop: "var(--space-8)",
+  paddingTop: "var(--space-4)",
+  borderTop: "1px solid var(--c-border)",
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-xs)",
+  color: "var(--c-text-dim)",
+  textAlign: "center",
+};
+
 const titleRowStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
@@ -292,6 +305,7 @@ function App() {
           ) : (
             <ComingSoon topic={topic} />
           )}
+          <footer style={footerStyle}>{FOOTER}</footer>
         </div>
       </main>
     </div>
