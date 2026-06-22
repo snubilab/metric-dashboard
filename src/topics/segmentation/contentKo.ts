@@ -56,7 +56,7 @@ const sections: MetricSection[] = [
     ],
     figure: figureFor("dice"),
     complements:
-      "HD95/NSD와 함께 보고하세요. Dice는 겹침을 요약할 뿐 경계 오차에는 눈을 감습니다.",
+      "HD95/NSD와 함께 보고하세요. Dice는 겹침만 요약할 뿐 경계 오차는 보지 못합니다.",
     miniSim: miniSimFor("dice"),
   },
   {
@@ -280,7 +280,7 @@ const sections: MetricSection[] = [
     ],
     figure: figureFor("cldice"),
     complements:
-      "Dice와 짝지으세요. Dice는 끊어진 연결성에 눈을 감습니다.",
+      "Dice와 짝지으세요. Dice는 연결이 끊겨도 알아채지 못합니다.",
   },
 ];
 
