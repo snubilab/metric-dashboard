@@ -111,8 +111,8 @@ const creditStyle: React.CSSProperties = {
 
 const CREDIT = "리더: 이주희 · 보조: 고예현";
 
-/** Maker credit at the very bottom of the content. */
-const FOOTER = "Made by Kim Yeonghyeon · 2026";
+/** Lab homepage linked from the footer credit. */
+const BILAB_URL = "http://bilab.snu.ac.kr";
 
 const footerStyle: React.CSSProperties = {
   marginTop: "var(--space-8)",
@@ -122,6 +122,12 @@ const footerStyle: React.CSSProperties = {
   fontSize: "var(--text-xs)",
   color: "var(--c-text-dim)",
   textAlign: "center",
+};
+
+const footerLinkStyle: React.CSSProperties = {
+  color: "var(--c-pred-a)",
+  textDecoration: "underline",
+  textUnderlineOffset: "2px",
 };
 
 const titleRowStyle: React.CSSProperties = {
@@ -308,7 +314,13 @@ function App() {
           ) : (
             <ComingSoon topic={topic} />
           )}
-          <footer style={footerStyle}>{FOOTER}</footer>
+          <footer style={footerStyle}>
+            Made by Kim Yeonghyeon ·{" "}
+            <a href={BILAB_URL} target="_blank" rel="noopener noreferrer" style={footerLinkStyle}>
+              BiLab
+            </a>
+            , SNU · 2026
+          </footer>
         </div>
       </main>
     </div>
