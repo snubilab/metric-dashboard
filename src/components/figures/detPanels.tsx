@@ -24,7 +24,7 @@ import type { CSSProperties, ReactNode } from "react";
  */
 function charWidth(ch: string, fontSize: number): number {
   // Hangul, CJK ideographs and fullwidth punctuation occupy a full em.
-  const isWide = /[ᄀ-ᇿ　-鿿가-힣＀-￯]/.test(ch);
+  const isWide = /[\u1100-\u11FF\u3000-\u9FFF\uAC00-\uD7A3\uFF00-\uFFEF]/u.test(ch);
   return fontSize * (isWide ? 1 : 0.62);
 }
 

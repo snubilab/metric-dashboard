@@ -140,6 +140,7 @@ const HANDLE_PICK_PX = 10;
 const BOX_CORNERS: BoxCorner[] = ["tl", "tr", "bl", "br"];
 
 type Tool = "circle" | "rect" | "pencil" | "move" | "delete";
+type Selection = { index: number; layer: Layer; tool: Tool };
 
 /** Drop drag-path points whose grid cell duplicates their predecessor. */
 const DRAW_SIMPLIFY_EPS = 0;
@@ -246,8 +247,7 @@ export function CanvasEditor({
   };
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<Tool>("circle");
-  /** Index of the selected shape in the active layer, or null when none. */
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selection, setSelection] = useState<Selection | null>(null);
   const dragRef = useRef<{ index: number; lastX: number; lastY: number } | null>(
     null,
   );
@@ -281,6 +281,11 @@ export function CanvasEditor({
   // visibleLayers takes precedence over showLayers; both default to all.
   const visibleLayers = visibleLayersProp ?? showLayers ?? ALL_LAYERS;
   const activeShapes = shapesForLayer(activeLayer, gt, predictions);
+  const selectedIndex =
+    selection?.layer === activeLayer && selection.tool === tool ? selection.index : null;
+  const setSelectedIndex = (index: number | null) => {
+    setSelection(index == null ? null : { index, layer: activeLayer, tool });
+  };
 
   // Show the empty-state hint when nothing is drawn: the active layer has no
   // shapes and no visible layer contributes any either. (Rendered as an HTML
@@ -362,12 +367,6 @@ export function CanvasEditor({
     activeShapes,
     themeVersion,
   ]);
-
-  // A selection belongs to one (layer, tool) context; drop it when either
-  // changes so a stale index can never address a different layer's shapes.
-  useEffect(() => {
-    setSelectedIndex(null);
-  }, [activeLayer, tool]);
 
   const emitActive = (next: Shape[]) => onChange(activeLayer, next);
 

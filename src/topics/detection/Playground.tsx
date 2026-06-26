@@ -25,7 +25,7 @@
  * color or font is hardcoded.
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { CSSProperties } from "react";
 import type { DetBox, Grid } from "../../types/engine";
 import { DetectionCanvas } from "../../components/canvas/DetectionCanvas";
@@ -312,9 +312,7 @@ export function DetectionPlayground() {
   const [preds, setPreds] = useState<DetBox[]>([]);
   const [threshold, setThreshold] = useState<number>(DEFAULT_THRESHOLD);
   const [apMethod, setApMethod] = useState<ApMethod>(DEFAULT_AP_METHOD);
-  /** The active drawing layer. Auto-advances with the guided stage (GT → PRED)
-   * via the effect below; the user can also override it by clicking a layer chip. */
-  const [manualLayer, setManualLayer] = useState<DetLayer>("GT");
+  const [manualLayer, setManualLayer] = useState<DetLayer>("PRED");
   /** Which loaded example is currently shown (""=none/hand-drawn), for the highlight. */
   const [activePresetId, setActivePresetId] = useState<string>("");
   /** Undo stack of prior snapshots; the last entry is the most recent. */
@@ -323,20 +321,8 @@ export function DetectionPlayground() {
 
   const state: DetState = { gt, preds };
   const stage = detectionStage(state);
-  /** The active layer IS the manual layer; the effect below auto-advances it on a
-   * stage change so drawing the first prediction never snaps it back to GT (which
-   * would send the next box into `gt` and corrupt TP/FP/FN). */
-  const activeLayer: DetLayer = manualLayer;
+  const activeLayer: DetLayer = stageLayer(stage) ?? manualLayer;
   const isCompare = stage === "compare";
-
-  // Auto-advance the active layer when the guided stage changes (draw GT → draw
-  // PRED). In compare, stageLayer is null so we keep the user's last layer —
-  // crucially, the first prediction (preds-stage layer was already PRED) stays on
-  // PRED. Between stage changes the user's manual chip clicks persist.
-  useEffect(() => {
-    const layer = stageLayer(stage);
-    if (layer) setManualLayer(layer);
-  }, [stage]);
 
   /** Snapshot the current drawn state onto the undo history before mutating.
    * Called once per edit GESTURE (via the canvas onEditStart / parent actions),
@@ -369,7 +355,7 @@ export function DetectionPlayground() {
     setGt([]);
     setPreds([]);
     setThreshold(DEFAULT_THRESHOLD);
-    setManualLayer("GT");
+    setManualLayer("PRED");
     setActivePresetId("");
   };
 

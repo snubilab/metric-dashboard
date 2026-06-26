@@ -98,11 +98,13 @@ const FALLBACK_VALUE: LanguageContextValue = {
  * returns a safe default ({ lang: "ko", setLang: no-op }) so consumers render
  * without a provider rather than throwing.
  */
+// eslint-disable-next-line react-refresh/only-export-components -- hooks live with their provider.
 export function useLang(): LanguageContextValue {
   return useContext(LanguageContext) ?? FALLBACK_VALUE;
 }
 
 /** Stable callback that sets the language; convenience over useLang().setLang. */
+// eslint-disable-next-line react-refresh/only-export-components -- hooks live with their provider.
 export function useSetLang(): (lang: Lang) => void {
   const { setLang } = useLang();
   return useCallback((next: Lang) => setLang(next), [setLang]);

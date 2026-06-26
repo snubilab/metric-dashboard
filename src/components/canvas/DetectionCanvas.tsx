@@ -93,6 +93,7 @@ const HANDLE_HALF_PX = 5;
 const BOX_CORNERS: BoxCorner[] = ["tl", "tr", "bl", "br"];
 
 type Tool = "rect" | "move" | "delete";
+type Selection = { index: number; layer: DetLayer; tool: Tool };
 
 export interface DetectionCanvasProps {
   grid: Grid;
@@ -154,7 +155,7 @@ export function DetectionCanvas({
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<Tool>("rect");
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selection, setSelection] = useState<Selection | null>(null);
   const dragStartRef = useRef<[number, number] | null>(null);
   const [preview, setPreview] = useState<DetBox | null>(null);
   const dragRef = useRef<{ index: number; lastX: number; lastY: number } | null>(null);
@@ -175,13 +176,12 @@ export function DetectionCanvas({
     return () => observer.disconnect();
   }, []);
 
-  // A selection belongs to one (layer, tool) context; drop it when either
-  // changes so a stale index never addresses a different layer's boxes.
-  useEffect(() => {
-    setSelectedIndex(null);
-  }, [activeLayer, tool]);
-
   const activeBoxes = activeLayer === "GT" ? gt : preds;
+  const selectedIndex =
+    selection?.layer === activeLayer && selection.tool === tool ? selection.index : null;
+  const setSelectedIndex = (index: number | null) => {
+    setSelection(index == null ? null : { index, layer: activeLayer, tool });
+  };
 
   /** A history snapshot is owed before the next ACTUAL mutation of the current
    * gesture. Armed at gesture start (pointerdown / slider grab) and consumed on
