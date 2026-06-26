@@ -37,6 +37,11 @@ describe("ClassificationPlayground", () => {
     expect(preset).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText(/5 percent prevalence/)).toBeInTheDocument();
     expect(screen.getByText("Adjust the threshold or score groups to see how the metrics move.")).toBeInTheDocument();
+    expect(screen.getAllByText("Total 100 · Positive 5 · Negative 95")).toHaveLength(2);
+    expect(screen.getAllByRole("slider")).toHaveLength(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "Adjust score groups" }));
+
     expect(screen.getAllByRole("slider")).toHaveLength(3);
   });
 });

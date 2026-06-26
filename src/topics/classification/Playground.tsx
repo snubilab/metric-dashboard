@@ -30,7 +30,7 @@ import type { Stage } from "./playgroundUi";
 
 const presetGridStyle: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(148px, 1fr))",
   gap: "var(--space-2)",
 };
 
@@ -40,7 +40,7 @@ const presetCardStyle: CSSProperties = {
   flexDirection: "column",
   alignItems: "stretch",
   gap: "var(--space-2)",
-  minHeight: "96px",
+  minHeight: "132px",
   padding: "var(--space-2)",
   textAlign: "left",
 };
@@ -56,14 +56,40 @@ const presetLabelStyle: CSSProperties = {
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
+  fontWeight: 700,
 };
 
 const thumbnailStyle: CSSProperties = {
   width: "100%",
-  height: "48px",
+  height: "64px",
   border: "1px solid var(--c-border)",
   borderRadius: "var(--radius-sm)",
   background: "var(--c-surface)",
+};
+
+const presetMetaStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  gap: "var(--space-1)",
+  fontSize: "var(--text-xs)",
+  color: "var(--c-text-dim)",
+};
+
+const presetMetaItemStyle: CSSProperties = {
+  padding: "var(--space-1)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+  textAlign: "center",
+  background: "var(--c-surface)",
+};
+
+const loadedSummaryStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "var(--space-2)",
+  alignItems: "center",
+  fontSize: "var(--text-sm)",
+  color: "var(--c-text-dim)",
 };
 
 function stageFor(cases: readonly ClassificationCase[]): Stage {
@@ -103,6 +129,16 @@ function scoreGroups(cases: readonly ClassificationCase[]): ScoreGroup[] {
     if (a.actual !== b.actual) return a.actual === "positive" ? -1 : 1;
     return b.score - a.score;
   });
+}
+
+function countActual(cases: readonly ClassificationCase[], actual: ClassificationCase["actual"]): number {
+  return cases.filter((item) => item.actual === actual).length;
+}
+
+function dataSummary(cases: readonly ClassificationCase[], t: typeof L[keyof typeof L]): string {
+  const positives = countActual(cases, "positive");
+  const negatives = countActual(cases, "negative");
+  return `${t.total} ${cases.length} · ${t.positives} ${positives} · ${t.negatives} ${negatives}`;
 }
 
 function ClassificationPresetThumbnail({ preset }: { readonly preset: ClassificationPreset }) {
@@ -161,6 +197,7 @@ export function ClassificationPlayground() {
   const [cases, setCases] = useState<ClassificationCase[]>([]);
   const [threshold, setThreshold] = useState(0.5);
   const [activePresetId, setActivePresetId] = useState("");
+  const [showGroupEditor, setShowGroupEditor] = useState(false);
   const stage = stageFor(cases);
   const isCompare = stage === "compare";
   const counts = confusionFromScores(cases, threshold);
@@ -171,6 +208,7 @@ export function ClassificationPlayground() {
   const addCase = (actual: ClassificationCase["actual"]) => {
     setCases((prev) => [...prev, { actual, score: actual === "positive" ? 0.7 : 0.3 }]);
     setActivePresetId("");
+    setShowGroupEditor(true);
   };
 
   const updateGroupScore = (group: ScoreGroup, score: number) => {
@@ -184,6 +222,7 @@ export function ClassificationPlayground() {
     setCases(cloneCases(preset.cases));
     setThreshold(preset.threshold);
     setActivePresetId(preset.id);
+    setShowGroupEditor(false);
   };
 
   return (
@@ -202,12 +241,23 @@ export function ClassificationPlayground() {
             >
               <ClassificationPresetThumbnail preset={preset} />
               <span style={presetLabelStyle}>{lang === "ko" ? preset.labelKo : preset.label}</span>
+              <span style={presetMetaStyle} aria-hidden="true">
+                <span style={presetMetaItemStyle}>N {preset.cases.length}</span>
+                <span style={presetMetaItemStyle}>{t.positiveShort} {countActual(preset.cases, "positive")}</span>
+                <span style={presetMetaItemStyle}>{t.negativeShort} {countActual(preset.cases, "negative")}</span>
+              </span>
             </button>
           ))}
         </div>
         {activePreset ? (
-          <p style={mutedStyle}>{lang === "ko" ? activePreset.descriptionKo : activePreset.description}</p>
-        ) : null}
+          <div style={loadedSummaryStyle}>
+            <strong>{t.loaded}</strong>
+            <span>{dataSummary(cases, t)}</span>
+            <span>{lang === "ko" ? activePreset.descriptionKo : activePreset.description}</span>
+          </div>
+        ) : (
+          <p style={mutedStyle}>{t.choosePrompt}</p>
+        )}
       </section>
       <div style={splitStyle}>
         <div style={columnStyle}>
@@ -228,6 +278,7 @@ export function ClassificationPlayground() {
                   setCases([]);
                   setActivePresetId("");
                   setThreshold(0.5);
+                  setShowGroupEditor(false);
                 }}
               >
                 {t.reset}
@@ -277,40 +328,50 @@ export function ClassificationPlayground() {
               </span>
             </label>
             {cases.length > 0 ? (
-              <table style={tableStyle}>
-                <thead>
-                  <tr>
-                    <th style={cellStyle}>{t.actual}</th>
-                    <th style={cellStyle}>{t.count}</th>
-                    <th style={cellStyle}>{t.score}</th>
-                    <th style={cellStyle}>{t.prediction}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groups.map((group) => (
-                    <tr key={`${group.actual}-${group.score}`}>
-                      <td style={cellStyle}>
-                        {group.actual === "positive" ? t.positive : t.negative}
-                      </td>
-                      <td style={cellStyle}>{group.count}</td>
-                      <td style={cellStyle}>
-                        <input
-                          type="range"
-                          min={0}
-                          max={1}
-                          step={0.01}
-                          value={group.score}
-                          aria-label={`${t.score} ${group.actual} ${group.score.toFixed(2)}`}
-                          onChange={(event) => updateGroupScore(group, Number(event.target.value))}
-                        />
-                      </td>
-                      <td style={cellStyle}>
-                        {prediction(group.score, threshold) === "positive" ? t.positive : t.negative}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <>
+                <div style={loadedSummaryStyle}>
+                  <span>{dataSummary(cases, t)}</span>
+                  <button type="button" style={buttonStyle} onClick={() => setShowGroupEditor((value) => !value)}>
+                    {showGroupEditor ? t.closeGroups : t.adjustGroups}
+                  </button>
+                </div>
+                {showGroupEditor ? (
+                  <table style={tableStyle}>
+                    <thead>
+                      <tr>
+                        <th style={cellStyle}>{t.actual}</th>
+                        <th style={cellStyle}>{t.count}</th>
+                        <th style={cellStyle}>{t.score}</th>
+                        <th style={cellStyle}>{t.prediction}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groups.map((group) => (
+                        <tr key={`${group.actual}-${group.score}`}>
+                          <td style={cellStyle}>
+                            {group.actual === "positive" ? t.positive : t.negative}
+                          </td>
+                          <td style={cellStyle}>{group.count}</td>
+                          <td style={cellStyle}>
+                            <input
+                              type="range"
+                              min={0}
+                              max={1}
+                              step={0.01}
+                              value={group.score}
+                              aria-label={`${t.score} ${group.actual} ${group.score.toFixed(2)}`}
+                              onChange={(event) => updateGroupScore(group, Number(event.target.value))}
+                            />
+                          </td>
+                          <td style={cellStyle}>
+                            {prediction(group.score, threshold) === "positive" ? t.positive : t.negative}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : null}
+              </>
             ) : null}
           </section>
         </div>
