@@ -32,37 +32,40 @@ const L = {
 
 const headingStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: "var(--text-base)",
-  color: "var(--text-primary)",
+  fontSize: "var(--text-sm)",
+  letterSpacing: "0.04em",
+  textTransform: "uppercase",
+  color: "var(--c-text-dim)",
 };
 
 const labelStyle: React.CSSProperties = {
   fontSize: "var(--text-sm)",
   fontWeight: 700,
-  color: "var(--text-primary)",
+  color: "var(--c-text)",
 };
 
 const noteStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "var(--text-sm)",
   lineHeight: 1.55,
-  color: "var(--text-secondary)",
+  color: "var(--c-text-dim)",
 };
 
-const cueGridStyle: React.CSSProperties = {
+const cueGridStyle = (compact: boolean): React.CSSProperties => ({
   display: "grid",
-  gap: "var(--space-3)",
-};
+  gridTemplateColumns: compact ? "repeat(auto-fit, minmax(130px, 1fr))" : undefined,
+  gap: compact ? "var(--space-2)" : "var(--space-3)",
+});
 
-const cueCardStyle: React.CSSProperties = {
+const cueCardStyle = (compact: boolean): React.CSSProperties => ({
   display: "flex",
   flexDirection: "column",
-  gap: "var(--space-2)",
-  padding: "var(--space-3)",
-  background: "var(--bg-secondary)",
-  border: "1px solid var(--border-secondary)",
-  borderRadius: "var(--radius-lg)",
-};
+  gap: compact ? "var(--space-1)" : "var(--space-2)",
+  padding: compact ? "var(--space-2)" : "var(--space-3)",
+  background: "var(--c-surface-2)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+});
 
 const chipRowStyle: React.CSSProperties = {
   display: "flex",
@@ -70,12 +73,13 @@ const chipRowStyle: React.CSSProperties = {
   gap: "var(--space-2)",
 };
 
-const chipStyle = (color: string): React.CSSProperties => ({
-  padding: "3px 8px",
+const chipStyle = (color: string, textColor: string): React.CSSProperties => ({
+  padding: "2px 6px",
   borderRadius: "var(--radius-full)",
-  background: color,
-  color: "var(--bg-primary)",
-  fontSize: "var(--text-xs)",
+  border: `1px solid ${color}`,
+  color: textColor,
+  background: "var(--c-surface)",
+  fontSize: "10px",
   fontWeight: 700,
 });
 
@@ -83,11 +87,13 @@ function CueChips({
   label,
   values,
   color,
+  textColor,
   empty,
 }: {
   label: string;
   values: readonly string[];
   color: string;
+  textColor: string;
   empty: string;
 }) {
   return (
@@ -96,7 +102,7 @@ function CueChips({
       <div style={chipRowStyle}>
         {values.length > 0 ? (
           values.map((value) => (
-            <span key={value} style={chipStyle(color)}>
+            <span key={value} style={chipStyle(color, textColor)}>
               {value}
             </span>
           ))
@@ -115,42 +121,60 @@ function cueValues(cues: ClinicalCues, lang: Lang) {
       label: t.findings,
       values: cues.findings,
       color: "var(--c-gt)",
+      textColor: "var(--c-gt-text)",
     },
     {
       label: t.present,
       values: cues.presentFindings.map((finding) => `${finding}: present`),
       color: "var(--c-pred-a)",
+      textColor: "var(--c-pred-a-text)",
     },
     {
       label: t.absent,
       values: cues.absentFindings.map((finding) => `${finding}: absent`),
       color: "var(--c-pred-b)",
+      textColor: "var(--c-pred-b-text)",
     },
     {
       label: t.laterality,
       values: cues.laterality,
       color: "var(--c-warn)",
+      textColor: "var(--c-warn-text)",
     },
     {
       label: t.temporal,
       values: cues.temporal,
       color: "var(--c-pred-a)",
+      textColor: "var(--c-pred-a-text)",
     },
   ];
 }
 
-function ReportCueCard({ title, text, lang }: { title: string; text: string; lang: Lang }) {
+function ReportCueCard({
+  title,
+  text,
+  lang,
+  compact,
+}: {
+  title: string;
+  text: string;
+  lang: Lang;
+  compact: boolean;
+}) {
   const t = L[lang];
   const cues = extractClinicalCues(text);
   return (
-    <section style={cueCardStyle}>
-      <h4 style={headingStyle}>{title}</h4>
+    <section style={cueCardStyle(compact)}>
+      <h4 style={{ ...headingStyle, fontSize: compact ? "var(--text-sm)" : headingStyle.fontSize }}>
+        {title}
+      </h4>
       {cueValues(cues, lang).map((row) => (
         <CueChips
           key={row.label}
           label={row.label}
           values={row.values}
           color={row.color}
+          textColor={row.textColor}
           empty={t.noCues}
         />
       ))}
@@ -162,10 +186,12 @@ export function ReportCueBoard({
   reference,
   candidateA,
   candidateB,
+  compact = false,
 }: {
   reference: string;
   candidateA: string;
   candidateB: string;
+  compact?: boolean;
 }) {
   const { lang } = useLang();
   const t = L[lang];
@@ -173,12 +199,14 @@ export function ReportCueBoard({
 
   return (
     <>
-      <h3 style={headingStyle}>{t.cues}</h3>
+      <h3 style={{ ...headingStyle, fontSize: compact ? "var(--text-sm)" : headingStyle.fontSize }}>
+        {t.cues}
+      </h3>
       {hasAnyText ? (
-        <div style={cueGridStyle}>
-          <ReportCueCard title={t.reference} text={reference} lang={lang} />
-          <ReportCueCard title={t.candidateA} text={candidateA} lang={lang} />
-          <ReportCueCard title={t.candidateB} text={candidateB} lang={lang} />
+        <div style={cueGridStyle(compact)}>
+          <ReportCueCard title={t.reference} text={reference} lang={lang} compact={compact} />
+          <ReportCueCard title={t.candidateA} text={candidateA} lang={lang} compact={compact} />
+          <ReportCueCard title={t.candidateB} text={candidateB} lang={lang} compact={compact} />
         </div>
       ) : (
         <p style={noteStyle}>{t.noCues}</p>

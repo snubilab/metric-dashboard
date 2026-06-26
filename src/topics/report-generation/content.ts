@@ -5,64 +5,161 @@ export const reportGenerationLearn: LearnContent = {
     "Clinical report generation is not just image captioning with medical words. A report can look close to the reference while flipping negation, laterality, severity, or temporal change. This topic compares lexical overlap, embedding similarity, concept/graph metrics, LLM evaluators, and human acceptance so the failure mode each metric misses stays visible.",
   sections: [
     {
-      id: "lexical-overlap",
-      title: "BLEU · ROUGE · METEOR",
-      formula:
-        "\\mathrm{OverlapProxyF1} = \\frac{2|\\mathrm{tok}(R)\\cap\\mathrm{tok}(C)|}{|\\mathrm{tok}(R)| + |\\mathrm{tok}(C)|}",
+      id: "bleu",
+      title: "BLEU",
+      formula: "\\mathrm{BLEU}\\text{-}1=\\frac{\\mathrm{matched\\ candidate\\ unigrams}}{\\mathrm{candidate\\ unigrams}}",
       meaning:
-        "This metric family observes surface tokens, so it reacts when wording changes. BLEU, ROUGE, and METEOR summarize surface overlap; the live Playground uses a simple token-overlap proxy, not the full published implementations.",
+        "BLEU observes candidate-side n-gram precision. In report generation it answers: how many words in the generated report also appear in the reference?",
       features: [
         "Useful for legacy comparison with prior report generation papers.",
         "Cheap, deterministic, and easy to reproduce.",
-        "Highlights whether the candidate reused reference wording.",
+        "Makes reference-word reuse very visible.",
       ],
       caveats: [
-        "Can reward a report that reuses reference terms while flipping negation.",
-        "Usually assumes one reference, although one image can support multiple acceptable reports.",
-        "Does not understand laterality, clinical severity, or temporal direction.",
+        "Precision can stay high when the candidate reuses disease words but flips negation.",
+        "Brevity and n-gram settings change the final BLEU variant.",
+        "It does not know whether pneumothorax is present or absent.",
       ],
-      figure: "report-lexical-overlap",
-      complements: "Pair lexical rows with assertion, laterality, and temporal cue rows.",
+      figure: "report-bleu",
+      complements: "Pair BLEU with assertion-aware and error-category rows.",
     },
     {
-      id: "embedding-similarity",
-      title: "BERTScore · RaTEscore",
-      formula:
-        "\\mathrm{EntityF1} = \\frac{2\\,TP_{\\mathrm{entity}}}{2\\,TP_{\\mathrm{entity}} + FP_{\\mathrm{entity}} + FN_{\\mathrm{entity}}}",
+      id: "rouge-l",
+      title: "ROUGE-L",
+      formula: "\\mathrm{ROUGE}\\text{-}L=\\frac{\\mathrm{LCS}(R,C)}{|R|}",
       meaning:
-        "This metric family observes contextual tokens or medical entities, so it reacts when the candidate keeps familiar words but attaches them to the wrong entity or assertion. The dashboard represents this idea with entity/assertion matching, not a transformer model.",
+        "ROUGE-L observes reference-side recall through the longest common subsequence. It asks how much of the reference wording was recovered, in order.",
+      features: [
+        "Useful when omission of reference content is the main concern.",
+        "Keeps word order more visible than bag-of-word overlap.",
+        "Easy to explain as reference recall.",
+      ],
+      caveats: [
+        "A clinically wrong report can recall many reference words.",
+        "Paraphrases can be penalized even when the clinical content is preserved.",
+        "Laterality and temporal direction are still just tokens.",
+      ],
+      figure: "report-rouge",
+      complements: "Pair ROUGE-L with entity and temporal rows.",
+    },
+    {
+      id: "meteor",
+      title: "METEOR",
+      formula: "\\mathrm{METEOR}\\approx F_{mean}(P,R)\\,(1-\\mathrm{penalty})",
+      meaning:
+        "METEOR observes unigram precision and recall, with stemming or synonym matching and a fragmentation penalty. It is more forgiving than BLEU when wording changes.",
+      features: [
+        "Can connect simple synonyms such as fluid and effusion.",
+        "Balances candidate precision and reference recall.",
+        "More paraphrase-aware than raw n-gram precision.",
+      ],
+      caveats: [
+        "Synonym matching is not clinical reasoning.",
+        "It can still miss assertion swaps and wrong-side findings.",
+        "The static Playground uses a small synonym proxy rather than full METEOR.",
+      ],
+      figure: "report-meteor",
+      complements: "Pair METEOR with clinical concept and graph metrics.",
+    },
+    {
+      id: "bertscore",
+      title: "BERTScore",
+      formula:
+        "\\mathrm{F}_{BERT}=\\frac{2P_{BERT}R_{BERT}}{P_{BERT}+R_{BERT}}",
+      meaning:
+        "BERTScore observes contextual token similarity. It compares every candidate token to the most similar reference token instead of requiring exact word overlap.",
       features: [
         "More tolerant of paraphrase than pure n-gram overlap.",
-        "Entity-aware variants focus scoring on clinically relevant terms.",
-        "Helps show why fluid and effusion can be closer than raw tokens suggest.",
+        "Uses contextual embeddings rather than exact strings.",
+        "Explains why semantically close wording can score above raw token overlap.",
       ],
       caveats: [
-        "Embedding similarity can still miss assertion swaps such as pneumothorax present versus absent.",
-        "Entity extraction quality becomes part of the metric.",
-        "A high similarity score is not the same as radiologist acceptance.",
+        "All-token similarity can be distracted by clinically irrelevant wording.",
+        "It can still miss entity/assertion swaps.",
+        "A high similarity score is not radiologist acceptance.",
       ],
-      figure: "report-entity-similarity",
-      complements: "Pair BERTScore or RaTEscore with relation-aware and safety-error views.",
+      figure: "report-bertscore",
+      complements: "Pair BERTScore with RaTEscore or RadGraph F1.",
     },
     {
-      id: "concept-label-f1",
-      title: "Temporal F1 · CheXbert F1 · SRR-BERT F1",
+      id: "ratescore",
+      title: "RaTEscore",
       formula:
-        "\\mathrm{LabelF1} = \\frac{2\\,TP_{\\mathrm{label}}}{2\\,TP_{\\mathrm{label}} + FP_{\\mathrm{label}} + FN_{\\mathrm{label}}}",
+        "\\mathrm{RaTEscore}\\approx\\mathrm{BERTScore}(\\mathrm{medical\\ entities})",
       meaning:
-        "This metric family observes finding labels and temporal labels, so it reacts when improved, worsened, stable, new, or resolved changes. Concept-label metrics move evaluation from wording toward clinical content.",
+        "RaTEscore filters the comparison toward radiology entities before computing semantic similarity. It asks whether the clinically relevant entities line up.",
       features: [
-        "Directly measures whether key findings are mentioned.",
-        "Temporal F1 can isolate improved, worsened, stable, new, or resolved statements.",
-        "CheXbert and SRR-BERT style outputs are intuitive for benchmark tables.",
+        "Focuses on medical entities instead of every token.",
+        "Closer to the PPT example where pneumothorax and pleural effusion swap roles.",
+        "Helps separate surface fluency from clinical entity alignment.",
       ],
       caveats: [
-        "Label vocabularies are limited.",
-        "Location, laterality, severity, and relations can be lost.",
-        "Scores depend on the report labeler, not only on the generator.",
+        "Entity extraction errors become metric errors.",
+        "Assertion and relation errors still need explicit checks.",
+        "The Playground represents it with an entity/assertion proxy.",
       ],
-      figure: "report-label-f1",
-      complements: "Pair label F1 with graph and acceptance checks when location matters.",
+      figure: "report-ratescore",
+      complements: "Pair RaTEscore with RadGraph F1.",
+    },
+    {
+      id: "temporal-f1",
+      title: "Temporal F1",
+      formula:
+        "\\mathrm{TemporalF1}=\\frac{2\\,TP_{\\mathrm{change}}}{2\\,TP_{\\mathrm{change}}+FP_{\\mathrm{change}}+FN_{\\mathrm{change}}}",
+      meaning:
+        "Temporal F1 observes change labels such as improved, worsened, stable, new, and resolved. It matters only when a prior comparison exists.",
+      features: [
+        "Temporal F1 can isolate improved, worsened, stable, new, or resolved statements.",
+        "Very intuitive for follow-up CXR reports.",
+        "Catches clinical direction changes that lexical metrics can leave high.",
+      ],
+      caveats: [
+        "Single-CXR reports without priors may not contain temporal signal.",
+        "Synonym handling matters: improved and decreased should align.",
+        "It does not evaluate non-temporal clinical correctness.",
+      ],
+      figure: "report-temporal-f1",
+      complements: "Pair Temporal F1 with concept labels and graph metrics.",
+    },
+    {
+      id: "chexbert-f1",
+      title: "CheXbert F1",
+      formula:
+        "\\mathrm{CheXbertF1}=\\frac{2\\,TP_{\\mathrm{label}}}{2\\,TP_{\\mathrm{label}}+FP_{\\mathrm{label}}+FN_{\\mathrm{label}}}",
+      meaning:
+        "CheXbert F1 observes a fixed set of chest X-ray finding labels extracted from the reference and candidate reports.",
+      features: [
+        "Directly measures whether key CXR findings are mentioned.",
+        "Easy to read as label presence/absence agreement.",
+        "Common in report-generation benchmark tables.",
+      ],
+      caveats: [
+        "The label set is limited.",
+        "Severity, location, laterality, and relation detail can disappear.",
+        "The labeler performance is mixed into the generator score.",
+      ],
+      figure: "report-chexbert-f1",
+      complements: "Pair CheXbert F1 with RadGraph F1 when location matters.",
+    },
+    {
+      id: "srr-bert-f1",
+      title: "SRR-BERT F1",
+      formula:
+        "\\mathrm{SRR}\\text{-}\\mathrm{BERTF1}=\\frac{2\\,TP_{55\\ labels}}{2\\,TP_{55\\ labels}+FP+FN}",
+      meaning:
+        "SRR-BERT F1 observes a broader CXR label vocabulary than CheXbert. In this Playground proxy, it also reacts to simple side and change attributes so its granularity differs from coarse finding labels.",
+      features: [
+        "Broader label coverage than a 14-label setup.",
+        "Still intuitive: compare extracted labels and simple attributes between reference and candidate.",
+        "Useful when benchmark labels need more granularity.",
+      ],
+      caveats: [
+        "It is still a label-vocabulary metric.",
+        "Level mismatch, severity, location, and relation errors can remain hidden.",
+        "The extractor's errors are inherited by the metric.",
+      ],
+      figure: "report-srr-bert-f1",
+      complements: "Pair SRR-BERT F1 with graph and error-category metrics.",
     },
     {
       id: "graph-f1",
@@ -85,14 +182,14 @@ export const reportGenerationLearn: LearnContent = {
       complements: "Pair RadGraph F1 with GREEN or CRIMSON style error categories.",
     },
     {
-      id: "llm-evaluators",
-      title: "GREEN · CRIMSON",
+      id: "green",
+      title: "GREEN",
       formula: "\\mathrm{ErrorScore} = \\sum_i w_i\\,\\mathbf{1}[\\mathrm{error}_i]",
       meaning:
-        "This metric family observes clinical error categories, so it reacts when a false finding, omission, location error, severity error, or comparison/change error appears. GREEN emphasizes error detection; CRIMSON adds context and severity weighting.",
+        "GREEN observes clinical error categories: false finding, omission, location error, severity error, unsupported comparison/change, and missing comparison/change.",
       features: [
         "Can express clinically meaningful error categories.",
-        "Can weight patient-safety impact instead of treating every mismatch equally.",
+        "Shows matched findings and significant errors in one notation.",
         "Useful for reviewer-facing qualitative error analysis.",
       ],
       caveats: [
@@ -100,8 +197,27 @@ export const reportGenerationLearn: LearnContent = {
         "LLM judges can inherit blind spots from their training data.",
         "For this static dashboard, show precomputed examples only.",
       ],
-      figure: "report-llm-evaluator",
-      complements: "Pair learned evaluators with deterministic concept rows and reader studies.",
+      figure: "report-green",
+      complements: "Pair GREEN with CRIMSON when patient context changes severity.",
+    },
+    {
+      id: "crimson",
+      title: "CRIMSON",
+      formula: "\\mathrm{CRIMSON}=f(\\mathrm{error},\\mathrm{context},\\mathrm{severity})",
+      meaning:
+        "CRIMSON observes error categories with patient context and severity weighting. It is an LLM-as-a-judge family aimed at safety relevance rather than raw match count.",
+      features: [
+        "Uses patient context such as indication, age, sex, and guideline cues.",
+        "Can downweight negligible findings and emphasize significant errors.",
+        "Frames evaluation around diagnosis accuracy, context fit, and patient safety.",
+      ],
+      caveats: [
+        "Depends on the judging model, prompt, and local calibration.",
+        "Harder to reproduce than deterministic label metrics.",
+        "The static dashboard shows the structure, not a live LLM judge.",
+      ],
+      figure: "report-crimson",
+      complements: "Pair CRIMSON with deterministic automatic metrics and reader studies.",
     },
     {
       id: "clinical-acceptance",

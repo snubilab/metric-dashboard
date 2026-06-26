@@ -59,3 +59,36 @@ export const ENTITY_SWAP: ReportExample = {
   candidateA: "A pneumothorax is present on the right. Pleural effusion is absent.",
   candidateB: "Right pleural effusion. No pneumothorax.",
 };
+
+export const PARAPHRASE_METEOR: ReportExample = {
+  id: "paraphrase-meteor",
+  label: "Paraphrase tolerance",
+  labelKo: "표현 바꾸기",
+  description: "BLEU/ROUGE punish wording changes more than synonym-aware matching.",
+  descriptionKo: "BLEU/ROUGE는 표현 변화에 더 흔들리고, 동의어 기반 matching은 조금 더 관대합니다.",
+  reference: "No pleural effusion. Pulmonary edema has improved.",
+  candidateA: "No pleural fluid. Pulmonary edema has decreased.",
+  candidateB: "No edema.",
+};
+
+export const LABEL_GRANULARITY: ReportExample = {
+  id: "label-granularity",
+  label: "Label granularity",
+  labelKo: "라벨 세분도",
+  description: "A coarse finding label can match while side and change attributes are wrong.",
+  descriptionKo: "coarse finding label은 맞아도 side/change attribute가 틀리면 더 세밀한 row가 갈라집니다.",
+  reference: "Right lower lobe opacity has improved.",
+  candidateA: "Airspace opacity in the right lower lung is decreased.",
+  candidateB: "Left lower lobe opacity has worsened.",
+};
+
+export const ERROR_CATEGORY_CONTEXT: ReportExample = {
+  id: "error-category-context",
+  label: "Error category",
+  labelKo: "오류 카테고리",
+  description: "A candidate-only false finding should move GREEN and CRIMSON-style rows.",
+  descriptionKo: "reference에 없는 candidate-only false finding이 GREEN/CRIMSON row를 움직입니다.",
+  reference: "No pleural effusion.",
+  candidateA: "No pleural fluid.",
+  candidateB: "No pleural effusion. New right pneumothorax.",
+};

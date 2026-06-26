@@ -5,64 +5,161 @@ export const reportGenerationLearnKo: LearnContent = {
     "Report generation 평가는 문장이 reference와 얼마나 비슷한지보다, finding·negation·laterality·temporal change가 임상적으로 맞는지를 먼저 봐야 합니다. BLEU/ROUGE/METEOR는 기존 연구 비교에는 유용하지만, pneumothorax 부정이 뒤집히거나 좌우가 바뀌는 오류를 안전하게 잡지 못합니다. 그래서 clinical report generation은 lexical overlap, embedding similarity, clinical concept/graph, LLM evaluator, human acceptance를 함께 읽어야 합니다.",
   sections: [
     {
-      id: "lexical-overlap",
-      title: "BLEU · ROUGE · METEOR",
-      formula:
-        "\\mathrm{OverlapProxyF1} = \\frac{2|\\mathrm{tok}(R)\\cap\\mathrm{tok}(C)|}{|\\mathrm{tok}(R)| + |\\mathrm{tok}(C)|}",
+      id: "bleu",
+      title: "BLEU",
+      formula: "\\mathrm{BLEU}\\text{-}1=\\frac{\\mathrm{matched\\ candidate\\ unigrams}}{\\mathrm{candidate\\ unigrams}}",
       meaning:
-        "이 metric family는 surface token을 보기 때문에 표현이 바뀔 때 반응합니다. Playground는 전체 published metric이 아니라 dependency 없는 token-overlap proxy를 써서 실패 양상을 보여줍니다.",
+        "BLEU는 candidate 쪽 n-gram precision을 봅니다. 생성 report 안의 단어가 reference에도 얼마나 등장하는지를 묻는 지표입니다.",
       features: [
         "기존 report generation 논문과 비교할 때 유용합니다.",
         "싸고 deterministic하며 재현하기 쉽습니다.",
-        "candidate가 reference wording을 얼마나 재사용했는지 드러냅니다.",
+        "candidate가 reference wording을 얼마나 재사용했는지 직관적으로 보여줍니다.",
       ],
       caveats: [
-        "negation이 뒤집힌 report도 reference 단어를 많이 재사용하면 높게 나올 수 있습니다.",
-        "하나의 CXR에 clinically acceptable한 report가 여러 개일 수 있지만 single reference 비교는 이를 좁게 봅니다.",
-        "laterality, clinical severity, temporal direction을 이해하지 못합니다.",
+        "질병 단어를 재사용하면 negation이 뒤집혀도 높게 남을 수 있습니다.",
+        "brevity penalty와 n-gram 설정에 따라 최종 BLEU variant가 달라집니다.",
+        "pneumothorax가 present인지 absent인지는 이해하지 못합니다.",
       ],
-      figure: "report-lexical-overlap",
-      complements: "Lexical row는 assertion, laterality, temporal cue row와 같이 읽어야 합니다.",
+      figure: "report-bleu",
+      complements: "BLEU는 assertion-aware row와 error-category row와 같이 읽어야 합니다.",
     },
     {
-      id: "embedding-similarity",
-      title: "BERTScore · RaTEscore",
-      formula:
-        "\\mathrm{EntityF1} = \\frac{2\\,TP_{\\mathrm{entity}}}{2\\,TP_{\\mathrm{entity}} + FP_{\\mathrm{entity}} + FN_{\\mathrm{entity}}}",
+      id: "rouge-l",
+      title: "ROUGE-L",
+      formula: "\\mathrm{ROUGE}\\text{-}L=\\frac{\\mathrm{LCS}(R,C)}{|R|}",
       meaning:
-        "이 metric family는 contextual token 또는 medical entity를 보기 때문에 익숙한 단어가 남아 있어도 entity/assertion 연결이 바뀌면 반응합니다. 여기서는 transformer를 돌리지 않고 entity/assertion matching으로 같은 직관을 보여줍니다.",
+        "ROUGE-L은 longest common subsequence를 통해 reference 쪽 recall을 봅니다. reference 표현이 candidate에서 순서를 유지한 채 얼마나 회수됐는지를 묻습니다.",
+      features: [
+        "reference 내용 누락을 보고 싶을 때 직관적입니다.",
+        "단순 bag-of-words보다 단어 순서를 더 드러냅니다.",
+        "reference recall로 설명하기 쉽습니다.",
+      ],
+      caveats: [
+        "임상적으로 틀린 report도 reference 단어를 많이 회수할 수 있습니다.",
+        "clinical content가 같아도 paraphrase는 낮게 나올 수 있습니다.",
+        "laterality와 temporal direction도 여전히 token으로만 봅니다.",
+      ],
+      figure: "report-rouge",
+      complements: "ROUGE-L은 entity row와 temporal row와 같이 읽어야 합니다.",
+    },
+    {
+      id: "meteor",
+      title: "METEOR",
+      formula: "\\mathrm{METEOR}\\approx F_{mean}(P,R)\\,(1-\\mathrm{penalty})",
+      meaning:
+        "METEOR은 unigram precision/recall을 함께 보고 stemming 또는 synonym matching, fragmentation penalty를 반영합니다. BLEU보다 표현 변화에 조금 더 관대합니다.",
+      features: [
+        "fluid와 effusion 같은 단순 동의어를 연결할 수 있습니다.",
+        "candidate precision과 reference recall을 같이 봅니다.",
+        "순수 n-gram precision보다 paraphrase에 관대합니다.",
+      ],
+      caveats: [
+        "synonym matching은 clinical reasoning이 아닙니다.",
+        "assertion swap과 wrong-side finding은 여전히 놓칠 수 있습니다.",
+        "Playground는 full METEOR가 아니라 작은 synonym proxy를 씁니다.",
+      ],
+      figure: "report-meteor",
+      complements: "METEOR은 clinical concept metric과 graph metric과 같이 읽어야 합니다.",
+    },
+    {
+      id: "bertscore",
+      title: "BERTScore",
+      formula:
+        "\\mathrm{F}_{BERT}=\\frac{2P_{BERT}R_{BERT}}{P_{BERT}+R_{BERT}}",
+      meaning:
+        "BERTScore는 contextual token similarity를 봅니다. 정확히 같은 단어가 아니어도 candidate token을 가장 가까운 reference token과 비교합니다.",
       features: [
         "순수 n-gram overlap보다 paraphrase에 더 관대합니다.",
-        "Entity-aware variant는 clinically relevant term에 비교를 집중합니다.",
-        "fluid와 effusion처럼 표면 단어가 달라도 가까운 표현을 다룰 수 있습니다.",
+        "exact string 대신 contextual embedding을 씁니다.",
+        "표현은 달라도 의미가 가까운 문장을 설명하기 좋습니다.",
       ],
       caveats: [
-        "embedding similarity가 assertion swap을 항상 안전하게 잡는 것은 아닙니다.",
-        "entity extractor 품질이 metric 품질에 직접 섞입니다.",
+        "모든 token을 보므로 임상적으로 덜 중요한 표현에 끌릴 수 있습니다.",
+        "entity/assertion swap을 항상 안전하게 잡지는 못합니다.",
         "높은 similarity score가 radiologist acceptance를 의미하지는 않습니다.",
       ],
-      figure: "report-entity-similarity",
-      complements: "BERTScore나 RaTEscore는 relation-aware view와 safety-error view와 같이 읽어야 합니다.",
+      figure: "report-bertscore",
+      complements: "BERTScore는 RaTEscore 또는 RadGraph F1과 같이 읽어야 합니다.",
     },
     {
-      id: "concept-label-f1",
-      title: "Temporal F1 · CheXbert F1 · SRR-BERT F1",
+      id: "ratescore",
+      title: "RaTEscore",
       formula:
-        "\\mathrm{LabelF1} = \\frac{2\\,TP_{\\mathrm{label}}}{2\\,TP_{\\mathrm{label}} + FP_{\\mathrm{label}} + FN_{\\mathrm{label}}}",
+        "\\mathrm{RaTEscore}\\approx\\mathrm{BERTScore}(\\mathrm{medical\\ entities})",
       meaning:
-        "이 metric family는 finding label과 temporal label을 보기 때문에 improved, worsened, stable, new, resolved 같은 변화 표현이 바뀔 때 반응합니다.",
+        "RaTEscore는 radiology entity를 먼저 뽑아 그 entity 중심으로 semantic similarity를 봅니다. clinically relevant entity가 맞게 대응되는지를 묻습니다.",
       features: [
-        "핵심 finding이 언급됐는지 직접 비교합니다.",
-        "Temporal F1은 improved, worsened, stable, new, resolved statement를 따로 볼 수 있습니다.",
-        "CheXbert와 SRR-BERT 스타일 출력은 benchmark table에서 직관적으로 읽힙니다.",
+        "모든 단어가 아니라 medical entity에 비교를 집중합니다.",
+        "pneumothorax와 pleural effusion이 바뀌는 PPT 예시를 더 잘 설명합니다.",
+        "표면 fluency와 clinical entity alignment를 분리해 보여줍니다.",
       ],
       caveats: [
-        "label vocabulary 밖의 severity/location/laterality는 사라질 수 있습니다.",
-        "labeler 성능이 report generator 성능처럼 보일 수 있습니다.",
-        "relation이 중요한 오류는 label F1만으로 부족합니다.",
+        "entity extractor가 틀리면 metric도 같이 틀립니다.",
+        "assertion과 relation 오류는 별도 check가 필요합니다.",
+        "Playground는 entity/assertion proxy로 이 직관을 보여줍니다.",
       ],
-      figure: "report-label-f1",
-      complements: "Location이 중요할 때는 label F1을 graph와 acceptance check와 같이 읽어야 합니다.",
+      figure: "report-ratescore",
+      complements: "RaTEscore는 RadGraph F1과 같이 읽어야 합니다.",
+    },
+    {
+      id: "temporal-f1",
+      title: "Temporal F1",
+      formula:
+        "\\mathrm{TemporalF1}=\\frac{2\\,TP_{\\mathrm{change}}}{2\\,TP_{\\mathrm{change}}+FP_{\\mathrm{change}}+FN_{\\mathrm{change}}}",
+      meaning:
+        "Temporal F1은 improved, worsened, stable, new, resolved 같은 변화 label을 봅니다. prior 비교가 있을 때 의미가 생깁니다.",
+      features: [
+        "Temporal F1은 improved, worsened, stable, new, resolved statement를 따로 볼 수 있습니다.",
+        "follow-up CXR report에서 매우 직관적입니다.",
+        "lexical metric이 높게 남는 change-direction 오류를 잡습니다.",
+      ],
+      caveats: [
+        "prior가 없는 single CXR report에서는 signal이 약합니다.",
+        "improved와 decreased 같은 동의 표현 처리가 중요합니다.",
+        "비시간적 clinical correctness를 평가하지는 않습니다.",
+      ],
+      figure: "report-temporal-f1",
+      complements: "Temporal F1은 concept label과 graph metric과 같이 읽어야 합니다.",
+    },
+    {
+      id: "chexbert-f1",
+      title: "CheXbert F1",
+      formula:
+        "\\mathrm{CheXbertF1}=\\frac{2\\,TP_{\\mathrm{label}}}{2\\,TP_{\\mathrm{label}}+FP_{\\mathrm{label}}+FN_{\\mathrm{label}}}",
+      meaning:
+        "CheXbert F1은 reference와 candidate report에서 추출한 고정 CXR finding label set을 비교합니다.",
+      features: [
+        "핵심 CXR finding이 언급됐는지 직접 비교합니다.",
+        "label presence/absence agreement로 읽기 쉽습니다.",
+        "report-generation benchmark table에서 자주 보입니다.",
+      ],
+      caveats: [
+        "label set이 제한됩니다.",
+        "severity, location, laterality, relation detail이 사라질 수 있습니다.",
+        "labeler 성능이 generator score에 섞입니다.",
+      ],
+      figure: "report-chexbert-f1",
+      complements: "Location이 중요할 때는 CheXbert F1을 RadGraph F1과 같이 읽어야 합니다.",
+    },
+    {
+      id: "srr-bert-f1",
+      title: "SRR-BERT F1",
+      formula:
+        "\\mathrm{SRR}\\text{-}\\mathrm{BERTF1}=\\frac{2\\,TP_{55\\ labels}}{2\\,TP_{55\\ labels}+FP+FN}",
+      meaning:
+        "SRR-BERT F1은 CheXbert보다 넓은 CXR label vocabulary를 봅니다. 이 Playground proxy에서는 단순 side/change attribute에도 반응하게 해 coarse finding label보다 더 세밀한 granularity를 보여줍니다.",
+      features: [
+        "14-label setup보다 더 넓은 label coverage를 제공합니다.",
+        "reference와 candidate의 extracted label 및 단순 attribute를 비교하므로 직관적입니다.",
+        "benchmark label granularity가 더 필요할 때 유용합니다.",
+      ],
+      caveats: [
+        "여전히 label-vocabulary metric입니다.",
+        "level mismatch, severity, location, relation error가 남을 수 있습니다.",
+        "extractor 오류를 그대로 물려받습니다.",
+      ],
+      figure: "report-srr-bert-f1",
+      complements: "SRR-BERT F1은 graph metric과 error-category metric과 같이 읽어야 합니다.",
     },
     {
       id: "graph-f1",
@@ -85,14 +182,14 @@ export const reportGenerationLearnKo: LearnContent = {
       complements: "RadGraph F1은 GREEN 또는 CRIMSON 스타일 error category와 같이 읽어야 합니다.",
     },
     {
-      id: "llm-evaluators",
-      title: "GREEN · CRIMSON",
+      id: "green",
+      title: "GREEN",
       formula: "\\mathrm{ErrorScore} = \\sum_i w_i\\,\\mathbf{1}[\\mathrm{error}_i]",
       meaning:
-        "이 metric family는 clinical error category를 보기 때문에 false finding, omission, location error, severity error, comparison/change error가 생길 때 반응합니다.",
+        "GREEN은 false finding, omission, location error, severity error, 없는 comparison/change, comparison/change 누락 같은 clinical error category를 봅니다.",
       features: [
         "임상적으로 의미 있는 error category를 표현할 수 있습니다.",
-        "모든 mismatch를 똑같이 보지 않고 patient-safety impact를 가중할 수 있습니다.",
+        "matched finding과 significant error를 한 notation에서 보여줍니다.",
         "reviewer-facing qualitative error analysis에 유용합니다.",
       ],
       caveats: [
@@ -100,8 +197,27 @@ export const reportGenerationLearnKo: LearnContent = {
         "LLM judge는 training data의 blind spot을 물려받을 수 있습니다.",
         "static dashboard에서는 precomputed example만 보여주고 live LLM judge는 돌리지 않습니다.",
       ],
-      figure: "report-llm-evaluator",
-      complements: "Learned evaluator는 deterministic concept row와 reader study와 같이 읽어야 합니다.",
+      figure: "report-green",
+      complements: "GREEN은 patient context가 severity를 바꾸는 경우 CRIMSON과 같이 읽어야 합니다.",
+    },
+    {
+      id: "crimson",
+      title: "CRIMSON",
+      formula: "\\mathrm{CRIMSON}=f(\\mathrm{error},\\mathrm{context},\\mathrm{severity})",
+      meaning:
+        "CRIMSON은 error category에 patient context와 severity weighting을 붙여 봅니다. 단순 match count보다 patient-safety relevance를 보려는 LLM-as-a-judge 계열입니다.",
+      features: [
+        "indication, age, sex, guideline 같은 patient context를 입력으로 사용할 수 있습니다.",
+        "negligible finding은 낮게 보고 significant error는 더 크게 볼 수 있습니다.",
+        "diagnosis accuracy, context fit, patient safety 축으로 평가를 구성합니다.",
+      ],
+      caveats: [
+        "judge model, prompt, local calibration에 의존합니다.",
+        "deterministic label metric보다 재현하기 어렵습니다.",
+        "static dashboard는 구조만 보여주고 live LLM judge는 돌리지 않습니다.",
+      ],
+      figure: "report-crimson",
+      complements: "CRIMSON은 deterministic automatic metric과 reader study와 같이 읽어야 합니다.",
     },
     {
       id: "clinical-acceptance",

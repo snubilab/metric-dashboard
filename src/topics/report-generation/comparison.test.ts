@@ -21,7 +21,8 @@ describe("report generation scenarios", () => {
   });
 
   it("each scenario explains which metric-observed unit caused the flip", () => {
-    const required = /lexical|assertion|laterality|temporal|entity|Lexical|Temporal|RaTEscore/;
+    const required =
+      /lexical|assertion|laterality|temporal|entity|Lexical|Temporal|RaTEscore|METEOR|GREEN|CRIMSON|label|attribute/;
     for (const scenario of reportGenerationScenarios) {
       expect(scenario.teachingPoint).toMatch(required);
     }
