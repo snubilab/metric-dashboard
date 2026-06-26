@@ -240,6 +240,14 @@ export default function RegressionPlayground() {
     setResidual("");
   }
 
+  function resetPlayground(): void {
+    setPoints([]);
+    setActivePreset(undefined);
+    setTarget("");
+    setPrediction("");
+    setResidual("");
+  }
+
   return (
     <div style={pageStyle}>
       <span style={stepStyle}>{t.step}</span>
@@ -284,7 +292,7 @@ export default function RegressionPlayground() {
               <input style={inputStyle} type="number" value={residual} onChange={(event) => setResidual(event.currentTarget.value)} />
             </label>
             <button type="button" style={buttonStyle} onClick={addResidualPoint}>{t.addResidual}</button>
-            <button type="button" style={buttonStyle} onClick={() => { setPoints([]); setActivePreset(undefined); }}>{t.reset}</button>
+            <button type="button" style={buttonStyle} onClick={resetPlayground}>{t.reset}</button>
           </div>
           {points.length === 0 ? <p style={textStyle}>{t.empty}</p> : null}
           <RegressionPlot points={points} ariaLabel={t.metrics} />
