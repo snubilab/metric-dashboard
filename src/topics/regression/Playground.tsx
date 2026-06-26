@@ -248,6 +248,14 @@ export default function RegressionPlayground() {
     setResidual("");
   }
 
+  function loadPreset(presetId: string, presetPoints: readonly RegressionPoint[]): void {
+    setPoints(clonePoints(presetPoints));
+    setActivePreset(presetId);
+    setTarget("");
+    setPrediction("");
+    setResidual("");
+  }
+
   return (
     <div style={pageStyle}>
       <span style={stepStyle}>{t.step}</span>
@@ -261,10 +269,7 @@ export default function RegressionPlayground() {
               type="button"
               aria-pressed={activePreset === preset.id}
               style={activePreset === preset.id ? activePresetCardStyle : presetCardStyle}
-              onClick={() => {
-                setPoints(clonePoints(preset.points));
-                setActivePreset(preset.id);
-              }}
+              onClick={() => loadPreset(preset.id, preset.points)}
             >
               <RegressionPresetThumbnail points={preset.points} />
               <span style={presetLabelStyle}>{lang === "ko" ? preset.labelKo : preset.label}</span>

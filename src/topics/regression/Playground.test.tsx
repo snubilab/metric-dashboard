@@ -23,6 +23,20 @@ describe("RegressionPlayground", () => {
     expect(screen.getByText("One large residual pulls RMSE away from MAE.")).toBeInTheDocument();
   });
 
+  it("loading a preset clears stale draft inputs", async () => {
+    renderPlayground();
+
+    await userEvent.type(screen.getByLabelText("Target"), "7");
+    await userEvent.type(screen.getByLabelText("Prediction"), "8");
+    await userEvent.type(screen.getByLabelText("Residual"), "1");
+    await userEvent.click(screen.getByRole("button", { name: "One outlier" }));
+
+    expect(screen.getByLabelText("Target")).toHaveValue(null);
+    expect(screen.getByLabelText("Prediction")).toHaveValue(null);
+    expect(screen.getByLabelText("Residual")).toHaveValue(null);
+    expect(screen.getByText("One large residual pulls RMSE away from MAE.")).toBeInTheDocument();
+  });
+
   it("reset clears loaded data and draft inputs", async () => {
     renderPlayground();
 
