@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-export type Theme = "light" | "dark";
+type Theme = "light" | "dark";
 
 const STORAGE_KEY = "md-theme";
 const DEFAULT_THEME: Theme = "light";
@@ -45,7 +45,7 @@ function applyTheme(theme: Theme): void {
  * Manage the active theme. Restores the persisted choice on mount and keeps
  * <html> + localStorage in sync whenever the theme changes.
  */
-export function useTheme(): { theme: Theme; toggleTheme: () => void } {
+function useTheme(): { theme: Theme; toggleTheme: () => void } {
   const [theme, setTheme] = useState<Theme>(readStoredTheme);
 
   useEffect(() => {
@@ -62,24 +62,18 @@ export function useTheme(): { theme: Theme; toggleTheme: () => void } {
 const buttonStyle: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
-  gap: "var(--space-2)",
-  padding: "var(--space-2) var(--space-3)",
+  justifyContent: "center",
+  width: 38,
+  height: 36,
+  padding: 0,
   fontFamily: "var(--font-ui)",
   fontSize: "var(--text-sm)",
-  color: "var(--c-text)",
-  background: "var(--c-surface)",
-  border: "1px solid var(--c-border)",
-  borderRadius: "var(--radius-md)",
+  color: "var(--text-tertiary)",
+  background: "var(--bg-primary)",
+  border: "1px solid var(--border-secondary)",
+  borderRadius: "var(--radius-lg)",
+  boxShadow: "var(--shadow-xs)",
   cursor: "pointer",
-};
-
-const glyphStyle: React.CSSProperties = {
-  fontSize: "var(--text-base)",
-  lineHeight: 1,
-};
-
-const labelStyle: React.CSSProperties = {
-  fontWeight: 500,
 };
 
 export function ThemeToggle() {
@@ -96,10 +90,27 @@ export function ThemeToggle() {
       title={`Switch to ${nextTheme} theme`}
       style={buttonStyle}
     >
-      <span aria-hidden="true" style={glyphStyle}>
-        {isDark ? "☾" : "☀"}
-      </span>
-      <span style={labelStyle}>{isDark ? "Dark" : "Light"}</span>
+      {isDark ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 3v2.2M12 18.8V21M5.64 5.64 7.2 7.2M16.8 16.8l1.56 1.56M3 12h2.2M18.8 12H21M5.64 18.36 7.2 16.8M16.8 7.2l1.56-1.56M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M20.2 14.2A7.2 7.2 0 0 1 9.8 3.8 8.5 8.5 0 1 0 20.2 14.2Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
     </button>
   );
 }

@@ -27,6 +27,14 @@ import PrCurveFigure from "./PrCurveFigure";
 import ApThresholdFigure from "./ApThresholdFigure";
 import FrocFigure from "./FrocFigure";
 import SensAtFpFigure from "./SensAtFpFigure";
+import ClassificationConfusionMatrixFigure from "./ClassificationConfusionMatrixFigure";
+import {
+  ClassificationConfusionFigure,
+  ClassificationCurveFigure,
+  ClassificationThresholdFigure,
+} from "./ClassificationFigures";
+import RegressionErrorFigure from "./RegressionErrorFigure";
+import RegressionFitFigure from "./RegressionFitFigure";
 
 interface MetricFigureProps {
   /** Figure key from the contract; unknown/undefined renders nothing. */
@@ -54,6 +62,12 @@ const FIGURES: Record<string, ComponentType> = {
   "ap-threshold": ApThresholdFigure,
   "froc-fig": FrocFigure,
   sensatfp: SensAtFpFigure,
+  "classification-confusion-matrix": ClassificationConfusionMatrixFigure,
+  "cls-confusion": ClassificationConfusionFigure,
+  "cls-threshold": ClassificationThresholdFigure,
+  "cls-curves": ClassificationCurveFigure,
+  "reg-error": RegressionErrorFigure,
+  "reg-fit": RegressionFitFigure,
 };
 
 const L = {
@@ -65,10 +79,10 @@ const frameStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "var(--space-2)",
-  padding: "var(--space-3) var(--space-4)",
-  background: "var(--c-surface-2)",
-  border: "1px solid var(--c-border)",
-  borderRadius: "var(--radius-md)",
+  padding: "14px 16px",
+  background: "var(--bg-secondary)",
+  border: "1px solid var(--border-secondary)",
+  borderRadius: "var(--radius-xl)",
 };
 
 const captionStyle: React.CSSProperties = {
@@ -77,8 +91,8 @@ const captionStyle: React.CSSProperties = {
   fontSize: "var(--text-xs)",
   fontWeight: 600,
   textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "var(--c-text-dim)",
+  letterSpacing: 0,
+  color: "var(--text-quaternary)",
 };
 
 export function MetricFigure({ figure }: MetricFigureProps) {

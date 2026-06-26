@@ -1,0 +1,101 @@
+import type { LearnContent } from "../../types/topic";
+export const regressionLearn: LearnContent = {
+  intro:
+    "Image Regression evaluates continuous targets such as age, volume, intensity, ADC, or risk scores. The useful question is not a single verdict; it is which failure mode each metric makes visible: error magnitude, outlier sensitivity, bias direction, explained variance, linear association, or monotonic association.",
+  sections: [
+    {
+      id: "mae",
+      title: "MAE — Mean Absolute Error",
+      formula: "\\mathrm{MAE}=\\frac{1}{n}\\sum_i |\\hat y_i-y_i|",
+      figure: "reg-error",
+      meaning: "MAE is the average absolute residual, so it stays in the same unit as the target.",
+      features: [
+        "Directly reads as a typical absolute error.",
+        "Less dominated by a single large residual than MSE or RMSE.",
+      ],
+      caveats: [
+        "It hides whether the model tends to over-predict or under-predict; mean signed bias answers that.",
+        "It can understate rare large residuals that matter clinically; RMSE makes those more visible.",
+      ],
+      complements: "Pairs with RMSE for outlier sensitivity and mean signed bias for direction.",
+    },
+    {
+      id: "mse",
+      title: "MSE — Mean Squared Error",
+      formula: "\\mathrm{MSE}=\\frac{1}{n}\\sum_i (\\hat y_i-y_i)^2",
+      figure: "reg-error",
+      meaning: "MSE squares each residual before averaging, so large residuals receive much more weight.",
+      features: ["Useful as an optimization loss because it is smooth.", "Makes large misses numerically prominent."],
+      caveats: ["The unit is squared, so it is less directly interpretable than MAE or RMSE."],
+      complements: "Pairs with RMSE when the same target unit is needed for communication.",
+    },
+    {
+      id: "rmse",
+      title: "RMSE — Root Mean Squared Error",
+      formula: "\\mathrm{RMSE}=\\sqrt{\\frac{1}{n}\\sum_i (\\hat y_i-y_i)^2}",
+      figure: "reg-error",
+      meaning: "RMSE is the square root of MSE, returning to the target unit while keeping extra sensitivity to large residuals.",
+      features: ["Always at least MAE on the same cases.", "A large RMSE-MAE gap signals residuals with a heavy tail."],
+      caveats: ["A single outlier can drive the headline number; check MAE and a residual plot beside it."],
+      complements: "Pairs with MAE to separate typical error from outlier-driven error.",
+    },
+    {
+      id: "r2",
+      title: "R² — coefficient of determination",
+      formula: "R^2=1-\\frac{\\sum_i (y_i-\\hat y_i)^2}{\\sum_i (y_i-\\bar y)^2}",
+      figure: "reg-fit",
+      meaning: "R² compares residual error to the variance of the target values.",
+      features: ["Shows how much target variation the predictions track relative to the target mean."],
+      caveats: ["It can stay substantial while a clinically meaningful bias remains; read mean signed bias too."],
+      complements: "Pairs with mean signed bias and MAE because variance tracking is not calibration of the numeric scale.",
+    },
+    {
+      id: "bias",
+      title: "Mean signed bias",
+      formula: "\\mathrm{Bias}=\\frac{1}{n}\\sum_i (\\hat y_i-y_i)",
+      figure: "reg-fit",
+      meaning: "Mean signed bias keeps the sign of the residuals, showing whether predictions shift high or low on average.",
+      features: ["Positive values indicate over-prediction; negative values indicate under-prediction."],
+      caveats: ["Opposite-signed residuals can cancel, so pair it with MAE or RMSE for magnitude."],
+      complements: "Pairs with Pearson r because a strong linear association can still be shifted.",
+    },
+    {
+      id: "pearson",
+      title: "Pearson r",
+      formula: "r=\\frac{\\mathrm{cov}(y,\\hat y)}{\\sigma_y\\sigma_{\\hat y}}",
+      figure: "reg-fit",
+      meaning: "Pearson r measures linear association and direction between target and prediction.",
+      features: ["Sensitive to straight-line agreement in ordering and scale."],
+      caveats: ["A constant shift can leave r unchanged; nonlinear monotonic patterns can have lower r than their rank agreement suggests."],
+      complements: "Pairs with Spearman ρ to separate linear association from monotonic association.",
+    },
+    {
+      id: "spearman",
+      title: "Spearman ρ",
+      formula: "\\rho=\\mathrm{corr}(\\mathrm{rank}(y),\\mathrm{rank}(\\hat y))",
+      figure: "reg-fit",
+      meaning: "Spearman ρ computes correlation after converting values to ranks, so it asks whether the ordering is monotonic.",
+      features: ["Can stay high for curved relationships that preserve order."],
+      caveats: ["It ignores calibration of the numeric scale; use MAE, RMSE, and bias for value-level error."],
+      complements: "Pairs with Pearson r when order matters clinically but linear scale also matters.",
+    },
+  ],
+  complementarity: {
+    intro:
+      "Regression metrics are complementary because they answer different questions about the same residuals.",
+    pairs: [
+      { blindSpot: "Typical error without outlier emphasis", blindMetric: "MAE", caughtBy: "RMSE" },
+      { blindSpot: "Magnitude without direction", blindMetric: "MAE / RMSE", caughtBy: "Mean signed bias" },
+      { blindSpot: "Linear tracking without numeric shift", blindMetric: "Pearson r", caughtBy: "Mean signed bias" },
+      { blindSpot: "Linear-only association", blindMetric: "Pearson r", caughtBy: "Spearman ρ" },
+    ],
+    benchmarks: [
+      {
+        name: "Regression report",
+        task: "Continuous medical-image target",
+        combination: "MAE + RMSE + R² + bias + Pearson r + Spearman ρ",
+        perspective: "Magnitude, tail residuals, variance, shift, and association are read together.",
+      },
+    ],
+  },
+};

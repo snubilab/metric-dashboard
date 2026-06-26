@@ -35,48 +35,55 @@ function sectionDomId(id: string): string {
 const rootStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "var(--space-8)",
+  gap: "18px",
   fontFamily: "var(--font-ui)",
   color: "var(--c-text)",
-  maxWidth: "72ch",
+  maxWidth: "920px",
 };
 
 const introStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: "var(--text-base)",
+  padding: "16px 18px",
+  fontSize: "var(--text-sm)",
   lineHeight: 1.6,
-  color: "var(--c-text)",
+  color: "var(--text-brand-primary)",
+  background: "var(--bg-brand-primary)",
+  border: "1px solid var(--border-brand)",
+  borderRadius: "var(--radius-xl)",
 };
 
 const sectionStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "var(--space-3)",
-  paddingTop: "var(--space-6)",
-  borderTop: "1px solid var(--c-border)",
+  gap: "15px",
+  padding: "22px 24px",
+  background: "var(--bg-primary)",
+  border: "1px solid var(--border-secondary)",
+  borderRadius: "14px",
+  boxShadow: "var(--shadow-xs)",
 };
 
 const titleStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "var(--text-lg)",
-  color: "var(--c-text)",
+  color: "var(--text-primary)",
 };
 
 const formulaStyle: React.CSSProperties = {
   margin: 0,
-  padding: "var(--space-3) var(--space-4)",
+  padding: "12px 15px",
   overflowX: "auto",
-  background: "var(--c-surface)",
-  border: "1px solid var(--c-border)",
-  borderRadius: "var(--radius-md)",
-  color: "var(--c-text)",
+  background: "var(--bg-secondary)",
+  border: "1px solid var(--border-secondary)",
+  borderRadius: "var(--radius-lg)",
+  color: "var(--text-primary)",
 };
 
 const meaningStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: "var(--text-base)",
+  fontSize: "var(--text-sm)",
   lineHeight: 1.6,
-  color: "var(--c-text)",
+  color: "var(--text-secondary)",
 };
 
 const subListLabelStyle: React.CSSProperties = {
@@ -84,8 +91,8 @@ const subListLabelStyle: React.CSSProperties = {
   fontSize: "var(--text-xs)",
   fontWeight: 600,
   textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "var(--c-text-dim)",
+  letterSpacing: 0,
+  color: "var(--text-quaternary)",
 };
 
 const listStyle: React.CSSProperties = {
@@ -96,7 +103,7 @@ const listStyle: React.CSSProperties = {
   gap: "var(--space-1)",
   fontSize: "var(--text-sm)",
   lineHeight: 1.5,
-  color: "var(--c-text)",
+  color: "var(--text-secondary)",
 };
 
 /** List variant with a leading icon per item (no bullet). */
@@ -115,7 +122,7 @@ const iconItemStyle: React.CSSProperties = {
 
 /** Leading markers: a check on features, a warning on caveats (per request). */
 const FEATURE_ICON = "✓";
-const CAVEAT_ICON = "⚠️";
+const CAVEAT_ICON = "⚠";
 
 /** Inline metric link rendered as a reset button styled like a text link. */
 const metricLinkStyle: React.CSSProperties = {
@@ -123,7 +130,7 @@ const metricLinkStyle: React.CSSProperties = {
   border: "none",
   padding: 0,
   font: "inherit",
-  color: "var(--c-pred-a)",
+  color: "var(--tint-a-fg)",
   textDecoration: "underline",
   textUnderlineOffset: "2px",
   cursor: "pointer",
@@ -154,10 +161,10 @@ const calloutStyle: React.CSSProperties = {
   flexDirection: "column",
   gap: "var(--space-1)",
   padding: "var(--space-3) var(--space-4)",
-  background: "var(--c-surface-2)",
-  border: "1px solid var(--c-border)",
-  borderLeft: "3px solid var(--c-pred-b)",
-  borderRadius: "var(--radius-md)",
+  background: "var(--tint-b-bg)",
+  border: "1px solid var(--bg-warning-secondary)",
+  borderLeft: "3px solid var(--tint-b-fg)",
+  borderRadius: "var(--radius-lg)",
 };
 
 const calloutLabelStyle: React.CSSProperties = {
@@ -165,25 +172,26 @@ const calloutLabelStyle: React.CSSProperties = {
   fontSize: "var(--text-xs)",
   fontWeight: 600,
   textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "var(--c-pred-b)",
+  letterSpacing: 0,
+  color: "var(--tint-b-fg)",
 };
 
 const calloutTextStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "var(--text-sm)",
   lineHeight: 1.5,
-  color: "var(--c-text)",
+  color: "var(--text-secondary)",
 };
 
 const complementaritySectionStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "var(--space-6)",
-  paddingTop: "var(--space-6)",
-  // Keep the final benchmark row from sitting flush against the page bottom.
-  paddingBottom: "var(--space-8)",
-  borderTop: "1px solid var(--c-border)",
+  padding: "22px 24px var(--space-8)",
+  background: "var(--bg-primary)",
+  border: "1px solid var(--border-secondary)",
+  borderRadius: "14px",
+  boxShadow: "var(--shadow-xs)",
 };
 
 /** Render a KaTeX formula to a sanitizable HTML string; never throws. */
@@ -196,10 +204,18 @@ function renderFormula(formula: string): string {
  * links that jump to that metric's section. A token pointing at the section it
  * already sits in (`currentId`) stays plain text — no self-links.
  */
-function MetricText({ text, currentId }: { text: string; currentId: string }) {
+function MetricText({
+  text,
+  currentId,
+  sectionIds,
+}: {
+  text: string;
+  currentId: string;
+  sectionIds: ReadonlySet<string>;
+}) {
   return (
     <>
-      {splitMetricText(text).map((seg, i) =>
+      {splitMetricText(text, sectionIds).map((seg, i) =>
         seg.sectionId && seg.sectionId !== currentId ? (
           <button
             key={i}
@@ -223,10 +239,12 @@ function LabeledList({
   currentId,
   icon,
   iconColor,
+  sectionIds,
 }: {
   label: string;
   items: string[];
   currentId: string;
+  sectionIds: ReadonlySet<string>;
   icon?: string;
   iconColor?: string;
 }) {
@@ -245,7 +263,7 @@ function LabeledList({
               </span>
             )}
             <span>
-              <MetricText text={item} currentId={currentId} />
+              <MetricText text={item} currentId={currentId} sectionIds={sectionIds} />
             </span>
           </li>
         ))}
@@ -254,7 +272,15 @@ function LabeledList({
   );
 }
 
-function Section({ section, lang }: { section: MetricSection; lang: Lang }) {
+function Section({
+  section,
+  lang,
+  sectionIds,
+}: {
+  section: MetricSection;
+  lang: Lang;
+  sectionIds: ReadonlySet<string>;
+}) {
   return (
     <section id={sectionDomId(section.id)} style={sectionStyle}>
       <h3 style={titleStyle}>{section.title}</h3>
@@ -268,12 +294,13 @@ function Section({ section, lang }: { section: MetricSection; lang: Lang }) {
       )}
       {section.figure && <MetricFigure figure={section.figure} />}
       <p style={meaningStyle}>
-        <MetricText text={section.meaning} currentId={section.id} />
+        <MetricText text={section.meaning} currentId={section.id} sectionIds={sectionIds} />
       </p>
       <LabeledList
         label={L[lang].featuresLabel}
         items={section.features}
         currentId={section.id}
+        sectionIds={sectionIds}
         icon={FEATURE_ICON}
         iconColor="var(--c-gt-text)"
       />
@@ -281,13 +308,14 @@ function Section({ section, lang }: { section: MetricSection; lang: Lang }) {
         label={L[lang].caveatsLabel}
         items={section.caveats}
         currentId={section.id}
+        sectionIds={sectionIds}
         icon={CAVEAT_ICON}
       />
       {section.complements && (
         <div style={calloutStyle}>
           <h4 style={calloutLabelStyle}>{L[lang].complementsLabel}</h4>
           <p style={calloutTextStyle}>
-            <MetricText text={section.complements} currentId={section.id} />
+            <MetricText text={section.complements} currentId={section.id} sectionIds={sectionIds} />
           </p>
         </div>
       )}
@@ -319,9 +347,11 @@ function ComplementaritySection({
  */
 function useActiveSection(sectionIds: string[]): string | undefined {
   const [activeId, setActiveId] = useState<string | undefined>(undefined);
+  const sectionKey = sectionIds.join("|");
 
   useEffect(() => {
-    if (typeof IntersectionObserver === "undefined" || sectionIds.length === 0) {
+    const ids = sectionKey ? sectionKey.split("|") : [];
+    if (typeof IntersectionObserver === "undefined" || ids.length === 0) {
       return;
     }
     const observer = new IntersectionObserver(
@@ -335,14 +365,14 @@ function useActiveSection(sectionIds: string[]): string | undefined {
       },
       { rootMargin: "0px 0px -60% 0px" },
     );
-    for (const id of sectionIds) {
+    for (const id of ids) {
       const element = document.getElementById(sectionDomId(id));
       if (element) {
         observer.observe(element);
       }
     }
     return () => observer.disconnect();
-  }, [sectionIds.join("|")]);
+  }, [sectionKey]);
 
   return activeId;
 }
@@ -357,6 +387,7 @@ export function LearnView({ topic }: LearnViewProps) {
   const { lang } = useLang();
   const learn = lang === "ko" && topic.learnKo ? topic.learnKo : topic.learn;
   const sections = learn?.sections ?? [];
+  const sectionIdSet = new Set(sections.map((section) => section.id));
   // The metric sections, plus the topic-level complementarity section ("보완책")
   // when present — so the floating nav can jump to "how metrics complement
   // each other" too, and it highlights when scrolled into view.
@@ -375,7 +406,7 @@ export function LearnView({ topic }: LearnViewProps) {
     <div style={rootStyle}>
       <p style={introStyle}>{learn.intro}</p>
       {learn.sections.map((section) => (
-        <Section key={section.id} section={section} lang={lang} />
+        <Section key={section.id} section={section} lang={lang} sectionIds={sectionIdSet} />
       ))}
       {learn.complementarity && (
         <ComplementaritySection complementarity={learn.complementarity} lang={lang} />

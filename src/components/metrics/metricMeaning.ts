@@ -27,6 +27,38 @@ const METRIC_MEANINGS: Record<string, Record<Lang, string>> = {
     ko: "예측 중 실제로 정답인 비율",
     en: "Fraction of predicted region that is correct",
   },
+  specificity: {
+    ko: "실제 음성 중 음성으로 걸러낸 비율",
+    en: "Fraction of actual negatives rejected",
+  },
+  ppv: {
+    ko: "예측 양성 중 실제 양성의 비율",
+    en: "Fraction of predicted positives that are actual positives",
+  },
+  npv: {
+    ko: "예측 음성 중 실제 음성의 비율",
+    en: "Fraction of predicted negatives that are actual negatives",
+  },
+  accuracy: {
+    ko: "전체 사례 중 맞춘 비율",
+    en: "Fraction of all cases labeled correctly",
+  },
+  balancedAccuracy: {
+    ko: "민감도와 특이도의 평균",
+    en: "Average of sensitivity and specificity",
+  },
+  f1: {
+    ko: "Precision과 Recall의 조화평균",
+    en: "Harmonic mean of precision and recall",
+  },
+  auroc: {
+    ko: "ROC 곡선 아래 면적",
+    en: "Area under the ROC curve",
+  },
+  ap: {
+    ko: "PR 순위 곡선의 평균 precision 요약",
+    en: "Average precision summary of the PR ranking curve",
+  },
   nsd: {
     ko: "허용 오차 내 경계 일치 정도(표면 Dice)",
     en: "Boundary agreement within a tolerance (surface Dice)",

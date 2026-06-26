@@ -21,8 +21,12 @@ import { MetricTable } from "../components/MetricTable";
 import { ShapeCanvas } from "../components/canvas/ShapeCanvas";
 import { useEngineMetrics } from "../components/metrics/useEngineMetrics";
 import { detComparisonRows } from "../components/metrics/detComparisonRows";
+import { classificationComparisonRows } from "../components/metrics/classificationComparisonRows";
 import { useLang } from "../i18n/LanguageContext";
 import type { Lang } from "../i18n/LanguageContext";
+import { RegressionMetricTable } from "../topics/regression/RegressionMetricTable";
+import { RegressionPlot } from "../topics/regression/RegressionPlot";
+import { regressionComparisonRows } from "../topics/regression/scenarioRows";
 
 interface ScenariosViewProps {
   topic: Topic;
@@ -42,6 +46,14 @@ const L = {
     gtBox: "정답(GT)",
     tpBox: "일치(TP)",
     fpBox: "위양성(FP)",
+    clsCanvasLabel: "분류 점수 미리보기",
+    clsModelA: "모델 A",
+    clsModelB: "모델 B",
+    actualPositive: "실제 양성",
+    actualNegative: "실제 음성",
+    threshold: "임계값",
+    regressionCanvasLabel: "회귀 산점도",
+    targetLine: "목표=예측",
   },
   en: {
     teachingPoint: "Teaching point",
@@ -56,12 +68,20 @@ const L = {
     gtBox: "ground truth (GT)",
     tpBox: "matched (TP)",
     fpBox: "false positive (FP)",
+    clsCanvasLabel: "Classification score preview",
+    clsModelA: "Model A",
+    clsModelB: "Model B",
+    actualPositive: "actual positive",
+    actualNegative: "actual negative",
+    threshold: "threshold",
+    regressionCanvasLabel: "Regression scatter plot",
+    targetLine: "target=prediction",
   },
 } as const;
 
 const galleryStyle: React.CSSProperties = {
   display: "grid",
-  gap: "var(--space-6)",
+  gap: "20px",
   fontFamily: "var(--font-ui)",
   color: "var(--c-text)",
 };
@@ -83,16 +103,17 @@ const cardStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "var(--space-4)",
-  padding: "var(--space-6)",
-  background: "var(--c-surface)",
-  border: "1px solid var(--c-border)",
-  borderRadius: "var(--radius-md)",
+  padding: "22px 24px",
+  background: "var(--bg-primary)",
+  border: "1px solid var(--border-secondary)",
+  borderRadius: "var(--radius-2xl)",
+  boxShadow: "var(--shadow-xs)",
 };
 
 const cardTitleStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "var(--text-lg)",
-  color: "var(--c-text)",
+  color: "var(--text-primary)",
 };
 
 const teachingLabelStyle: React.CSSProperties = {
@@ -100,27 +121,27 @@ const teachingLabelStyle: React.CSSProperties = {
   fontSize: "var(--text-xs)",
   fontWeight: 600,
   textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "var(--c-text-dim)",
+  letterSpacing: 0,
+  color: "var(--text-quaternary)",
 };
 
 const teachingStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "var(--text-sm)",
   lineHeight: 1.55,
-  color: "var(--c-text)",
+  color: "var(--text-secondary)",
 };
 
 const referenceStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "var(--text-xs)",
   lineHeight: 1.5,
-  color: "var(--c-text-dim)",
+  color: "var(--text-quaternary)",
 };
 
 const previewStyle: React.CSSProperties = {
   paddingTop: "var(--space-4)",
-  borderTop: "1px solid var(--c-border)",
+  borderTop: "1px solid var(--border-secondary)",
 };
 
 const emptyStyle: React.CSSProperties = {
@@ -142,7 +163,7 @@ const legendStyle: React.CSSProperties = {
   gap: "var(--space-4)",
   fontFamily: "var(--font-ui)",
   fontSize: "var(--text-xs)",
-  color: "var(--c-text-dim)",
+  color: "var(--text-quaternary)",
 };
 
 const legendItemStyle: React.CSSProperties = {
@@ -229,8 +250,8 @@ const detCaptionStyle: React.CSSProperties = {
   fontSize: "var(--text-xs)",
   fontWeight: 600,
   textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "var(--c-text-dim)",
+  letterSpacing: 0,
+  color: "var(--text-quaternary)",
   fontFamily: "var(--font-ui)",
 };
 
@@ -255,8 +276,116 @@ function DetectionBoxLegend({ lang }: { lang: Lang }) {
   );
 }
 
+function ClassificationLegend({ lang }: { lang: Lang }) {
+  const t = L[lang];
+  return (
+    <div style={legendStyle}>
+      <span style={legendItemStyle}>
+        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-gt)")} />
+        <span style={nameStyle("var(--c-gt-text)")}>{t.actualPositive}</span>
+      </span>
+      <span style={legendItemStyle}>
+        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-pred-b)")} />
+        <span style={nameStyle("var(--c-pred-b-text)")}>{t.actualNegative}</span>
+      </span>
+      <span style={legendItemStyle}>
+        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-warn)")} />
+        <span style={nameStyle("var(--c-warn-text)")}>{t.threshold}</span>
+      </span>
+    </div>
+  );
+}
+
+function ClassificationScorePreview({ scenario, lang }: { scenario: Scenario; lang: Lang }) {
+  const data = scenario.state.classification;
+  if (!data) return null;
+  const rows = classificationComparisonRows(data.cases, data.thresholdA, data.thresholdB);
+  const width = 300;
+  const height = 126;
+  const scaleX = (score: number) => 44 + score * 220;
+  return (
+    <div style={segPreviewStyle}>
+      <svg
+        width="100%"
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={L[lang].clsCanvasLabel}
+        style={{ fontFamily: "var(--font-ui)", fontSize: "var(--text-xs)" }}
+      >
+        {[44, 264].map((x) => (
+          <line key={x} x1={x} y1={20} x2={x} y2={100} stroke="var(--c-border)" />
+        ))}
+        <line x1={44} y1={42} x2={264} y2={42} stroke="var(--c-border)" />
+        <line x1={44} y1={84} x2={264} y2={84} stroke="var(--c-border)" />
+        <line x1={scaleX(data.thresholdA)} y1={26} x2={scaleX(data.thresholdA)} y2={58} stroke="var(--c-warn)" strokeDasharray="4 3" />
+        <line x1={scaleX(data.thresholdB)} y1={68} x2={scaleX(data.thresholdB)} y2={100} stroke="var(--c-warn)" strokeDasharray="4 3" />
+        <text x={18} y={46} fill="var(--c-pred-a-text)" textAnchor="start">
+          {L[lang].clsModelA}
+        </text>
+        <text x={18} y={88} fill="var(--c-pred-b-text)" textAnchor="start">
+          {L[lang].clsModelB}
+        </text>
+        {data.cases.map((item, index) => {
+          const color = item.actual === "positive" ? "var(--c-gt)" : "var(--c-pred-b)";
+          const yA = 42 + ((index % 5) - 2) * 2.5;
+          const yB = 84 + ((index % 5) - 2) * 2.5;
+          return (
+            <g key={index}>
+              <circle cx={scaleX(item.scoreA)} cy={yA} r={2.5} fill={color} fillOpacity={0.72} />
+              <circle cx={scaleX(item.scoreB)} cy={yB} r={2.5} fill={color} fillOpacity={0.72} />
+            </g>
+          );
+        })}
+        <text x={44} y={118} fill="var(--c-text-dim)" textAnchor="middle">0</text>
+        <text x={264} y={118} fill="var(--c-text-dim)" textAnchor="middle">1</text>
+      </svg>
+      <ClassificationLegend lang={lang} />
+      <MetricTable rows={rows} />
+    </div>
+  );
+}
+
+function RegressionLegend({ lang }: { lang: Lang }) {
+  const t = L[lang];
+  return (
+    <div style={legendStyle}>
+      <span style={legendItemStyle}>
+        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-gt)")} />
+        <span style={nameStyle("var(--c-gt-text)")}>{t.targetLine}</span>
+      </span>
+      <span style={legendItemStyle}>
+        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-pred-a)")} />
+        <span style={nameStyle("var(--c-pred-a-text)")}>{t.predA}</span>
+      </span>
+      <span style={legendItemStyle}>
+        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-pred-b)")} />
+        <span style={nameStyle("var(--c-pred-b-text)")}>{t.predB}</span>
+      </span>
+    </div>
+  );
+}
+
 function ScenarioPreview({ scenario, lang }: { scenario: Scenario; lang: Lang }) {
   const { state } = scenario;
+  if (state.classification) {
+    return <ClassificationScorePreview scenario={scenario} lang={lang} />;
+  }
+  const regression = state.regression;
+  if (regression) {
+    const pointsB = regression.pointsB ?? [];
+    return (
+      <div style={segPreviewStyle}>
+        <RegressionPlot
+          points={regression.points}
+          pointsB={pointsB}
+          ariaLabel={L[lang].regressionCanvasLabel}
+        />
+        <RegressionLegend lang={lang} />
+        <RegressionMetricTable rows={regressionComparisonRows(regression.points, pointsB)} />
+      </div>
+    );
+  }
   const detections = state.detections;
   if (detections) {
     const { gtObjects, boxes, boxesB } = detections;

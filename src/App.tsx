@@ -66,15 +66,15 @@ const SHELL_CSS = `
    content-driven (auto) — so the tab width never jumps when toggling 한 / 영.
    English is the wider locale (longest label needs ~283px on one line); pinning
    to 18rem holds it without wrapping, and Korean (≈240px) sits within it. */
-.app-shell { display: grid; grid-template-columns: 18rem 1fr; height: 100svh; }
-.app-sidebar { width: 18rem; height: 100%; overflow-y: auto; border-right: 1px solid var(--c-border); }
+.app-shell { display: grid; grid-template-columns: 264px 1fr; height: 100svh; overflow: hidden; }
+.app-sidebar { width: 264px; height: 100%; overflow-y: auto; border-right: 1px solid var(--border-secondary); }
 .app-main { overflow: hidden; height: 100%; }
-.app-body { overflow-y: auto; padding: var(--space-8); }
-.app-credit { color: #000000; }
-[data-theme="dark"] .app-credit { color: #ffffff; }
+.app-body { overflow-y: auto; padding: 28px 32px; }
+.app-shell ::-webkit-scrollbar { width: 10px; height: 10px; }
+.app-shell ::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
 @media (max-width: 720px) {
   .app-shell { grid-template-columns: 1fr; height: auto; min-height: 100svh; }
-  .app-sidebar { min-width: 0; height: auto; max-height: 38vh; border-right: none; border-bottom: 1px solid var(--c-border); }
+  .app-sidebar { width: 100%; min-width: 0; height: auto; max-height: 38vh; border-right: none; border-bottom: 1px solid var(--border-secondary); }
   .app-main { overflow: visible; height: auto; }
   .app-body { padding: var(--space-4); overflow-y: visible; }
 }
@@ -95,21 +95,14 @@ const mainStyle: React.CSSProperties = {
 const headerStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "var(--space-4)",
-  padding: "var(--space-6) var(--space-8) 0",
-  borderBottom: "1px solid var(--c-border)",
-  background: "var(--c-bg)",
+  gap: "20px",
+  padding: "20px 32px 0",
+  borderBottom: "1px solid var(--border-secondary)",
+  background: "var(--bg-primary)",
 };
 
 /** Small attribution at the very top — color is theme-aware (black on light, white
  *  on dark) via the `.app-credit` class so it stays legible in both themes. */
-const creditStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: "var(--text-xs)",
-  fontFamily: "var(--font-ui)",
-  letterSpacing: "0.02em",
-};
-
 const CREDIT = "리더: 이주희 · 보조: 고예현";
 
 /** Lab homepage linked from the footer credit. */
@@ -118,15 +111,15 @@ const BILAB_URL = "http://bilab.snu.ac.kr";
 const footerStyle: React.CSSProperties = {
   marginTop: "var(--space-8)",
   paddingTop: "var(--space-4)",
-  borderTop: "1px solid var(--c-border)",
+  borderTop: "1px solid var(--border-secondary)",
   fontFamily: "var(--font-ui)",
   fontSize: "var(--text-xs)",
-  color: "var(--c-text-dim)",
+  color: "var(--text-quaternary)",
   textAlign: "center",
 };
 
 const footerLinkStyle: React.CSSProperties = {
-  color: "var(--c-pred-a)",
+  color: "var(--text-brand-tertiary)",
   textDecoration: "underline",
   textUnderlineOffset: "2px",
 };
@@ -135,7 +128,7 @@ const titleRowStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  gap: "var(--space-4)",
+  gap: "var(--space-3)",
 };
 
 const titleGroupStyle: React.CSSProperties = {
@@ -147,16 +140,22 @@ const titleGroupStyle: React.CSSProperties = {
 
 const titleStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: "var(--text-xl)",
-  color: "var(--c-text)",
+  fontSize: "26px",
+  lineHeight: 1.2,
+  fontWeight: 600,
+  letterSpacing: 0,
+  color: "var(--text-primary)",
 };
 
 const groupTagStyle: React.CSSProperties = {
+  padding: "4px 11px",
   fontSize: "var(--text-xs)",
-  fontFamily: "var(--font-mono)",
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "var(--c-text-dim)",
+  fontFamily: "var(--font-ui)",
+  fontWeight: 600,
+  lineHeight: 1,
+  color: "var(--text-brand-secondary)",
+  background: "var(--bg-brand-primary)",
+  borderRadius: "var(--radius-full)",
 };
 
 const tabBarStyle: React.CSSProperties = {
@@ -166,14 +165,14 @@ const tabBarStyle: React.CSSProperties = {
 
 function tabStyle(isActive: boolean, isEnabled: boolean): React.CSSProperties {
   return {
-    padding: "var(--space-2) var(--space-4)",
+    padding: "10px 16px 14px",
     fontFamily: "var(--font-ui)",
     fontSize: "var(--text-sm)",
-    fontWeight: isActive ? 600 : 400,
-    color: isActive ? "var(--c-text)" : "var(--c-text-dim)",
+    fontWeight: isActive ? 600 : 500,
+    color: isActive ? "var(--text-brand-secondary)" : "var(--text-tertiary)",
     background: "transparent",
     border: "none",
-    borderBottom: `2px solid ${isActive ? "var(--c-pred-a)" : "transparent"}`,
+    borderBottom: `2px solid ${isActive ? "var(--bg-brand-solid)" : "transparent"}`,
     cursor: isEnabled ? "pointer" : "not-allowed",
     opacity: isEnabled ? 1 : 0.5,
   };
@@ -276,10 +275,9 @@ function App() {
   return (
     <div className="app-shell" style={shellStyle}>
       <style>{SHELL_CSS}</style>
-      <Sidebar topics={topics} activeId={topic.id} onSelect={setSelectedId} />
+      <Sidebar topics={topics} activeId={topic.id} onSelect={setSelectedId} credit={CREDIT} />
       <main className="app-main" style={mainStyle}>
         <header style={headerStyle}>
-          <p className="app-credit" style={creditStyle}>{CREDIT}</p>
           <div style={titleRowStyle}>
             <div style={titleGroupStyle}>
               <h1 style={titleStyle}>{title}</h1>

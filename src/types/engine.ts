@@ -30,6 +30,24 @@ export interface PredictionLayer {
   shapes: Shape[];
 }
 
+export type BinaryClass = "positive" | "negative";
+
+export interface ClassificationCase {
+  actual: BinaryClass;
+  score: number;
+}
+
+export interface ClassificationComparisonCase {
+  actual: BinaryClass;
+  scoreA: number;
+  scoreB: number;
+}
+
+export interface RegressionPoint {
+  target: number;
+  prediction: number;
+}
+
 export interface EngineState {
   grid: Grid;
   gt: Shape[];
@@ -38,6 +56,12 @@ export interface EngineState {
   // Scenario comparison. The Playground uses only `boxes`; when `boxesB` is present
   // a Scenario renders the two detectors side by side with a rank-flip metric table.
   detections?: { boxes: DetBox[]; gtObjects: DetBox[]; boxesB?: DetBox[] };
+  classification?: {
+    cases: ClassificationComparisonCase[];
+    thresholdA: number;
+    thresholdB: number;
+  };
+  regression?: { points: RegressionPoint[]; pointsB?: RegressionPoint[] };
   policy: DegeneratePolicy;
   nsdToleranceMm?: number;
 }

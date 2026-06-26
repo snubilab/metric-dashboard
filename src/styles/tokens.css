@@ -13,7 +13,87 @@
  * All visual values in components MUST come from these custom properties.
  */
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400;1,14..32,500&family=Roboto+Mono:wght@400;500&display=swap");
+
 :root {
+  --color-white: #ffffff;
+  --color-gray-25: #fcfcfd;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f2f4f7;
+  --color-gray-200: #eaecf0;
+  --color-gray-300: #d0d5dd;
+  --color-gray-400: #98a2b3;
+  --color-gray-500: #667085;
+  --color-gray-600: #475467;
+  --color-gray-700: #344054;
+  --color-gray-800: #182230;
+  --color-gray-900: #101828;
+  --color-gray-950: #0c111d;
+  --color-brand-50: #f9f5ff;
+  --color-brand-100: #f4ebff;
+  --color-brand-200: #e9d7fe;
+  --color-brand-300: #d6bbfb;
+  --color-brand-500: #9e77ed;
+  --color-brand-600: #7f56d9;
+  --color-brand-700: #6941c6;
+  --color-brand-900: #42307d;
+  --color-error-50: #fef3f2;
+  --color-error-100: #fee4e2;
+  --color-error-200: #fecdca;
+  --color-error-600: #d92d20;
+  --color-warning-50: #fffaeb;
+  --color-warning-100: #fef0c7;
+  --color-warning-200: #fedf89;
+  --color-warning-600: #dc6803;
+  --color-success-50: #ecfdf3;
+  --color-success-100: #dcfae6;
+  --color-success-600: #079455;
+
+  --text-primary: var(--color-gray-900);
+  --text-secondary: var(--color-gray-700);
+  --text-tertiary: var(--color-gray-600);
+  --text-quaternary: var(--color-gray-500);
+  --text-brand-primary: var(--color-brand-900);
+  --text-brand-secondary: var(--color-brand-700);
+  --text-brand-tertiary: var(--color-brand-600);
+  --text-error-primary: var(--color-error-600);
+  --text-warning-primary: var(--color-warning-600);
+  --text-success-primary: var(--color-success-600);
+
+  --fg-brand-primary: var(--color-brand-600);
+  --fg-error-primary: var(--color-error-600);
+  --fg-warning-primary: var(--color-warning-600);
+  --fg-success-primary: var(--color-success-600);
+
+  --bg-primary: var(--color-white);
+  --bg-primary-alt: var(--color-white);
+  --bg-primary-hover: var(--color-gray-50);
+  --bg-secondary: var(--color-gray-50);
+  --bg-secondary-hover: var(--color-gray-100);
+  --bg-tertiary: var(--color-gray-100);
+  --bg-brand-primary: var(--color-brand-50);
+  --bg-brand-secondary: var(--color-brand-100);
+  --bg-brand-solid: var(--color-brand-600);
+  --bg-brand-solid-hover: var(--color-brand-700);
+  --bg-error-primary: var(--color-error-50);
+  --bg-error-secondary: var(--color-error-100);
+  --bg-warning-primary: var(--color-warning-50);
+  --bg-warning-secondary: var(--color-warning-100);
+  --bg-success-primary: var(--color-success-50);
+  --bg-success-secondary: var(--color-success-100);
+
+  --border-primary: var(--color-gray-300);
+  --border-secondary: var(--color-gray-200);
+  --border-tertiary: var(--color-gray-100);
+  --border-brand: var(--color-brand-300);
+  --tint-a-bg: #eff8ff;
+  --tint-a-fg: #175cd3;
+  --tint-b-bg: var(--bg-warning-primary);
+  --tint-b-fg: #b54708;
+
+  --shadow-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0px 1px 3px 0px rgba(16, 24, 40, 0.1), 0px 1px 2px 0px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1), 0px 2px 4px -2px rgba(16, 24, 40, 0.06);
   /* Data colors — colorblind-safe Okabe-Ito (theme-invariant) */
   --c-gt: #009e73; /* ground truth — bluish green */
   --c-pred-a: #0072b2; /* prediction A — blue */
@@ -30,24 +110,24 @@
                                anti-aliased label strokes render lighter; ~5.2:1 here */
 
   /* Neutrals — light (default): bright, slightly cool */
-  --c-bg: #f7f9fc;
-  --c-surface: #ffffff;
-  --c-surface-2: #eef2f7;
-  --c-border: #dce3ec;
-  --c-text: #16202e;
-  --c-text-dim: #5a6b7e;
+  --c-bg: var(--bg-secondary);
+  --c-surface: var(--bg-primary);
+  --c-surface-2: var(--bg-secondary);
+  --c-border: var(--border-secondary);
+  --c-text: var(--text-primary);
+  --c-text-dim: var(--text-tertiary);
 
   /* Fonts (metric numerals use mono so digits align) */
-  --font-ui: system-ui, Inter, sans-serif;
-  --font-mono: ui-monospace, JetBrains Mono, SFMono-Regular, monospace;
+  --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Type scale */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.75rem;
-  --text-2xl: 2.5rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.625rem;
+  --text-2xl: 2.25rem;
 
   /* Space (4px base) */
   --space-1: 4px;
@@ -58,8 +138,12 @@
   --space-8: 32px;
 
   /* Radius */
-  --radius-sm: 4px;
+  --radius-sm: 6px;
   --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
 
   /* Motion */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -68,13 +152,53 @@
 }
 
 [data-theme="dark"] {
+  --text-primary: var(--color-gray-50);
+  --text-secondary: var(--color-gray-300);
+  --text-tertiary: var(--color-gray-400);
+  --text-quaternary: var(--color-gray-400);
+  --text-brand-primary: #e9d7fe;
+  --text-brand-secondary: #d6bbfb;
+  --text-brand-tertiary: #d6bbfb;
+  --text-error-primary: #fda29b;
+  --text-warning-primary: #fec84b;
+  --text-success-primary: #75e0a7;
+
+  --fg-brand-primary: #b692f6;
+  --fg-error-primary: #f97066;
+  --fg-warning-primary: #fdb022;
+  --fg-success-primary: #47cd89;
+
+  --bg-primary: #19212e;
+  --bg-primary-alt: #19212e;
+  --bg-primary-hover: #212b3a;
+  --bg-secondary: #0e141d;
+  --bg-secondary-hover: #1a2331;
+  --bg-tertiary: #222c3b;
+  --bg-brand-primary: rgba(127, 86, 217, 0.2);
+  --bg-brand-secondary: rgba(127, 86, 217, 0.3);
+  --bg-error-primary: rgba(240, 68, 56, 0.16);
+  --bg-error-secondary: rgba(240, 68, 56, 0.3);
+  --bg-warning-primary: rgba(247, 144, 9, 0.16);
+  --bg-warning-secondary: rgba(247, 144, 9, 0.3);
+  --bg-success-primary: rgba(23, 178, 106, 0.16);
+  --bg-success-secondary: rgba(23, 178, 106, 0.3);
+
+  --border-primary: #37435a;
+  --border-secondary: #283446;
+  --border-tertiary: #212b3a;
+  --border-brand: rgba(127, 86, 217, 0.45);
+  --tint-a-bg: rgba(0, 114, 178, 0.24);
+  --tint-a-fg: #7cc4f0;
+  --tint-b-bg: rgba(245, 158, 11, 0.18);
+  --tint-b-fg: #fdb022;
+
   /* Neutrals — dark override: soft modern slate */
-  --c-bg: #131a24;
-  --c-surface: #1b2431;
-  --c-surface-2: #232e3d;
-  --c-border: #344150;
-  --c-text: #eaf0f7;
-  --c-text-dim: #94a3b5;
+  --c-bg: var(--bg-secondary);
+  --c-surface: var(--bg-primary);
+  --c-surface-2: var(--bg-tertiary);
+  --c-border: var(--border-secondary);
+  --c-text: var(--text-primary);
+  --c-text-dim: var(--text-tertiary);
 
   /* Pred-A only: lift the deep blue to Okabe-Ito sky-blue so it clears AA as a
      label on slate (deep blue reaches just ~2.9:1 here). GT/Pred-B already pass. */
@@ -82,8 +206,8 @@
 
   /* On slate the bright hues read fine as text, so the text variants match the
      marks here (the darker light-mode variants would only reach ~3:1 on slate). */
-  --c-pred-b-text: #f59e0b;
+  --c-pred-b-text: var(--tint-b-fg);
   --c-gt-text: #009e73;
   --c-warn-text: #f87171; /* lighter red so warn labels clear AA on slate */
-  --c-pred-a-text: #56b4e9; /* matches the lifted pred-a mark; bright enough on slate */
+  --c-pred-a-text: var(--tint-a-fg); /* matches the lifted pred-a mark; bright enough on slate */
 }

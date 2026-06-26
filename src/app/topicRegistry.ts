@@ -8,6 +8,8 @@
  */
 
 import type { Topic, TopicGroup } from "../types/topic";
+import classificationTopic from "../topics/classification";
+import regressionTopic from "../topics/regression";
 import segmentationTopic from "../topics/segmentation";
 import detectionTopic from "../topics/detection";
 import { GROUPS, GROUP_TOPIC_ORDER } from "./groups";
@@ -19,8 +21,6 @@ function stub(id: string, group: TopicGroup, title: string): Topic {
 
 /** The coming-soon families not yet implemented, in no particular order. */
 const STUB_TOPICS: readonly Topic[] = [
-  stub("classification", "discriminative", "Image Classification"),
-  stub("regression", "discriminative", "Image Regression"),
   stub("synthesis", "generative", "Image Synthesis"),
   stub("report-generation", "language", "LLM — Report Generation"),
   stub("vlm", "language", "VLM"),
@@ -30,6 +30,8 @@ const STUB_TOPICS: readonly Topic[] = [
 
 /** Every topic the dashboard knows about (unordered). */
 export const TOPICS: readonly Topic[] = [
+  classificationTopic,
+  regressionTopic,
   segmentationTopic,
   detectionTopic,
   ...STUB_TOPICS,

@@ -15,35 +15,37 @@ import { useLang } from "./LanguageContext";
 
 interface LanguageOption {
   lang: Lang;
-  glyph: string;
+  label: string;
 }
 
 const OPTIONS: readonly LanguageOption[] = [
-  { lang: "ko", glyph: "한" },
-  { lang: "en", glyph: "영" },
+  { lang: "ko", label: "한국어" },
+  { lang: "en", label: "English" },
 ];
 
 const groupStyle: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "stretch",
-  gap: "var(--space-1)",
-  padding: "var(--space-1)",
-  background: "var(--c-surface)",
-  border: "1px solid var(--c-border)",
-  borderRadius: "var(--radius-md)",
+  gap: 0,
+  padding: 3,
+  background: "var(--bg-primary)",
+  border: "1px solid var(--border-secondary)",
+  borderRadius: "var(--radius-lg)",
+  boxShadow: "var(--shadow-xs)",
 };
 
 function optionStyle(isActive: boolean): React.CSSProperties {
   return {
-    minWidth: "2rem",
-    padding: "var(--space-1) var(--space-3)",
+    minWidth: "4.6rem",
+    padding: "7px 10px",
     fontFamily: "var(--font-ui)",
-    fontSize: "var(--text-sm)",
-    fontWeight: isActive ? 600 : 400,
-    color: isActive ? "var(--c-bg)" : "var(--c-text-dim)",
-    background: isActive ? "var(--c-pred-a)" : "transparent",
+    fontSize: "var(--text-xs)",
+    lineHeight: 1.2,
+    fontWeight: 600,
+    color: isActive ? "var(--text-primary)" : "var(--text-quaternary)",
+    background: isActive ? "var(--bg-secondary)" : "transparent",
     border: "none",
-    borderRadius: "var(--radius-sm)",
+    borderRadius: "var(--radius-md)",
     cursor: "pointer",
   };
 }
@@ -64,7 +66,7 @@ export function LanguageToggle() {
             onClick={() => setLang(option.lang)}
             style={optionStyle(isActive)}
           >
-            {option.glyph}
+            {option.label}
           </button>
         );
       })}

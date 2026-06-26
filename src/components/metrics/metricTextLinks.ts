@@ -4,8 +4,8 @@
  * is unit-testable; the renderer wraps any token whose target differs from the
  * section it sits in (no self-links).
  *
- * Tokens map to the segmentation Learn section ids
- * (dice/iou/sensitivity/precision/hd/hd95/assd/nsd/volume/lesionwise/cldice).
+ * Tokens map to Learn section ids. Some tokens exist in multiple topics, so
+ * callers may pass the current topic's section ids to pick the local target.
  */
 
 /**
@@ -13,24 +13,52 @@
  * alternation prefers e.g. "HD95" over "HD", "ASSD" over "ASD", and
  * "Surface Dice" / "표면 Dice" over a bare "Dice".
  */
-const METRIC_TOKENS: { token: string; sectionId: string }[] = [
-  { token: "HD95", sectionId: "hd95" },
-  { token: "표면 Dice", sectionId: "nsd" },
-  { token: "Surface Dice", sectionId: "nsd" },
-  { token: "NSD", sectionId: "nsd" },
-  { token: "ASSD", sectionId: "assd" },
-  { token: "ASD", sectionId: "assd" },
-  { token: "clDice", sectionId: "cldice" },
-  { token: "DSC", sectionId: "dice" },
-  { token: "Dice", sectionId: "dice" },
-  { token: "Jaccard", sectionId: "iou" },
-  { token: "IoU", sectionId: "iou" },
-  { token: "Hausdorff", sectionId: "hd" },
-  { token: "하우스도르프", sectionId: "hd" },
-  { token: "HD", sectionId: "hd" },
+const METRIC_TOKENS: { token: string; sectionIds: readonly string[] }[] = [
+  { token: "Balanced Accuracy", sectionIds: ["accuracy-balanced-accuracy"] },
+  { token: "Confusion Matrix", sectionIds: ["confusion-matrix"] },
+  { token: "Specificity", sectionIds: ["sensitivity-specificity"] },
+  { token: "Sensitivity", sectionIds: ["sensitivity-specificity", "recall", "sensitivity"] },
+  { token: "Sens@Spec", sectionIds: ["fixed-operating-points"] },
+  { token: "Spec@Sens", sectionIds: ["fixed-operating-points"] },
+  { token: "partial AUC", sectionIds: ["fixed-operating-points"] },
+  { token: "Accuracy", sectionIds: ["accuracy-balanced-accuracy"] },
+  { token: "Precision", sectionIds: ["precision", "precision-recall-f1-fbeta"] },
+  { token: "Recall", sectionIds: ["recall", "precision-recall-f1-fbeta"] },
+  { token: "AUPRC", sectionIds: ["pr-auprc-ap"] },
+  { token: "AUROC", sectionIds: ["roc-auroc"] },
+  { token: "F-beta", sectionIds: ["precision-recall-f1-fbeta"] },
+  { token: "PPV", sectionIds: ["ppv-npv"] },
+  { token: "NPV", sectionIds: ["ppv-npv"] },
+  { token: "ROC", sectionIds: ["roc-auroc"] },
+  { token: "PR", sectionIds: ["pr-auprc-ap"] },
+  { token: "F1", sectionIds: ["f1", "precision-recall-f1-fbeta"] },
+  { token: "AP", sectionIds: ["ap", "pr-auprc-ap"] },
+  { token: "Mean signed bias", sectionIds: ["bias"] },
+  { token: "평균 부호 편향", sectionIds: ["bias"] },
+  { token: "Spearman ρ", sectionIds: ["spearman"] },
+  { token: "Pearson r", sectionIds: ["pearson"] },
+  { token: "RMSE", sectionIds: ["rmse"] },
+  { token: "MSE", sectionIds: ["mse"] },
+  { token: "MAE", sectionIds: ["mae"] },
+  { token: "R²", sectionIds: ["r2"] },
+  { token: "R2", sectionIds: ["r2"] },
+  { token: "HD95", sectionIds: ["hd95"] },
+  { token: "표면 Dice", sectionIds: ["nsd"] },
+  { token: "Surface Dice", sectionIds: ["nsd"] },
+  { token: "NSD", sectionIds: ["nsd"] },
+  { token: "ASSD", sectionIds: ["assd"] },
+  { token: "ASD", sectionIds: ["assd"] },
+  { token: "clDice", sectionIds: ["cldice"] },
+  { token: "DSC", sectionIds: ["dice"] },
+  { token: "Dice", sectionIds: ["dice"] },
+  { token: "Jaccard", sectionIds: ["iou"] },
+  { token: "IoU", sectionIds: ["iou"] },
+  { token: "Hausdorff", sectionIds: ["hd"] },
+  { token: "하우스도르프", sectionIds: ["hd"] },
+  { token: "HD", sectionIds: ["hd"] },
 ];
 
-const TOKEN_TO_ID = new Map(METRIC_TOKENS.map((t) => [t.token, t.sectionId]));
+const TOKEN_TO_IDS = new Map(METRIC_TOKENS.map((t) => [t.token, t.sectionIds]));
 
 function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -52,14 +80,25 @@ export interface MetricTextSegment {
   sectionId?: string;
 }
 
+function sectionForToken(token: string, allowedSectionIds?: ReadonlySet<string>): string | undefined {
+  const sectionIds = TOKEN_TO_IDS.get(token);
+  if (!sectionIds) return undefined;
+  if (!allowedSectionIds) return sectionIds[0];
+  return sectionIds.find((id) => allowedSectionIds.has(id));
+}
+
 /** Split prose into plain + metric-token segments, preserving order/spacing. */
-export function splitMetricText(text: string): MetricTextSegment[] {
+export function splitMetricText(
+  text: string,
+  allowedSectionIds?: ReadonlySet<string>,
+): MetricTextSegment[] {
   const out: MetricTextSegment[] = [];
   let last = 0;
   for (const m of text.matchAll(METRIC_RE)) {
     const i = m.index ?? 0;
     if (i > last) out.push({ text: text.slice(last, i) });
-    out.push({ text: m[0], sectionId: TOKEN_TO_ID.get(m[0]) });
+    const sectionId = sectionForToken(m[0], allowedSectionIds);
+    out.push(sectionId ? { text: m[0], sectionId } : { text: m[0] });
     last = i + m[0].length;
   }
   if (last < text.length) out.push({ text: text.slice(last) });
