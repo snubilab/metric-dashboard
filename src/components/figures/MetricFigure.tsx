@@ -42,7 +42,12 @@ import {
   RegressionMseFigure,
   RegressionRmseFigure,
 } from "./RegressionErrorFigure";
-import RegressionFitFigure from "./RegressionFitFigure";
+import {
+  RegressionBiasFigure,
+  RegressionPearsonFigure,
+  RegressionR2Figure,
+  RegressionSpearmanFigure,
+} from "./RegressionFitFigure";
 
 interface MetricFigureProps {
   /** Figure key from the contract; unknown/undefined renders nothing. */
@@ -81,7 +86,10 @@ const FIGURES: Record<string, ComponentType> = {
   "reg-mae": RegressionMaeFigure,
   "reg-mse": RegressionMseFigure,
   "reg-rmse": RegressionRmseFigure,
-  "reg-fit": RegressionFitFigure,
+  "reg-r2": RegressionR2Figure,
+  "reg-bias": RegressionBiasFigure,
+  "reg-pearson": RegressionPearsonFigure,
+  "reg-spearman": RegressionSpearmanFigure,
 };
 
 const L = {

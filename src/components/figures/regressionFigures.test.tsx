@@ -8,7 +8,12 @@ import {
   RegressionMseFigure,
   RegressionRmseFigure,
 } from "./RegressionErrorFigure";
-import RegressionFitFigure from "./RegressionFitFigure";
+import {
+  RegressionBiasFigure,
+  RegressionPearsonFigure,
+  RegressionR2Figure,
+  RegressionSpearmanFigure,
+} from "./RegressionFitFigure";
 import { MetricFigure } from "./MetricFigure";
 
 function renderFigure(Figure: ComponentType, lang: Lang) {
@@ -23,7 +28,10 @@ const FIGURES: Array<[string, ComponentType]> = [
   ["RegressionMaeFigure", RegressionMaeFigure],
   ["RegressionMseFigure", RegressionMseFigure],
   ["RegressionRmseFigure", RegressionRmseFigure],
-  ["RegressionFitFigure", RegressionFitFigure],
+  ["RegressionR2Figure", RegressionR2Figure],
+  ["RegressionBiasFigure", RegressionBiasFigure],
+  ["RegressionPearsonFigure", RegressionPearsonFigure],
+  ["RegressionSpearmanFigure", RegressionSpearmanFigure],
 ];
 
 const HANGUL = /[ᄀ-ᇿ가-힣]/;
@@ -52,7 +60,7 @@ describe("Regression figures", () => {
   }
 
   it("regression figures are available through MetricFigure dispatch", () => {
-    for (const figure of ["reg-mae", "reg-mse", "reg-rmse", "reg-fit"] as const) {
+    for (const figure of ["reg-mae", "reg-mse", "reg-rmse", "reg-r2", "reg-bias", "reg-pearson", "reg-spearman"] as const) {
       const { container } = render(
         <LanguageProvider initialLang="en">
           <MetricFigure figure={figure} />
@@ -75,5 +83,18 @@ describe("Regression figures", () => {
     });
 
     expect(new Set(labels).size).toBe(3);
+  });
+
+  it("R2, bias, Pearson, and Spearman dispatch to distinct visual examples", () => {
+    const labels = ["reg-r2", "reg-bias", "reg-pearson", "reg-spearman"].map((figure) => {
+      const { container } = render(
+        <LanguageProvider initialLang="en">
+          <MetricFigure figure={figure} />
+        </LanguageProvider>,
+      );
+      return container.querySelector("svg")?.getAttribute("aria-label");
+    });
+
+    expect(new Set(labels).size).toBe(4);
   });
 });
