@@ -323,7 +323,7 @@ export default function RegressionPlayground() {
                 <tr key={label}>
                   <td style={{ padding: "var(--space-2)", borderBottom: "1px solid var(--c-border)", color: "var(--c-text)" }}>{label}</td>
                   <td style={{ padding: "var(--space-2)", borderBottom: "1px solid var(--c-border)", textAlign: "right" }}>
-                    <AnimatedMetric value={Number(value)} decimals={2} />
+                    <AnimatedMetric value={Number(value)} decimals={2} size="sm" />
                   </td>
                 </tr>
               ))}
