@@ -47,4 +47,18 @@ describe("splitMetricText", () => {
       { text: "no metric tokens here" },
     ]);
   });
+
+  it("links report-generation metric names to their own sections", () => {
+    const segs = splitMetricText("BLEU, ROUGE, METEOR, BERTScore, RaTEscore, GREEN, CRIMSON");
+    const linked = segs.filter((s) => s.sectionId);
+    expect(linked.map((s) => [s.text, s.sectionId])).toEqual([
+      ["BLEU", "bleu"],
+      ["ROUGE", "rouge-l"],
+      ["METEOR", "meteor"],
+      ["BERTScore", "bertscore"],
+      ["RaTEscore", "ratescore"],
+      ["GREEN", "green"],
+      ["CRIMSON", "crimson"],
+    ]);
+  });
 });

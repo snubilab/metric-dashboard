@@ -82,6 +82,7 @@ interface MetricTableProps {
    * separate chart. Defaults to false so other consumers render a plain table.
    */
   showBars?: boolean;
+  compact?: boolean;
 }
 
 /** Smallest denominator so an all-zero row doesn't divide by zero. */
@@ -253,10 +254,16 @@ function valueCellAccent(side: Winner, rowWinner: Winner, flagged: boolean): str
   return "transparent";
 }
 
-function valueCellStyle(side: Winner, rowWinner: Winner, flagged: boolean): React.CSSProperties {
+function valueCellStyle(
+  side: Winner,
+  rowWinner: Winner,
+  flagged: boolean,
+  compact: boolean,
+): React.CSSProperties {
   const isWinner = side === rowWinner;
   return {
     ...valueCellBase,
+    padding: compact ? "5px var(--space-2)" : valueCellBase.padding,
     borderLeft: `3px solid ${valueCellAccent(side, rowWinner, flagged)}`,
     fontWeight: isWinner ? 600 : 400,
   };
@@ -311,10 +318,26 @@ export function MetricTable({
   rows,
   showRelativeCue = false,
   showBars = false,
+  compact = false,
 }: MetricTableProps) {
   const { lang } = useLang();
   const t = L[lang];
   const disagreements = detectDisagreements(rows);
+  const headCell = compact
+    ? { ...headCellBase, padding: "5px var(--space-2)", fontSize: "10px" }
+    : headCellBase;
+  const valueHead = (color: string): React.CSSProperties =>
+    compact
+      ? { ...valueHeadCell(color), padding: "5px var(--space-2)", fontSize: "10px" }
+      : valueHeadCell(color);
+  const metricCell = compact
+    ? {
+        ...metricCellStyle,
+        padding: "6px var(--space-2)",
+        fontSize: "var(--text-xs)",
+        whiteSpace: "normal" as const,
+      }
+    : metricCellStyle;
 
   return (
     <div>
@@ -322,13 +345,13 @@ export function MetricTable({
       <table style={tableStyle}>
         <thead>
           <tr>
-            <th scope="col" style={headCellBase}>
+            <th scope="col" style={headCell}>
               {t.metric}
             </th>
-            <th scope="col" style={valueHeadCell("var(--c-pred-a-text)")}>
+            <th scope="col" style={valueHead("var(--c-pred-a-text)")}>
               A
             </th>
-            <th scope="col" style={valueHeadCell("var(--c-pred-b-text)")}>
+            <th scope="col" style={valueHead("var(--c-pred-b-text)")}>
               B
             </th>
           </tr>
@@ -347,7 +370,7 @@ export function MetricTable({
                   borderLeft: flagged ? "3px solid var(--c-warn)" : "3px solid transparent",
                 }}
               >
-                <th scope="row" style={metricCellStyle}>
+                <th scope="row" style={metricCell}>
                   {localizedMetricLabel(row.key, row.label, lang)}
                   <span
                     style={directionStyle}
@@ -368,9 +391,9 @@ export function MetricTable({
                     </span>
                   )}
                   {cue && <span style={chipStyle(cue.color)}>{cue.label}</span>}
-                  {meaning && <div style={meaningStyle}>{meaning}</div>}
+                  {meaning && !compact && <div style={meaningStyle}>{meaning}</div>}
                 </th>
-                <td style={valueCellStyle("A", rowWinner, flagged)}>
+                <td style={valueCellStyle("A", rowWinner, flagged, compact)}>
                   {showBars ? (
                     <ValueWithBar
                       value={row.a}
@@ -382,7 +405,7 @@ export function MetricTable({
                     <AnimatedMetric value={row.a} unit={row.unit} decimals={DECIMALS} size="sm" />
                   )}
                 </td>
-                <td style={valueCellStyle("B", rowWinner, flagged)}>
+                <td style={valueCellStyle("B", rowWinner, flagged, compact)}>
                   {showBars ? (
                     <ValueWithBar
                       value={row.b}
@@ -400,7 +423,7 @@ export function MetricTable({
         </tbody>
       </table>
       </div>
-      <div style={legendStyle}>
+      {!compact && <div style={legendStyle}>
         <span style={legendItemStyle}>
           <span aria-hidden="true" style={swatchStyle("var(--c-pred-a)")} />
           {t.predictionA}
@@ -416,7 +439,7 @@ export function MetricTable({
         <span style={legendItemStyle}>
           <span style={{ fontWeight: 600 }}>{t.boldLegend}</span>
         </span>
-      </div>
+      </div>}
     </div>
   );
 }

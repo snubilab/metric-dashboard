@@ -2,8 +2,11 @@ import type { EngineState } from "../../types/engine";
 import type { Scenario } from "../../types/topic";
 import {
   ENTITY_SWAP,
+  ERROR_CATEGORY_CONTEXT,
+  LABEL_GRANULARITY,
   LATERALITY_SWAP,
   NEGATION_FLIP,
+  PARAPHRASE_METEOR,
   TEMPORAL_CHANGE,
 } from "./reportExamples";
 import type { ReportExample } from "./reportExamples";
@@ -82,5 +85,47 @@ export const reportGenerationScenarios: Scenario[] = [
     teachingPoint:
       "Candidate B contains the right vocabulary but assigns presence and absence to the wrong entities. Entity/assertion rows lead A.",
     reference: "PPTX slides 15-16: BERTScore vs RaTEscore entity example.",
+  },
+  {
+    id: "paraphrase-tolerance",
+    title: "Paraphrase tolerance: same content, different wording",
+    clinical: {
+      situation: "Generated report uses common radiology synonyms",
+      modality: "Chest X-ray report",
+      atStake: "A wording change should not be treated like a clinical contradiction.",
+      consequence: "BLEU/ROUGE can drop while METEOR-style matching stays more forgiving.",
+    },
+    state: state(PARAPHRASE_METEOR),
+    teachingPoint:
+      "Candidate A replaces effusion with fluid and improved with decreased. METEOR-style matching is more tolerant than pure lexical rows, while clinical rows remain aligned.",
+    reference: "PPTX slides 3-6: BLEU, ROUGE, METEOR comparison.",
+  },
+  {
+    id: "label-granularity",
+    title: "Label granularity: same finding, wrong attributes",
+    clinical: {
+      situation: "Finding label extraction for CXR reports",
+      modality: "Chest X-ray report",
+      atStake: "Coarse finding agreement can hide wrong side or wrong change direction.",
+      consequence: "A broader label/attribute proxy separates from coarse CheXbert-style F1.",
+    },
+    state: state(LABEL_GRANULARITY),
+    teachingPoint:
+      "Candidate B still mentions opacity, so a coarse finding label can remain high. SRR-BERT-style, temporal, laterality, and graph rows move because attributes changed.",
+    reference: "PPTX slides 12-14: CheXbert and SRR-BERT label F1.",
+  },
+  {
+    id: "error-category-context",
+    title: "Error category: unsupported new finding",
+    clinical: {
+      situation: "Safety review of an AI-generated impression",
+      modality: "Chest X-ray report",
+      atStake: "A candidate-only pneumothorax can trigger urgent action.",
+      consequence: "Error-category rows count unsupported findings instead of rewarding fluent wording.",
+    },
+    state: state(ERROR_CATEGORY_CONTEXT),
+    teachingPoint:
+      "Candidate B adds a new right pneumothorax that is not supported by the reference. GREEN/CRIMSON-style rows move even if other text overlaps.",
+    reference: "PPTX slides 17-19: GREEN and CRIMSON error categories.",
   },
 ];

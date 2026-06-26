@@ -75,6 +75,46 @@ const METRIC_MEANINGS: Record<string, Record<Lang, string>> = {
     ko: "정답 대비 예측 부피의 상대 차이",
     en: "Relative difference in volume versus ground truth",
   },
+  bleu1: {
+    ko: "candidate token 중 reference와 겹치는 비율",
+    en: "Candidate-token precision against the reference",
+  },
+  rougeL: {
+    ko: "reference 순서가 candidate에서 얼마나 회수되는지",
+    en: "Reference-token recall using the longest common subsequence",
+  },
+  meteor: {
+    ko: "동의어 정규화 후 precision/recall 균형",
+    en: "Precision/recall balance after light synonym normalization",
+  },
+  bertScore: {
+    ko: "contextual token similarity를 흉내 낸 token-level proxy",
+    en: "Token-level proxy for contextual similarity",
+  },
+  rateScore: {
+    ko: "의료 entity와 present/absent assertion 연결 일치",
+    en: "Medical entity plus present/absent assertion alignment",
+  },
+  chexbertF1: {
+    ko: "추출된 finding label이 reference와 맞는 정도",
+    en: "Extracted finding-label agreement with the reference",
+  },
+  srrBertF1: {
+    ko: "더 넓은 label vocabulary와 단순 속성을 보는 proxy",
+    en: "Proxy for broader labels plus simple attributes",
+  },
+  radGraphF1: {
+    ko: "entity, assertion, laterality, temporal relation 일치",
+    en: "Entity, assertion, laterality, and temporal-relation agreement",
+  },
+  greenErrors: {
+    ko: "false finding, omission, assertion/location/change 오류 개수",
+    en: "Count of false finding, omission, assertion, location, and change errors",
+  },
+  crimsonWeightedErrors: {
+    ko: "오류 종류에 가중치를 둔 patient-safety proxy",
+    en: "Patient-safety proxy with simple error-type weights",
+  },
   lexicalOverlap: {
     ko: "reference와 candidate의 표면 단어 겹침",
     en: "Surface token overlap between reference and candidate",

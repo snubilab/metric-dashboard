@@ -3,11 +3,17 @@ import { reportGenerationLearn } from "./content";
 import { reportGenerationLearnKo } from "./contentKo";
 
 const REQUIRED_IDS = [
-  "lexical-overlap",
-  "embedding-similarity",
-  "concept-label-f1",
+  "bleu",
+  "rouge-l",
+  "meteor",
+  "bertscore",
+  "ratescore",
+  "temporal-f1",
+  "chexbert-f1",
+  "srr-bert-f1",
   "graph-f1",
-  "llm-evaluators",
+  "green",
+  "crimson",
   "clinical-acceptance",
 ] as const;
 

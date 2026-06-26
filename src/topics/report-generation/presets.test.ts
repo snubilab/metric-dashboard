@@ -4,12 +4,15 @@ import { reportComparisonRows } from "../../components/metrics/reportComparisonR
 import { REPORT_PRESETS } from "./presets";
 
 describe("report generation presets", () => {
-  it("ships four instructive preset examples", () => {
+  it("ships instructive preset examples across lexical, clinical, label, and error metrics", () => {
     expect(REPORT_PRESETS.map((preset) => preset.id)).toEqual([
       "negation-flip",
       "laterality-swap",
       "temporal-change",
       "entity-swap",
+      "paraphrase-meteor",
+      "label-granularity",
+      "error-category-context",
     ]);
   });
 

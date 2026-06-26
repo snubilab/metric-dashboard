@@ -16,20 +16,20 @@ const L = {
 const labelStyle: React.CSSProperties = {
   fontSize: "var(--text-sm)",
   fontWeight: 700,
-  color: "var(--text-primary)",
+  color: "var(--c-text)",
 };
 
 const noteStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: "var(--text-sm)",
+  fontSize: "var(--text-xs)",
   lineHeight: 1.55,
-  color: "var(--text-secondary)",
+  color: "var(--c-text-dim)",
 };
 
 const presetRowStyle: React.CSSProperties = {
   display: "flex",
   flexWrap: "wrap",
-  gap: "var(--space-3)",
+  gap: "var(--space-2)",
   marginTop: "var(--space-3)",
 };
 
@@ -37,13 +37,13 @@ const presetButtonStyle = (active: boolean): React.CSSProperties => ({
   display: "flex",
   flexDirection: "column",
   gap: "var(--space-1)",
-  flex: "1 1 180px",
+  flex: "1 1 150px",
   minWidth: 0,
-  padding: "var(--space-3)",
-  border: active ? "2px solid var(--c-pred-a)" : "1px solid var(--border-secondary)",
-  borderRadius: "var(--radius-lg)",
-  background: active ? "var(--bg-accent)" : "var(--bg-secondary)",
-  color: "var(--text-primary)",
+  padding: "var(--space-2) var(--space-3)",
+  border: active ? "1px solid var(--c-gt)" : "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+  background: "var(--c-surface-2)",
+  color: active ? "var(--c-gt-text)" : "var(--c-text)",
   textAlign: "left",
   cursor: "pointer",
 });

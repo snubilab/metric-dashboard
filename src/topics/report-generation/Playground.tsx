@@ -51,22 +51,26 @@ function stage(reference: string, candidateA: string, candidateB: string): Stage
 const pageStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "var(--space-4)",
-  color: "var(--text-primary)",
+  gap: "var(--space-5)",
+  color: "var(--c-text)",
   fontFamily: "var(--font-ui)",
 };
 
 const splitStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1.05fr) minmax(320px, 0.95fr)",
+  display: "flex",
+  flexWrap: "wrap",
   gap: "var(--space-5)",
-  alignItems: "start",
+  alignItems: "flex-start",
 };
 
 const RESPONSIVE_CSS = `
-.report-pg-split { grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr); }
+.report-pg-editor { flex: 0.8 1 340px; min-width: 300px; }
+.report-pg-results { flex: 1.2 1 420px; min-width: 340px; }
+.report-pg-results { position: sticky; top: var(--space-4); max-height: calc(100vh - 190px); overflow: auto; }
 @media (max-width: 860px) {
-  .report-pg-split { grid-template-columns: minmax(0, 1fr); }
+  .report-pg-editor, .report-pg-results { flex-basis: 100%; min-width: 0; }
+  .report-pg-results { position: static; max-height: none; order: 1; }
+  .report-pg-editor { order: 2; }
 }
 `;
 
@@ -75,9 +79,9 @@ const panelStyle: React.CSSProperties = {
   flexDirection: "column",
   gap: "var(--space-3)",
   padding: "var(--space-4)",
-  background: "var(--bg-primary)",
-  border: "1px solid var(--border-secondary)",
-  borderRadius: "var(--radius-xl)",
+  background: "var(--c-surface)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-md)",
 };
 
 const fieldStyle: React.CSSProperties = {
@@ -89,45 +93,53 @@ const fieldStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: "var(--text-sm)",
   fontWeight: 700,
-  color: "var(--text-primary)",
+  color: "var(--c-text)",
 };
 
 const textareaStyle: React.CSSProperties = {
-  minHeight: 110,
+  minHeight: 72,
   width: "100%",
   resize: "vertical",
   boxSizing: "border-box",
   padding: "var(--space-3)",
-  border: "1px solid var(--border-secondary)",
-  borderRadius: "var(--radius-lg)",
-  background: "var(--bg-secondary)",
-  color: "var(--text-primary)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+  background: "var(--c-surface-2)",
+  color: "var(--c-text)",
   font: "inherit",
   lineHeight: 1.5,
 };
 
 const stepPillStyle: React.CSSProperties = {
   alignSelf: "flex-start",
-  padding: "6px 10px",
-  borderRadius: "var(--radius-full)",
-  background: "var(--bg-secondary)",
-  border: "1px solid var(--border-secondary)",
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "var(--space-1) var(--space-3)",
+  borderRadius: "var(--radius-pill, var(--radius-sm))",
+  background: "var(--c-surface-2)",
+  border: "1px solid var(--c-border)",
+  fontFamily: "var(--font-mono)",
   fontSize: "var(--text-xs)",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
   fontWeight: 700,
-  color: "var(--text-secondary)",
+  color: "var(--c-text)",
 };
 
 const headingStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: "var(--text-base)",
-  color: "var(--text-primary)",
+  fontFamily: "var(--font-ui)",
+  fontSize: "var(--text-sm)",
+  letterSpacing: "0.04em",
+  textTransform: "uppercase",
+  color: "var(--c-text-dim)",
 };
 
 const noteStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: "var(--text-sm)",
+  fontSize: "var(--text-xs)",
   lineHeight: 1.55,
-  color: "var(--text-secondary)",
+  color: "var(--c-text-dim)",
 };
 
 function setExample(
@@ -171,7 +183,7 @@ export default function Playground() {
       <style>{RESPONSIVE_CSS}</style>
       <span style={stepPillStyle}>{t.step[currentStage]}</span>
       <div className="report-pg-split" style={splitStyle}>
-        <section style={panelStyle}>
+        <section className="report-pg-editor" style={panelStyle}>
           <label style={fieldStyle}>
             <span style={labelStyle}>{t.reference}</span>
             <textarea
@@ -212,15 +224,27 @@ export default function Playground() {
           />
         </section>
 
-        <section style={panelStyle}>
-          <ReportCueBoard reference={reference} candidateA={candidateA} candidateB={candidateB} />
+        <section className="report-pg-results" style={panelStyle}>
           {currentStage === "compare" ? (
             <>
               <h3 style={headingStyle}>{t.metrics}</h3>
               <p style={noteStyle}>{t.compareNote}</p>
-              <MetricTable rows={rows} showRelativeCue showBars />
+              <MetricTable rows={rows} showRelativeCue showBars compact />
+              <ReportCueBoard
+                reference={reference}
+                candidateA={candidateA}
+                candidateB={candidateB}
+                compact
+              />
             </>
-          ) : null}
+          ) : (
+            <ReportCueBoard
+              reference={reference}
+              candidateA={candidateA}
+              candidateB={candidateB}
+              compact
+            />
+          )}
         </section>
       </div>
     </div>

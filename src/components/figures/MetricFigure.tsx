@@ -50,11 +50,21 @@ import {
 } from "./RegressionFitFigure";
 import {
   ReportClinicalAcceptanceFigure,
+  ReportBertScoreFigure,
+  ReportBleuFigure,
+  ReportCheXbertF1Figure,
+  ReportCrimsonFigure,
   ReportEntitySimilarityFigure,
+  ReportGreenFigure,
   ReportGraphF1Figure,
   ReportLabelF1Figure,
   ReportLexicalOverlapFigure,
   ReportLlmEvaluatorFigure,
+  ReportMeteorFigure,
+  ReportRateScoreFigure,
+  ReportRougeFigure,
+  ReportSrrBertF1Figure,
+  ReportTemporalF1Figure,
 } from "./ReportGenerationFigures";
 
 interface MetricFigureProps {
@@ -99,9 +109,19 @@ const FIGURES: Record<string, ComponentType> = {
   "reg-pearson": RegressionPearsonFigure,
   "reg-spearman": RegressionSpearmanFigure,
   "report-lexical-overlap": ReportLexicalOverlapFigure,
+  "report-bleu": ReportBleuFigure,
+  "report-rouge": ReportRougeFigure,
+  "report-meteor": ReportMeteorFigure,
+  "report-bertscore": ReportBertScoreFigure,
+  "report-ratescore": ReportRateScoreFigure,
   "report-entity-similarity": ReportEntitySimilarityFigure,
   "report-label-f1": ReportLabelF1Figure,
+  "report-temporal-f1": ReportTemporalF1Figure,
+  "report-chexbert-f1": ReportCheXbertF1Figure,
+  "report-srr-bert-f1": ReportSrrBertF1Figure,
   "report-graph-f1": ReportGraphF1Figure,
+  "report-green": ReportGreenFigure,
+  "report-crimson": ReportCrimsonFigure,
   "report-llm-evaluator": ReportLlmEvaluatorFigure,
   "report-clinical-acceptance": ReportClinicalAcceptanceFigure,
 };
