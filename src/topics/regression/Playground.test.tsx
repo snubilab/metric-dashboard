@@ -21,6 +21,7 @@ describe("RegressionPlayground", () => {
 
     expect(preset).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("One large residual pulls RMSE away from MAE.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Add one point (optional)" })).toBeInTheDocument();
   });
 
   it("loading a preset clears stale draft inputs", async () => {

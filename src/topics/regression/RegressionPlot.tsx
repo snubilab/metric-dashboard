@@ -14,7 +14,7 @@ const L = {
 
 const WIDTH = 340;
 const HEIGHT = 260;
-const MARGIN = { top: 20, right: 20, bottom: 42, left: 46 };
+const MARGIN = { top: 20, right: 20, bottom: 42, left: 56 };
 const POINT_R = 4;
 
 function finiteValues(points: readonly RegressionPoint[]): number[] {
@@ -107,11 +107,11 @@ export function RegressionPlot({ points, pointsB = [], ariaLabel }: RegressionPl
         {t.target}
       </text>
       <text
-        x={14}
+        x={18}
         y={HEIGHT / 2}
         textAnchor="middle"
         fill="var(--c-text)"
-        transform={`rotate(-90 14 ${HEIGHT / 2})`}
+        transform={`rotate(-90 18 ${HEIGHT / 2})`}
       >
         {t.prediction}
       </text>

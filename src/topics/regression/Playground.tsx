@@ -21,6 +21,7 @@ const L = {
     empty: "아직 점이 없습니다. 첫 점을 추가하면 산점도가 시작됩니다.",
     metrics: "현재 점들의 지표",
     needMore: "상관과 R²는 적어도 두 점이 필요합니다.",
+    addOptional: "점 추가 (선택)",
   },
   en: {
     step: "STEP 1 / 2",
@@ -35,6 +36,7 @@ const L = {
     empty: "No points yet. Add the first point to start the scatter plot.",
     metrics: "Metrics for current points",
     needMore: "Correlation and R² need at least two points.",
+    addOptional: "Add one point (optional)",
   },
 } as const;
 
@@ -280,6 +282,8 @@ export default function RegressionPlayground() {
       </section>
       <div style={splitStyle}>
         <section style={panelStyle}>
+          <RegressionPlot points={points} ariaLabel={t.metrics} />
+          <h3 style={{ margin: 0, fontSize: "var(--text-sm)", color: "var(--c-text-dim)" }}>{t.addOptional}</h3>
           <div style={rowStyle}>
             <label style={labelStyle}>
               {t.target}
@@ -300,7 +304,6 @@ export default function RegressionPlayground() {
             <button type="button" style={buttonStyle} onClick={resetPlayground}>{t.reset}</button>
           </div>
           {points.length === 0 ? <p style={textStyle}>{t.empty}</p> : null}
-          <RegressionPlot points={points} ariaLabel={t.metrics} />
         </section>
         <section style={panelStyle}>
           <h3 style={{ margin: 0, fontSize: "var(--text-lg)" }}>{t.metrics}</h3>
