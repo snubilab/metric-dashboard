@@ -10,7 +10,7 @@ import { RegressionPlot } from "./RegressionPlot";
 const L = {
   ko: {
     step: "STEP 1 / 2",
-    prompt: "목표값과 예측값을 직접 추가하거나, 목표값과 잔차로 한 점을 만드세요.",
+    prompt: "데이터셋을 고르면 산점도와 지표가 바로 채워집니다.",
     target: "목표값",
     prediction: "예측값",
     residual: "잔차",
@@ -22,10 +22,14 @@ const L = {
     metrics: "현재 점들의 지표",
     needMore: "상관과 R²는 적어도 두 점이 필요합니다.",
     addOptional: "점 추가 (선택)",
+    loaded: "불러온 데이터",
+    points: "점",
+    openEditor: "점 직접 추가",
+    closeEditor: "점 추가 닫기",
   },
   en: {
     step: "STEP 1 / 2",
-    prompt: "Add target/prediction pairs directly, or create a point from target plus residual.",
+    prompt: "Choose a dataset to fill the scatter plot and metrics immediately.",
     target: "Target",
     prediction: "Prediction",
     residual: "Residual",
@@ -37,6 +41,10 @@ const L = {
     metrics: "Metrics for current points",
     needMore: "Correlation and R² need at least two points.",
     addOptional: "Add one point (optional)",
+    loaded: "Loaded data",
+    points: "points",
+    openEditor: "Add point manually",
+    closeEditor: "Close point editor",
   },
 } as const;
 
@@ -82,7 +90,7 @@ const rowStyle: CSSProperties = {
 
 const presetGridStyle: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(148px, 1fr))",
   gap: "var(--space-2)",
 };
 
@@ -123,7 +131,7 @@ const presetCardStyle: CSSProperties = {
   flexDirection: "column",
   alignItems: "stretch",
   gap: "var(--space-2)",
-  minHeight: "112px",
+  minHeight: "132px",
   padding: "var(--space-2)",
   textAlign: "left",
 };
@@ -139,6 +147,7 @@ const presetLabelStyle: CSSProperties = {
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
+  fontWeight: 700,
 };
 
 const thumbnailStyle: CSSProperties = {
@@ -154,6 +163,31 @@ const textStyle: CSSProperties = {
   color: "var(--c-text-dim)",
   fontSize: "var(--text-sm)",
   lineHeight: 1.5,
+};
+
+const presetMetaStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: "var(--space-1)",
+  fontSize: "var(--text-xs)",
+  color: "var(--c-text-dim)",
+};
+
+const presetMetaItemStyle: CSSProperties = {
+  padding: "var(--space-1)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+  textAlign: "center",
+  background: "var(--c-surface)",
+};
+
+const loadedSummaryStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "var(--space-2)",
+  alignItems: "center",
+  fontSize: "var(--text-sm)",
+  color: "var(--c-text-dim)",
 };
 
 const stepStyle: CSSProperties = {
@@ -174,6 +208,11 @@ function numeric(value: string): number | undefined {
 
 function clonePoints(points: readonly RegressionPoint[]): RegressionPoint[] {
   return points.map((point) => ({ ...point }));
+}
+
+function pointSummary(points: readonly RegressionPoint[], pointsLabel: string): string {
+  const metrics = regressionMetrics(points);
+  return `${points.length} ${pointsLabel} · MAE ${metrics.mae.toFixed(2)} · RMSE ${metrics.rmse.toFixed(2)}`;
 }
 
 function RegressionPresetThumbnail({ points }: { readonly points: readonly RegressionPoint[] }) {
@@ -217,12 +256,14 @@ export default function RegressionPlayground() {
   const [target, setTarget] = useState("");
   const [prediction, setPrediction] = useState("");
   const [residual, setResidual] = useState("");
+  const [showPointEditor, setShowPointEditor] = useState(true);
   const metrics = useMemo(() => regressionMetrics(points), [points]);
   const selectedPreset = REG_PRESETS.find((preset) => preset.id === activePreset);
 
   function addPoint(next: RegressionPoint): void {
     setPoints((current) => [...current, next]);
     setActivePreset(undefined);
+    setShowPointEditor(true);
   }
 
   function addPair(): void {
@@ -249,6 +290,7 @@ export default function RegressionPlayground() {
     setTarget("");
     setPrediction("");
     setResidual("");
+    setShowPointEditor(true);
   }
 
   function loadPreset(presetId: string, presetPoints: readonly RegressionPoint[]): void {
@@ -257,6 +299,7 @@ export default function RegressionPlayground() {
     setTarget("");
     setPrediction("");
     setResidual("");
+    setShowPointEditor(false);
   }
 
   return (
@@ -276,34 +319,57 @@ export default function RegressionPlayground() {
             >
               <RegressionPresetThumbnail points={preset.points} />
               <span style={presetLabelStyle}>{lang === "ko" ? preset.labelKo : preset.label}</span>
+              <span style={presetMetaStyle} aria-hidden="true">
+                <span style={presetMetaItemStyle}>n {preset.points.length}</span>
+                <span style={presetMetaItemStyle}>RMSE {regressionMetrics(preset.points).rmse.toFixed(2)}</span>
+              </span>
             </button>
           ))}
         </div>
-        {selectedPreset ? <p style={textStyle}>{lang === "ko" ? selectedPreset.descriptionKo : selectedPreset.description}</p> : null}
+        {selectedPreset ? (
+          <div style={loadedSummaryStyle}>
+            <strong>{t.loaded}</strong>
+            <span>{pointSummary(points, t.points)}</span>
+            <span>{lang === "ko" ? selectedPreset.descriptionKo : selectedPreset.description}</span>
+          </div>
+        ) : null}
       </section>
       <div style={splitStyle}>
         <section style={panelStyle}>
           <RegressionPlot points={points} ariaLabel={t.metrics} />
-          <h3 style={{ margin: 0, fontSize: "var(--text-sm)", color: "var(--c-text-dim)" }}>{t.addOptional}</h3>
-          <div style={rowStyle}>
-            <label style={labelStyle}>
-              {t.target}
-              <input style={inputStyle} type="number" value={target} onChange={(event) => setTarget(event.currentTarget.value)} />
-            </label>
-            <label style={labelStyle}>
-              {t.prediction}
-              <input style={inputStyle} type="number" value={prediction} onChange={(event) => setPrediction(event.currentTarget.value)} />
-            </label>
-            <button type="button" style={buttonStyle} onClick={addPair}>{t.addPair}</button>
-          </div>
-          <div style={rowStyle}>
-            <label style={labelStyle}>
-              {t.residual}
-              <input style={inputStyle} type="number" value={residual} onChange={(event) => setResidual(event.currentTarget.value)} />
-            </label>
-            <button type="button" style={buttonStyle} onClick={addResidualPoint}>{t.addResidual}</button>
-            <button type="button" style={buttonStyle} onClick={resetPlayground}>{t.reset}</button>
-          </div>
+          {points.length > 0 ? (
+            <div style={loadedSummaryStyle}>
+              <span>{pointSummary(points, t.points)}</span>
+              <button type="button" style={buttonStyle} onClick={() => setShowPointEditor((value) => !value)}>
+                {showPointEditor ? t.closeEditor : t.openEditor}
+              </button>
+              <button type="button" style={buttonStyle} onClick={resetPlayground}>{t.reset}</button>
+            </div>
+          ) : null}
+          {showPointEditor ? (
+            <>
+              <h3 style={{ margin: 0, fontSize: "var(--text-sm)", color: "var(--c-text-dim)" }}>{t.addOptional}</h3>
+              <div style={rowStyle}>
+                <label style={labelStyle}>
+                  {t.target}
+                  <input style={inputStyle} type="number" value={target} onChange={(event) => setTarget(event.currentTarget.value)} />
+                </label>
+                <label style={labelStyle}>
+                  {t.prediction}
+                  <input style={inputStyle} type="number" value={prediction} onChange={(event) => setPrediction(event.currentTarget.value)} />
+                </label>
+                <button type="button" style={buttonStyle} onClick={addPair}>{t.addPair}</button>
+              </div>
+              <div style={rowStyle}>
+                <label style={labelStyle}>
+                  {t.residual}
+                  <input style={inputStyle} type="number" value={residual} onChange={(event) => setResidual(event.currentTarget.value)} />
+                </label>
+                <button type="button" style={buttonStyle} onClick={addResidualPoint}>{t.addResidual}</button>
+                {points.length === 0 ? <button type="button" style={buttonStyle} onClick={resetPlayground}>{t.reset}</button> : null}
+              </div>
+            </>
+          ) : null}
           {points.length === 0 ? <p style={textStyle}>{t.empty}</p> : null}
         </section>
         <section style={panelStyle}>

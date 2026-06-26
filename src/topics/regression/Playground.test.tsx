@@ -21,7 +21,9 @@ describe("RegressionPlayground", () => {
 
     expect(preset).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("One large residual pulls RMSE away from MAE.")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Add one point (optional)" })).toBeInTheDocument();
+    expect(screen.getAllByText(/5 points · MAE/)).toHaveLength(2);
+    expect(screen.queryByRole("heading", { name: "Add one point (optional)" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add point manually" })).toBeInTheDocument();
   });
 
   it("loading a preset clears stale draft inputs", async () => {
@@ -31,6 +33,7 @@ describe("RegressionPlayground", () => {
     await userEvent.type(screen.getByLabelText("Prediction"), "8");
     await userEvent.type(screen.getByLabelText("Residual"), "1");
     await userEvent.click(screen.getByRole("button", { name: "One outlier" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add point manually" }));
 
     expect(screen.getByLabelText("Target")).toHaveValue(null);
     expect(screen.getByLabelText("Prediction")).toHaveValue(null);
@@ -43,6 +46,7 @@ describe("RegressionPlayground", () => {
 
     const preset = screen.getByRole("button", { name: "One outlier" });
     await userEvent.click(preset);
+    await userEvent.click(screen.getByRole("button", { name: "Add point manually" }));
     await userEvent.type(screen.getByLabelText("Target"), "7");
     await userEvent.type(screen.getByLabelText("Prediction"), "8");
     await userEvent.type(screen.getByLabelText("Residual"), "1");
