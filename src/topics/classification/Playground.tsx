@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, PointerEvent } from "react";
 import type { ClassificationCase } from "../../types/engine";
 import { AnimatedMetricBlock } from "../../components/minisims/AnimatedMetricBlock";
 import {
@@ -159,6 +159,10 @@ function countActual(cases: readonly ClassificationCase[], actual: Classificatio
   return cases.filter((item) => item.actual === actual).length;
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
 function dataSummary(cases: readonly ClassificationCase[], t: typeof L[keyof typeof L]): string {
   const positives = countActual(cases, "positive");
   const negatives = countActual(cases, "negative");
@@ -237,6 +241,15 @@ export function ClassificationPlayground() {
     setShowGroupEditor(true);
   };
 
+  const addCaseFromStrip = (event: PointerEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const score = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+    const actual = event.clientY - rect.top < rect.height / 2 ? "positive" : "negative";
+    setCases((prev) => [...prev, { actual, score }]);
+    setActivePresetId("");
+    setShowGroupEditor(false);
+  };
+
   const updateGroupScore = (group: ScoreGroup, score: number) => {
     setCases((prev) =>
       prev.map((item) => (item.actual === group.actual && item.score === group.score ? { ...item, score } : item)),
@@ -313,7 +326,12 @@ export function ClassificationPlayground() {
                 {t.reset}
               </button>
             </div>
-            <div style={scoreStripStyle} role="img" aria-label={t.workspace}>
+            <div
+              style={{ ...scoreStripStyle, cursor: "crosshair" }}
+              role="img"
+              aria-label={t.workspace}
+              onPointerDown={addCaseFromStrip}
+            >
               <div
                 style={{
                   position: "absolute",
