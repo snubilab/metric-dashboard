@@ -252,7 +252,7 @@ const presetButtonActiveStyle: CSSProperties = {
   // Use the full `border` shorthand (not borderColor) so we never mix
   // shorthand + longhand for the same property on a re-render.
   border: "1px solid var(--c-gt)",
-  color: "var(--c-gt)",
+  color: "var(--c-gt-text)",
 };
 
 const presetDescriptionStyle: CSSProperties = {

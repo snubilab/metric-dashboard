@@ -53,11 +53,11 @@ describe("CoverageTable", () => {
     expect(screen.getByText("A shifted but well-sized mask")).toBeInTheDocument();
   });
 
-  it("emphasizes the missed metric in warn and the rescuing metric in the GT token", () => {
+  it("emphasizes the missed metric and rescuing metric with text-legible data tokens", () => {
     renderCoverage();
 
-    expect(screen.getByText("Dice")).toHaveStyle({ color: "var(--c-warn)" });
-    expect(screen.getByText("HD95")).toHaveStyle({ color: "var(--c-gt)" });
+    expect(screen.getByText("Dice")).toHaveStyle({ color: "var(--c-warn-text)" });
+    expect(screen.getByText("HD95")).toHaveStyle({ color: "var(--c-gt-text)" });
   });
 });
 

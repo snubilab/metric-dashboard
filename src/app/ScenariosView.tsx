@@ -205,7 +205,7 @@ function IdentityLegend({
       {hasA && (
         <span style={legendItemStyle}>
           <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-pred-a)")} />
-          <span style={nameStyle("var(--c-pred-a)")}>{t.predA}</span>
+          <span style={nameStyle("var(--c-pred-a-text)")}>{t.predA}</span>
         </span>
       )}
       {hasB && (
@@ -266,7 +266,7 @@ function DetectionBoxLegend({ lang }: { lang: Lang }) {
       </span>
       <span style={legendItemStyle}>
         <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-pred-a)")} />
-        <span style={nameStyle("var(--c-pred-a)")}>{t.tpBox}</span>
+        <span style={nameStyle("var(--c-pred-a-text)")}>{t.tpBox}</span>
       </span>
       <span style={legendItemStyle}>
         <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-warn)")} />

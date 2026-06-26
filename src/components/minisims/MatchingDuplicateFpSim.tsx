@@ -153,13 +153,13 @@ export function MatchingDuplicateFpSim({ config }: MatchingDuplicateFpSimProps) 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
         <div style={{ display: "flex", gap: "var(--space-6)" }}>
           <span style={{ display: "inline-flex", flexDirection: "column", gap: "var(--space-1)" }}>
-            <span style={{ fontSize: "var(--text-xs)", color: "var(--c-gt)" }}>TP</span>
+            <span style={{ fontSize: "var(--text-xs)", color: "var(--c-gt-text)" }}>TP</span>
             <span data-count="tp" style={countStyle}>
               {counts.tp}
             </span>
           </span>
           <span style={{ display: "inline-flex", flexDirection: "column", gap: "var(--space-1)" }}>
-            <span style={{ fontSize: "var(--text-xs)", color: "var(--c-warn)" }}>FP</span>
+            <span style={{ fontSize: "var(--text-xs)", color: "var(--c-warn-text)" }}>FP</span>
             <span data-count="fp" style={countStyle}>
               {counts.fp}
             </span>

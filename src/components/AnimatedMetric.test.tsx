@@ -84,10 +84,10 @@ describe("AnimatedMetric", () => {
     expect(numeral).toHaveStyle({ fontFamily: "var(--font-mono)" });
   });
 
-  it("colors the numeral with the warn token when tone is warn", () => {
+  it("colors the numeral with the warn text token when tone is warn", () => {
     render(<AnimatedMetric value={9.9} decimals={1} tone="warn" />);
 
     const numeral = screen.getByText("9.9");
-    expect(numeral).toHaveStyle({ color: "var(--c-warn)" });
+    expect(numeral).toHaveStyle({ color: "var(--c-warn-text)" });
   });
 });

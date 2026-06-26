@@ -79,12 +79,12 @@ const metricCellStyle: React.CSSProperties = {
 
 const blindMetricStyle: React.CSSProperties = {
   ...metricCellStyle,
-  color: "var(--c-warn)",
+  color: "var(--c-warn-text)",
 };
 
 const caughtByStyle: React.CSSProperties = {
   ...metricCellStyle,
-  color: "var(--c-gt)",
+  color: "var(--c-gt-text)",
 };
 
 export function CoverageTable({ intro, pairs }: CoverageTableProps) {

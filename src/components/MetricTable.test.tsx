@@ -118,14 +118,12 @@ describe("MetricTable", () => {
     expect(screen.getByLabelText("낮을수록 좋음")).toBeInTheDocument();
   });
 
-  it("colors the A and B column headers with the prediction tokens", () => {
+  it("colors the A and B column headers with the prediction text tokens", () => {
     render(<MetricTable rows={opposingRows} />);
 
     expect(screen.getByRole("columnheader", { name: "A" })).toHaveStyle({
-      color: "var(--c-pred-a)",
+      color: "var(--c-pred-a-text)",
     });
-    // B uses the text-legible amber variant (the bright mark amber fails AA on
-    // white); the column allegiance reads the same, just readable.
     expect(screen.getByRole("columnheader", { name: "B" })).toHaveStyle({
       color: "var(--c-pred-b-text)",
     });
@@ -224,15 +222,14 @@ describe("MetricTable", () => {
       expect(within(volRow).getByText("n/a")).toBeInTheDocument();
     });
 
-    it("colors the leading chip with the leading prediction's token, never green/red", () => {
+    it("colors the leading chip with the leading prediction's text token, never green/red", () => {
       render(
         <LanguageProvider initialLang="en">
           <MetricTable rows={cueRows} showRelativeCue />
         </LanguageProvider>,
       );
 
-      expect(screen.getByText("A leads")).toHaveStyle({ color: "var(--c-pred-a)" });
-      // B's chip uses the AA-legible amber text variant (still amber, not red/green).
+      expect(screen.getByText("A leads")).toHaveStyle({ color: "var(--c-pred-a-text)" });
       expect(screen.getByText("B leads")).toHaveStyle({ color: "var(--c-pred-b-text)" });
       expect(screen.getByText("tie")).toHaveStyle({ color: "var(--c-text-dim)" });
     });

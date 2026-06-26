@@ -216,7 +216,7 @@ const captionStyle: CSSProperties = {
   fontSize: "var(--text-xs)",
   lineHeight: 1.3,
   textAlign: "center",
-  color: "var(--c-warn)",
+  color: "var(--c-warn-text)",
   overflowWrap: "anywhere",
   wordBreak: "break-word",
 };
@@ -237,7 +237,7 @@ export function TwoPanelFigure({ strings, typical, misleading }: TwoPanelFigureP
       </div>
 
       <div data-role="misleading" style={panelStyle}>
-        <div style={{ ...tagRowStyle, color: "var(--c-warn)" }}>
+        <div style={{ ...tagRowStyle, color: "var(--c-warn-text)" }}>
           {/* Small warning mark in the warn token. */}
           <svg
             data-role="misleading-mark"

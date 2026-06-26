@@ -121,7 +121,7 @@ function relativeLead(row: MetricRow): Lead {
 function relativeCue(lead: Lead, t: (typeof L)[Lang]): RelativeCue {
   switch (lead) {
     case "A":
-      return { label: t.leadsA, color: "var(--c-pred-a)" };
+      return { label: t.leadsA, color: "var(--c-pred-a-text)" };
     case "B":
       return { label: t.leadsB, color: "var(--c-pred-b-text)" };
     case "tie":
@@ -206,7 +206,7 @@ const markerStyle: React.CSSProperties = {
   padding: "0 var(--space-1)",
   borderRadius: "var(--radius-sm)",
   border: "1px solid var(--c-warn)",
-  color: "var(--c-warn)",
+  color: "var(--c-warn-text)",
   fontFamily: "var(--font-mono)",
   fontSize: "var(--text-xs)",
   lineHeight: 1.4,
@@ -325,7 +325,7 @@ export function MetricTable({
             <th scope="col" style={headCellBase}>
               {t.metric}
             </th>
-            <th scope="col" style={valueHeadCell("var(--c-pred-a)")}>
+            <th scope="col" style={valueHeadCell("var(--c-pred-a-text)")}>
               A
             </th>
             <th scope="col" style={valueHeadCell("var(--c-pred-b-text)")}>

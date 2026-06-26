@@ -32,7 +32,6 @@ export interface AnimatedMetricProps {
   decimals?: number;
   /** Optional small uppercase label, e.g. "HD95". */
   label?: string;
-  /** Visual tone. "warn" colors the numeral with the warn token. */
   tone?: MetricTone;
   /** Numeral scale. Defaults to "lg" (hero). Use "sm" inside dense tables. */
   size?: MetricSize;
@@ -77,7 +76,7 @@ const numeralStyle = (tone: MetricTone, size: MetricSize): React.CSSProperties =
   fontSize: SIZE_TOKENS[size].numeral,
   fontVariantNumeric: "tabular-nums",
   lineHeight: 1,
-  color: tone === "warn" ? "var(--c-warn)" : "var(--c-text)",
+  color: tone === "warn" ? "var(--c-warn-text)" : "var(--c-text)",
 });
 
 const unitStyle = (size: MetricSize): React.CSSProperties => ({
