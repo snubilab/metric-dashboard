@@ -1,0 +1,13 @@
+import {
+  ENTITY_SWAP,
+  LATERALITY_SWAP,
+  NEGATION_FLIP,
+  TEMPORAL_CHANGE,
+} from "./reportExamples";
+
+export const REPORT_PRESETS = [
+  NEGATION_FLIP,
+  LATERALITY_SWAP,
+  TEMPORAL_CHANGE,
+  ENTITY_SWAP,
+] as const;

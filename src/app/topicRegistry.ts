@@ -12,6 +12,7 @@ import classificationTopic from "../topics/classification";
 import regressionTopic from "../topics/regression";
 import segmentationTopic from "../topics/segmentation";
 import detectionTopic from "../topics/detection";
+import reportGenerationTopic from "../topics/report-generation";
 import { GROUPS, GROUP_TOPIC_ORDER } from "./groups";
 
 /** Builds a coming-soon stub topic: id, group, and title only. */
@@ -22,7 +23,6 @@ function stub(id: string, group: TopicGroup, title: string): Topic {
 /** The coming-soon families not yet implemented, in no particular order. */
 const STUB_TOPICS: readonly Topic[] = [
   stub("synthesis", "generative", "Image Synthesis"),
-  stub("report-generation", "language", "LLM — Report Generation"),
   stub("vlm", "language", "VLM"),
   stub("risk-prediction", "clinical", "Risk Prediction"),
   stub("reader-study", "clinical", "Reader Study"),
@@ -34,6 +34,7 @@ export const TOPICS: readonly Topic[] = [
   regressionTopic,
   segmentationTopic,
   detectionTopic,
+  reportGenerationTopic,
   ...STUB_TOPICS,
 ];
 

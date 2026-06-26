@@ -48,6 +48,12 @@ export interface RegressionPoint {
   prediction: number;
 }
 
+export interface ReportComparisonState {
+  reference: string;
+  candidateA: string;
+  candidateB: string;
+}
+
 export interface EngineState {
   grid: Grid;
   gt: Shape[];
@@ -62,6 +68,7 @@ export interface EngineState {
     thresholdB: number;
   };
   regression?: { points: RegressionPoint[]; pointsB?: RegressionPoint[] };
+  reportGeneration?: ReportComparisonState;
   policy: DegeneratePolicy;
   nsdToleranceMm?: number;
 }

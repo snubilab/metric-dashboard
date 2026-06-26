@@ -48,6 +48,14 @@ import {
   RegressionR2Figure,
   RegressionSpearmanFigure,
 } from "./RegressionFitFigure";
+import {
+  ReportClinicalAcceptanceFigure,
+  ReportEntitySimilarityFigure,
+  ReportGraphF1Figure,
+  ReportLabelF1Figure,
+  ReportLexicalOverlapFigure,
+  ReportLlmEvaluatorFigure,
+} from "./ReportGenerationFigures";
 
 interface MetricFigureProps {
   /** Figure key from the contract; unknown/undefined renders nothing. */
@@ -90,6 +98,12 @@ const FIGURES: Record<string, ComponentType> = {
   "reg-bias": RegressionBiasFigure,
   "reg-pearson": RegressionPearsonFigure,
   "reg-spearman": RegressionSpearmanFigure,
+  "report-lexical-overlap": ReportLexicalOverlapFigure,
+  "report-entity-similarity": ReportEntitySimilarityFigure,
+  "report-label-f1": ReportLabelF1Figure,
+  "report-graph-f1": ReportGraphF1Figure,
+  "report-llm-evaluator": ReportLlmEvaluatorFigure,
+  "report-clinical-acceptance": ReportClinicalAcceptanceFigure,
 };
 
 const L = {
