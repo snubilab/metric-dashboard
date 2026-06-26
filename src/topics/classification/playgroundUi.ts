@@ -71,7 +71,7 @@ export const columnStyle: React.CSSProperties = {
 export const panelStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: "var(--space-3)",
+  gap: "var(--space-2)",
   padding: "var(--space-4)",
   background: "var(--c-surface)",
   border: "1px solid var(--c-border)",
@@ -142,7 +142,7 @@ export const cellStyle: React.CSSProperties = {
 
 export const scoreStripStyle: React.CSSProperties = {
   position: "relative",
-  height: "96px",
+  height: "56px",
   border: "1px solid var(--c-border)",
   borderRadius: "var(--radius-md)",
   background: "var(--c-surface-2)",

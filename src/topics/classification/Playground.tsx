@@ -40,7 +40,7 @@ const presetCardStyle: CSSProperties = {
   flexDirection: "column",
   alignItems: "stretch",
   gap: "var(--space-2)",
-  minHeight: "112px",
+  minHeight: "96px",
   padding: "var(--space-2)",
   textAlign: "left",
 };
@@ -48,7 +48,7 @@ const presetCardStyle: CSSProperties = {
 const activePresetCardStyle: CSSProperties = {
   ...presetCardStyle,
   background: "var(--bg-brand-primary)",
-  border: "1px solid var(--c-gt)",
+  border: "2px solid var(--c-gt)",
   color: "var(--c-gt-text)",
 };
 
@@ -60,7 +60,7 @@ const presetLabelStyle: CSSProperties = {
 
 const thumbnailStyle: CSSProperties = {
   width: "100%",
-  height: "64px",
+  height: "48px",
   border: "1px solid var(--c-border)",
   borderRadius: "var(--radius-sm)",
   background: "var(--c-surface)",
@@ -249,7 +249,7 @@ export function ClassificationPlayground() {
                   style={{
                     position: "absolute",
                     left: `calc(${item.score * 100}% - var(--space-2))`,
-                    top: item.actual === "positive" ? "var(--space-5)" : "var(--space-8)",
+                    top: item.actual === "positive" ? "var(--space-3)" : "var(--space-6)",
                     width: "var(--space-4)",
                     height: "var(--space-4)",
                     borderRadius: item.actual === "positive" ? "50%" : "var(--radius-sm)",
