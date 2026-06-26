@@ -101,11 +101,11 @@ const EMPTY_DISTANCE_OPTIONS: EmptyDistancePolicy[] = ["undefined", "diagonal", 
 const EMPTY_DICE_LABELS: Record<EmptyDicePolicy, Record<Lang, string>> = {
   one: { ko: "둘 다 비면 1.0", en: "Both empty → 1.0" },
   zero: { ko: "둘 다 비면 0.0", en: "Both empty → 0.0" },
-  nan: { ko: "정의 안 함(NaN)", en: "Undefined (NaN)" },
+  nan: { ko: "정의 안 함", en: "Undefined" },
 };
 
 const EMPTY_DISTANCE_LABELS: Record<EmptyDistancePolicy, Record<Lang, string>> = {
-  undefined: { ko: "정의 안 함(NaN)", en: "Undefined (NaN)" },
+  undefined: { ko: "정의 안 함", en: "Undefined" },
   diagonal: { ko: "대각선 길이로 대체", en: "Image diagonal" },
   fixed: { ko: "고정 페널티", en: "Fixed penalty" },
 };

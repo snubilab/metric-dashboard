@@ -252,8 +252,8 @@ export const segmentationScenarios: Scenario[] = [
         "Empty ground-truth cases are where degenerate-metric policy decisions " +
         "bite: Dice, HD95, and NSD are all undefined in the usual formula.",
       consequence:
-        "How the metric is scored (one / zero / NaN for Dice; undefined / diagonal " +
-        "/ fixed for distances) is a policy choice, not a fact about the model.",
+        "How the metric is scored (one / zero / undefined for Dice; undefined / " +
+        "diagonal / fixed for distances) is a policy choice, not a fact about the model.",
     },
     state: {
       grid: GRID,

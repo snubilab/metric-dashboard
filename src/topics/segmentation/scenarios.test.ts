@@ -5,6 +5,7 @@ import { dice, iou, precision, sensitivity } from "../../engine/metrics/overlap"
 import { hd95 } from "../../engine/metrics/boundary";
 import { lesionWise } from "../../engine/metrics/lesionwise";
 import { segmentationScenarios } from "./scenarios";
+import { segmentationScenariosKo } from "./scenariosKo";
 
 /** Find a scenario by id or fail loudly so a missing scenario is obvious. */
 function scenario(id: string): EngineState {
@@ -32,6 +33,21 @@ describe("segmentationScenarios", () => {
       expect(s.clinical.atStake.trim().length).toBeGreaterThan(0);
       expect(s.clinical.consequence.trim().length).toBeGreaterThan(0);
       expect(s.teachingPoint.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("keeps implementation sentinel terms out of user-facing scenario copy", () => {
+    const scenarios = [...segmentationScenarios, ...segmentationScenariosKo];
+    for (const s of scenarios) {
+      const visibleCopy = [
+        s.title,
+        s.clinical.situation,
+        s.clinical.modality,
+        s.clinical.atStake,
+        s.clinical.consequence,
+        s.teachingPoint,
+      ].join(" ");
+      expect(visibleCopy).not.toContain("NaN");
     }
   });
 

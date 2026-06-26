@@ -167,7 +167,7 @@ export const segmentationScenariosKo: Scenario[] = [
         "정답이 비어 있는 사례야말로 퇴화(degenerate) 지표를 어떻게 처리할지 정한 정책이 " +
         "비로소 드러나는 지점입니다. 통상의 공식으로는 Dice, HD95, NSD가 모두 정의되지 않습니다.",
       consequence:
-        "지표를 어떻게 채점하느냐(Dice는 one / zero / NaN, 거리는 undefined / 대각선 / " +
+        "지표를 어떻게 채점하느냐(Dice는 1점 / 0점 / 정의 안 함, 거리는 정의 안 함 / 대각선 / " +
         "고정값)는 모델에 관한 사실이 아니라 정책 선택입니다.",
     },
     state: stateFor("empty-negative-case"),
