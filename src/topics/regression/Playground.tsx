@@ -130,6 +130,7 @@ const presetCardStyle: CSSProperties = {
 
 const activePresetCardStyle: CSSProperties = {
   ...presetCardStyle,
+  background: "var(--bg-brand-primary)",
   border: "1px solid var(--c-pred-a)",
   color: "var(--c-pred-a-text)",
 };

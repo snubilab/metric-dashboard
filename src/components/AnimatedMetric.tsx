@@ -75,6 +75,7 @@ const numeralStyle = (tone: MetricTone, size: MetricSize): React.CSSProperties =
   fontFamily: "var(--font-mono)",
   fontSize: SIZE_TOKENS[size].numeral,
   fontVariantNumeric: "tabular-nums",
+  letterSpacing: 0,
   lineHeight: 1,
   color: tone === "warn" ? "var(--c-warn-text)" : "var(--c-text)",
 });
