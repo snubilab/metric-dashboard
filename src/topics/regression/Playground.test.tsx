@@ -14,11 +14,12 @@ function renderPlayground() {
 
 describe("RegressionPlayground", () => {
   it("shows presets immediately and loads one into the workspace", async () => {
-    renderPlayground();
+    const { container } = renderPlayground();
 
     const preset = screen.getByRole("button", { name: "One outlier" });
     await userEvent.click(preset);
 
+    expect(container.querySelector("svg")?.getAttribute("preserveAspectRatio")).toBe("xMidYMid meet");
     expect(preset).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("One large residual pulls RMSE away from MAE.")).toBeInTheDocument();
     expect(screen.getAllByText(/5 points · MAE/)).toHaveLength(2);

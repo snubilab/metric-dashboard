@@ -228,7 +228,7 @@ function RegressionPresetThumbnail({ points }: { readonly points: readonly Regre
       aria-hidden="true"
       focusable="false"
       viewBox="0 0 120 64"
-      preserveAspectRatio="none"
+      preserveAspectRatio="xMidYMid meet"
       style={thumbnailStyle}
     >
       <line x1="12" y1="54" x2="108" y2="54" stroke="var(--c-border)" strokeWidth="1" />
