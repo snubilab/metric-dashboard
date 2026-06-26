@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { LanguageProvider } from "../../i18n/LanguageContext";
@@ -40,6 +40,26 @@ describe("RegressionPlayground", () => {
     expect(screen.getByLabelText("Prediction")).toHaveValue(null);
     expect(screen.getByLabelText("Residual")).toHaveValue(null);
     expect(screen.getByText("One large residual pulls RMSE away from MAE.")).toBeInTheDocument();
+  });
+
+  it("adds a point by clicking the plot", () => {
+    renderPlayground();
+    const plot = screen.getByRole("img", { name: "Metrics for current points" });
+    plot.getBoundingClientRect = () => ({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      right: 340,
+      bottom: 260,
+      width: 340,
+      height: 260,
+      toJSON: () => ({}),
+    });
+
+    fireEvent.pointerDown(plot, { clientX: 188, clientY: 119 });
+
+    expect(screen.getByText("1 points · MAE 0.00 · RMSE 0.00")).toBeInTheDocument();
   });
 
   it("reset clears loaded data and draft inputs", async () => {

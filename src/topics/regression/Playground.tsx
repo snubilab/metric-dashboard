@@ -336,7 +336,7 @@ export default function RegressionPlayground() {
       </section>
       <div style={splitStyle}>
         <section style={panelStyle}>
-          <RegressionPlot points={points} ariaLabel={t.metrics} />
+          <RegressionPlot points={points} ariaLabel={t.metrics} onAddPoint={addPoint} />
           {points.length > 0 ? (
             <div style={loadedSummaryStyle}>
               <span>{pointSummary(points, t.points)}</span>
