@@ -72,7 +72,7 @@ function canTween(): boolean {
 }
 
 const numeralStyle = (tone: MetricTone, size: MetricSize): React.CSSProperties => ({
-  fontFamily: "var(--font-mono)",
+  fontFamily: "var(--font-ui)",
   fontSize: SIZE_TOKENS[size].numeral,
   fontVariantNumeric: "tabular-nums",
   letterSpacing: 0,

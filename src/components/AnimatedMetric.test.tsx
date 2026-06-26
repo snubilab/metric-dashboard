@@ -77,11 +77,14 @@ describe("AnimatedMetric", () => {
     window.cancelAnimationFrame = originalCancelAnimationFrame;
   });
 
-  it("uses the mono token for tabular numerals", () => {
+  it("uses the UI token with tabular numerals", () => {
     render(<AnimatedMetric value={1.23} label="Dice" />);
 
     const numeral = screen.getByText("1.23");
-    expect(numeral).toHaveStyle({ fontFamily: "var(--font-mono)" });
+    expect(numeral).toHaveStyle({
+      fontFamily: "var(--font-ui)",
+      fontVariantNumeric: "tabular-nums",
+    });
   });
 
   it("colors the numeral with the warn text token when tone is warn", () => {
