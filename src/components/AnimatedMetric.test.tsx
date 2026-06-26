@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AnimatedMetric, formatMetric } from "./AnimatedMetric";
 
 describe("formatMetric", () => {
@@ -53,6 +53,28 @@ describe("AnimatedMetric", () => {
     await waitFor(() => {
       expect(screen.getByText("0.90")).toBeInTheDocument();
     });
+  });
+
+  it("recovers from NaN to a finite value when tweening is available", async () => {
+    const originalMatchMedia = window.matchMedia;
+    const originalRequestAnimationFrame = window.requestAnimationFrame;
+    const originalCancelAnimationFrame = window.cancelAnimationFrame;
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+    window.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+      callback(performance.now() + 250);
+      return 1;
+    });
+    window.cancelAnimationFrame = vi.fn();
+    const { rerender } = render(<AnimatedMetric value={NaN} />);
+
+    rerender(<AnimatedMetric value={1.23} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("1.23")).toBeInTheDocument();
+    });
+    window.matchMedia = originalMatchMedia;
+    window.requestAnimationFrame = originalRequestAnimationFrame;
+    window.cancelAnimationFrame = originalCancelAnimationFrame;
   });
 
   it("uses the mono token for tabular numerals", () => {

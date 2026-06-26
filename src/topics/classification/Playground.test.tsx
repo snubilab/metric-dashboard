@@ -31,7 +31,6 @@ describe("ClassificationPlayground", () => {
 
   it("loads a row of presets and marks the active preset", async () => {
     renderPlayground();
-    await userEvent.click(screen.getByText("Load an example"));
     const preset = screen.getByRole("button", { name: "Rare positives" });
     await userEvent.click(preset);
 

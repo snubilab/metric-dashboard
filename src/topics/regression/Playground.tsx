@@ -65,6 +65,12 @@ const panelStyle: CSSProperties = {
   borderRadius: "var(--radius-md)",
 };
 
+const examplePanelStyle: CSSProperties = {
+  ...panelStyle,
+  flex: "0 0 auto",
+  minWidth: "280px",
+};
+
 const rowStyle: CSSProperties = {
   display: "flex",
   flexWrap: "wrap",
@@ -145,6 +151,7 @@ export default function RegressionPlayground() {
   const [prediction, setPrediction] = useState("");
   const [residual, setResidual] = useState("");
   const metrics = useMemo(() => regressionMetrics(points), [points]);
+  const selectedPreset = REG_PRESETS.find((preset) => preset.id === activePreset);
 
   function addPoint(next: RegressionPoint): void {
     setPoints((current) => [...current, next]);
@@ -173,13 +180,14 @@ export default function RegressionPlayground() {
     <div style={pageStyle}>
       <span style={stepStyle}>{t.step}</span>
       <p style={textStyle}>{t.prompt}</p>
-      <details>
-        <summary style={{ ...buttonStyle, display: "inline-flex" }}>{t.examples}</summary>
-        <div style={{ ...rowStyle, marginTop: "var(--space-3)" }}>
+      <section style={examplePanelStyle} aria-label={t.examples}>
+        <h3 style={{ margin: 0, fontSize: "var(--text-sm)", color: "var(--c-text-dim)" }}>{t.examples}</h3>
+        <div style={rowStyle}>
           {REG_PRESETS.map((preset) => (
             <button
               key={preset.id}
               type="button"
+              aria-pressed={activePreset === preset.id}
               style={activePreset === preset.id ? activeButtonStyle : buttonStyle}
               onClick={() => {
                 setPoints(clonePoints(preset.points));
@@ -190,14 +198,8 @@ export default function RegressionPlayground() {
             </button>
           ))}
         </div>
-        {activePreset ? (
-          <p style={textStyle}>
-            {lang === "ko"
-              ? REG_PRESETS.find((preset) => preset.id === activePreset)?.descriptionKo
-              : REG_PRESETS.find((preset) => preset.id === activePreset)?.description}
-          </p>
-        ) : null}
-      </details>
+        {selectedPreset ? <p style={textStyle}>{lang === "ko" ? selectedPreset.descriptionKo : selectedPreset.description}</p> : null}
+      </section>
       <div style={splitStyle}>
         <section style={panelStyle}>
           <div style={rowStyle}>

@@ -77,6 +77,25 @@ export function ClassificationPlayground() {
       <div style={splitStyle}>
         <div style={columnStyle}>
           <span style={stepStyle}>{stepText(stage, lang)}</span>
+          <section style={panelStyle} aria-label={t.presetsLabel}>
+            <h3 style={headingStyle}>{t.examples}</h3>
+            <div style={rowStyle} role="group" aria-label={t.presetsLabel}>
+              {CLS_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  aria-pressed={preset.id === activePresetId}
+                  style={preset.id === activePresetId ? activeButtonStyle : buttonStyle}
+                  onClick={() => loadPreset(preset)}
+                >
+                  {lang === "ko" ? preset.labelKo : preset.label}
+                </button>
+              ))}
+            </div>
+            {activePreset ? (
+              <p style={mutedStyle}>{lang === "ko" ? activePreset.descriptionKo : activePreset.description}</p>
+            ) : null}
+          </section>
           <section style={panelStyle} aria-label={t.workspace}>
             <h3 style={headingStyle}>{t.workspace}</h3>
             <p style={mutedStyle}>{promptText(stage, lang)}</p>
@@ -177,25 +196,6 @@ export function ClassificationPlayground() {
               </table>
             ) : null}
           </section>
-          <details>
-            <summary style={{ ...mutedStyle, cursor: "pointer" }}>{t.examples}</summary>
-            <div style={{ ...rowStyle, paddingTop: "var(--space-2)" }} role="group" aria-label={t.presetsLabel}>
-              {CLS_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  aria-pressed={preset.id === activePresetId}
-                  style={preset.id === activePresetId ? activeButtonStyle : buttonStyle}
-                  onClick={() => loadPreset(preset)}
-                >
-                  {lang === "ko" ? preset.labelKo : preset.label}
-                </button>
-              ))}
-            </div>
-            {activePreset ? (
-              <p style={mutedStyle}>{lang === "ko" ? activePreset.descriptionKo : activePreset.description}</p>
-            ) : null}
-          </details>
         </div>
         <div style={columnStyle}>
           <section style={panelStyle}>

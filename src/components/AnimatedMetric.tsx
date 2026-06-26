@@ -119,9 +119,12 @@ export function AnimatedMetric({
     if (Number.isNaN(value) || !canTween()) {
       // Instant: skip the tween entirely.
       setDisplayValue(value);
+    } else if (Number.isNaN(displayValue)) {
+      setDisplayValue(value);
+      setTweenOrigin(value);
     } else {
       // Anchor the tween origin to whatever is currently displayed.
-      setTweenOrigin(Number.isNaN(displayValue) ? value : displayValue);
+      setTweenOrigin(displayValue);
     }
   }
 
