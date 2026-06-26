@@ -44,6 +44,29 @@ function prediction(score: number, threshold: number): "positive" | "negative" {
   return score >= threshold ? "positive" : "negative";
 }
 
+interface ScoreGroup {
+  readonly actual: ClassificationCase["actual"];
+  readonly score: number;
+  readonly count: number;
+}
+
+function scoreGroups(cases: readonly ClassificationCase[]): ScoreGroup[] {
+  const groups = new Map<string, ScoreGroup>();
+  for (const item of cases) {
+    const key = `${item.actual}:${item.score}`;
+    const current = groups.get(key);
+    groups.set(key, {
+      actual: item.actual,
+      score: item.score,
+      count: (current?.count ?? 0) + 1,
+    });
+  }
+  return Array.from(groups.values()).sort((a, b) => {
+    if (a.actual !== b.actual) return a.actual === "positive" ? -1 : 1;
+    return b.score - a.score;
+  });
+}
+
 export function ClassificationPlayground() {
   const { lang } = useLang();
   const t = L[lang];
@@ -55,14 +78,17 @@ export function ClassificationPlayground() {
   const counts = confusionFromScores(cases, threshold);
   const metrics = classificationMetrics(counts);
   const activePreset = CLS_PRESETS.find((preset) => preset.id === activePresetId);
+  const groups = scoreGroups(cases);
 
   const addCase = (actual: ClassificationCase["actual"]) => {
     setCases((prev) => [...prev, { actual, score: actual === "positive" ? 0.7 : 0.3 }]);
     setActivePresetId("");
   };
 
-  const updateScore = (index: number, score: number) => {
-    setCases((prev) => prev.map((item, i) => (i === index ? { ...item, score } : item)));
+  const updateGroupScore = (group: ScoreGroup, score: number) => {
+    setCases((prev) =>
+      prev.map((item) => (item.actual === group.actual && item.score === group.score ? { ...item, score } : item)),
+    );
     setActivePresetId("");
   };
 
@@ -166,29 +192,31 @@ export function ClassificationPlayground() {
                 <thead>
                   <tr>
                     <th style={cellStyle}>{t.actual}</th>
+                    <th style={cellStyle}>{t.count}</th>
                     <th style={cellStyle}>{t.score}</th>
                     <th style={cellStyle}>{t.prediction}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {cases.map((item, index) => (
-                    <tr key={index}>
+                  {groups.map((group) => (
+                    <tr key={`${group.actual}-${group.score}`}>
                       <td style={cellStyle}>
-                        {item.actual === "positive" ? t.positive : t.negative}
+                        {group.actual === "positive" ? t.positive : t.negative}
                       </td>
+                      <td style={cellStyle}>{group.count}</td>
                       <td style={cellStyle}>
                         <input
                           type="range"
                           min={0}
                           max={1}
                           step={0.01}
-                          value={item.score}
-                          aria-label={`${t.score} ${index + 1}`}
-                          onChange={(event) => updateScore(index, Number(event.target.value))}
+                          value={group.score}
+                          aria-label={`${t.score} ${group.actual} ${group.score.toFixed(2)}`}
+                          onChange={(event) => updateGroupScore(group, Number(event.target.value))}
                         />
                       </td>
                       <td style={cellStyle}>
-                        {prediction(item.score, threshold) === "positive" ? t.positive : t.negative}
+                        {prediction(group.score, threshold) === "positive" ? t.positive : t.negative}
                       </td>
                     </tr>
                   ))}
