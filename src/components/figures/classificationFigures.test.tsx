@@ -54,4 +54,24 @@ describe("ClassificationConfusionMatrixFigure", () => {
     expect(container.querySelector("svg")).toBeInTheDocument();
     expect(container.textContent).toContain("Accuracy");
   });
+
+  it("dispatches distinct fixed-threshold examples for each classification metric family", () => {
+    const expected = [
+      ["cls-confusion", "TP=42"],
+      ["cls-rows", "TP=18"],
+      ["cls-columns", "FP=42"],
+      ["cls-accuracy", "TP=0"],
+      ["cls-f1", "TP=30"],
+    ] as const;
+
+    for (const [figure, text] of expected) {
+      const { container, unmount } = render(
+        <LanguageProvider initialLang="en">
+          <MetricFigure figure={figure} />
+        </LanguageProvider>,
+      );
+      expect(container.textContent).toContain(text);
+      unmount();
+    }
+  });
 });

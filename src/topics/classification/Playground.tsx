@@ -36,6 +36,7 @@ const presetGridStyle: CSSProperties = {
 
 const presetCardStyle: CSSProperties = {
   ...buttonStyle,
+  position: "relative",
   display: "flex",
   flexDirection: "column",
   alignItems: "stretch",
@@ -43,6 +44,8 @@ const presetCardStyle: CSSProperties = {
   minHeight: "132px",
   padding: "var(--space-2)",
   textAlign: "left",
+  border: "2px solid var(--c-border)",
+  boxShadow: "0 1px 0 color-mix(in srgb, var(--c-text) 10%, transparent)",
 };
 
 const activePresetCardStyle: CSSProperties = {
@@ -50,6 +53,7 @@ const activePresetCardStyle: CSSProperties = {
   background: "var(--bg-brand-primary)",
   border: "2px solid var(--c-gt)",
   color: "var(--c-gt-text)",
+  boxShadow: "0 0 0 3px color-mix(in srgb, var(--c-gt) 18%, transparent)",
 };
 
 const presetLabelStyle: CSSProperties = {
@@ -81,6 +85,26 @@ const presetMetaItemStyle: CSSProperties = {
   borderRadius: "var(--radius-sm)",
   textAlign: "center",
   background: "var(--c-surface)",
+};
+
+const presetStatusStyle: CSSProperties = {
+  position: "absolute",
+  top: "var(--space-3)",
+  right: "var(--space-3)",
+  padding: "3px 9px",
+  borderRadius: "var(--radius-full)",
+  background: "var(--c-surface)",
+  border: "1px solid var(--c-border)",
+  color: "var(--c-text)",
+  fontSize: "var(--text-xs)",
+  fontWeight: 700,
+};
+
+const activePresetStatusStyle: CSSProperties = {
+  ...presetStatusStyle,
+  background: "var(--c-gt)",
+  border: "1px solid var(--c-gt)",
+  color: "var(--c-surface)",
 };
 
 const loadedSummaryStyle: CSSProperties = {
@@ -142,6 +166,8 @@ function dataSummary(cases: readonly ClassificationCase[], t: typeof L[keyof typ
 }
 
 function ClassificationPresetThumbnail({ preset }: { readonly preset: ClassificationPreset }) {
+  const { lang } = useLang();
+  const t = L[lang];
   const groups = scoreGroups(preset.cases);
 
   return (
@@ -163,11 +189,11 @@ function ClassificationPresetThumbnail({ preset }: { readonly preset: Classifica
         strokeWidth="2"
         strokeDasharray="4 3"
       />
-      <text x="6" y="23" fill="var(--c-gt-text)" fontSize="9" textAnchor="start">
-        P
+      <text x="6" y="23" fill="var(--c-gt-text)" fontSize="7" textAnchor="start">
+        {t.positiveShort}
       </text>
-      <text x="6" y="47" fill="var(--c-pred-b-text)" fontSize="9" textAnchor="start">
-        N
+      <text x="6" y="47" fill="var(--c-pred-b-text)" fontSize="7" textAnchor="start">
+        {t.negativeShort}
       </text>
       {groups.map((group) => {
         const x = 10 + group.score * 100;
@@ -239,10 +265,13 @@ export function ClassificationPlayground() {
               style={preset.id === activePresetId ? activePresetCardStyle : presetCardStyle}
               onClick={() => loadPreset(preset)}
             >
+              <span style={preset.id === activePresetId ? activePresetStatusStyle : presetStatusStyle}>
+                {preset.id === activePresetId ? t.selected : t.choose}
+              </span>
               <ClassificationPresetThumbnail preset={preset} />
               <span style={presetLabelStyle}>{lang === "ko" ? preset.labelKo : preset.label}</span>
               <span style={presetMetaStyle} aria-hidden="true">
-                <span style={presetMetaItemStyle}>N {preset.cases.length}</span>
+                <span style={presetMetaItemStyle}>{t.casesLabel} {preset.cases.length}</span>
                 <span style={presetMetaItemStyle}>{t.positiveShort} {countActual(preset.cases, "positive")}</span>
                 <span style={presetMetaItemStyle}>{t.negativeShort} {countActual(preset.cases, "negative")}</span>
               </span>

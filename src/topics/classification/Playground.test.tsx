@@ -31,13 +31,16 @@ describe("ClassificationPlayground", () => {
 
   it("loads a row of presets and marks the active preset", async () => {
     renderPlayground();
-    const preset = screen.getByRole("button", { name: "Rare positives" });
+    const preset = screen.getByRole("button", { name: /Rare positives/ });
     await userEvent.click(preset);
 
     expect(preset).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Selected")).toBeInTheDocument();
     expect(screen.getByText(/5 percent prevalence/)).toBeInTheDocument();
     expect(screen.getByText("Adjust the threshold or score groups to see how the metrics move.")).toBeInTheDocument();
     expect(screen.getAllByText("Total 100 · Positive 5 · Negative 95")).toHaveLength(2);
+    expect(screen.getAllByText("Cases 100").length).toBeGreaterThan(0);
+    expect(screen.queryByText("N 100")).not.toBeInTheDocument();
     expect(screen.getAllByRole("slider")).toHaveLength(1);
 
     await userEvent.click(screen.getByRole("button", { name: "Adjust score groups" }));

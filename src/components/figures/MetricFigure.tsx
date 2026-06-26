@@ -29,8 +29,12 @@ import FrocFigure from "./FrocFigure";
 import SensAtFpFigure from "./SensAtFpFigure";
 import ClassificationConfusionMatrixFigure from "./ClassificationConfusionMatrixFigure";
 import {
+  ClassificationAccuracyFigure,
+  ClassificationColumnsFigure,
   ClassificationConfusionFigure,
   ClassificationCurveFigure,
+  ClassificationF1Figure,
+  ClassificationRowsFigure,
   ClassificationThresholdFigure,
 } from "./ClassificationFigures";
 import RegressionErrorFigure from "./RegressionErrorFigure";
@@ -64,6 +68,10 @@ const FIGURES: Record<string, ComponentType> = {
   sensatfp: SensAtFpFigure,
   "classification-confusion-matrix": ClassificationConfusionMatrixFigure,
   "cls-confusion": ClassificationConfusionFigure,
+  "cls-rows": ClassificationRowsFigure,
+  "cls-columns": ClassificationColumnsFigure,
+  "cls-accuracy": ClassificationAccuracyFigure,
+  "cls-f1": ClassificationF1Figure,
   "cls-threshold": ClassificationThresholdFigure,
   "cls-curves": ClassificationCurveFigure,
   "reg-error": RegressionErrorFigure,

@@ -27,4 +27,12 @@ describe("classification Learn content", () => {
       expect(section.figure).toBeDefined();
     }
   });
+
+  it("attaches distinct interactive demos to fixed-threshold metric families", () => {
+    expect(classificationLearn.sections.find((section) => section.id === "sensitivity-specificity")?.miniSim?.kind).toBe("cls-row-tradeoff");
+    expect(classificationLearn.sections.find((section) => section.id === "ppv-npv")?.miniSim?.kind).toBe("cls-prevalence-columns");
+    expect(classificationLearn.sections.find((section) => section.id === "accuracy-balanced-accuracy")?.miniSim?.kind).toBe("cls-accuracy-imbalance");
+    expect(classificationLearn.sections.find((section) => section.id === "precision-recall-f1-fbeta")?.miniSim?.kind).toBe("cls-fbeta-weight");
+    expect(classificationLearnKo.sections.find((section) => section.id === "sensitivity-specificity")?.miniSim?.kind).toBe("cls-row-tradeoff");
+  });
 });

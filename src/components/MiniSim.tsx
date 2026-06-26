@@ -21,6 +21,7 @@ import DiceIouRelationSim from "./minisims/DiceIouRelationSim";
 import ApReorderSim from "./minisims/ApReorderSim";
 import FrocAddFpSim from "./minisims/FrocAddFpSim";
 import MatchingDuplicateFpSim from "./minisims/MatchingDuplicateFpSim";
+import ClassificationMetricSim from "./minisims/ClassificationMetricSim";
 
 export interface MiniSimProps {
   config: MiniSimConfig;
@@ -39,6 +40,10 @@ const WIDGETS: Record<string, ComponentType<WidgetProps>> = {
   "ap-reorder": ApReorderSim,
   "froc-add-fp": FrocAddFpSim,
   "matching-duplicate-fp": MatchingDuplicateFpSim,
+  "cls-row-tradeoff": ClassificationMetricSim,
+  "cls-prevalence-columns": ClassificationMetricSim,
+  "cls-accuracy-imbalance": ClassificationMetricSim,
+  "cls-fbeta-weight": ClassificationMetricSim,
 };
 
 const containerStyle: CSSProperties = {

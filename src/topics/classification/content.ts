@@ -1,4 +1,16 @@
-import type { LearnContent } from "../../types/topic";
+import type { EngineState } from "../../types/engine";
+import type { LearnContent, MiniSimConfig } from "../../types/topic";
+
+const SIM_STATE: EngineState = {
+  grid: { width: 1, height: 1, spacingMm: [1, 1] },
+  gt: [],
+  predictions: [],
+  policy: { emptyDice: "one", emptyDistance: "undefined" },
+};
+
+function miniSim(kind: string, spotlightMetric: string): MiniSimConfig {
+  return { kind, spotlightMetric, initialState: SIM_STATE };
+}
 
 export const classificationLearn: LearnContent = {
   intro:
@@ -36,7 +48,8 @@ export const classificationLearn: LearnContent = {
         "Sensitivity alone does not show false-positive burden.",
         "Specificity alone does not show how many positives were missed.",
       ],
-      figure: "cls-confusion",
+      figure: "cls-rows",
+      miniSim: miniSim("cls-row-tradeoff", "sensitivity"),
       complements: "Use both rows when class prevalence is skewed.",
     },
     {
@@ -54,7 +67,8 @@ export const classificationLearn: LearnContent = {
         "PPV and NPV change when prevalence changes, even if Sensitivity and Specificity stay fixed.",
         "A rare-positive task can have low PPV while Sensitivity remains high.",
       ],
-      figure: "cls-confusion",
+      figure: "cls-columns",
+      miniSim: miniSim("cls-prevalence-columns", "ppv"),
     },
     {
       id: "accuracy-balanced-accuracy",
@@ -71,7 +85,8 @@ export const classificationLearn: LearnContent = {
         "With 5 percent prevalence, predicting every case negative gives Accuracy 0.95 and Sensitivity 0.",
         "Balanced Accuracy still summarizes two rows into one number, so inspect Sensitivity and Specificity too.",
       ],
-      figure: "cls-confusion",
+      figure: "cls-accuracy",
+      miniSim: miniSim("cls-accuracy-imbalance", "accuracy"),
     },
     {
       id: "precision-recall-f1-fbeta",
@@ -88,7 +103,8 @@ export const classificationLearn: LearnContent = {
         "F1 and F-beta depend on the chosen threshold.",
         "They do not include TN, so they should be paired with Specificity when false alarms matter.",
       ],
-      figure: "cls-confusion",
+      figure: "cls-f1",
+      miniSim: miniSim("cls-fbeta-weight", "fBeta"),
     },
     {
       id: "roc-auroc",

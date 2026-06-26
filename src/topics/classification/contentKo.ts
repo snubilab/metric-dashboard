@@ -1,4 +1,16 @@
-import type { LearnContent } from "../../types/topic";
+import type { EngineState } from "../../types/engine";
+import type { LearnContent, MiniSimConfig } from "../../types/topic";
+
+const SIM_STATE: EngineState = {
+  grid: { width: 1, height: 1, spacingMm: [1, 1] },
+  gt: [],
+  predictions: [],
+  policy: { emptyDice: "one", emptyDistance: "undefined" },
+};
+
+function miniSim(kind: string, spotlightMetric: string): MiniSimConfig {
+  return { kind, spotlightMetric, initialState: SIM_STATE };
+}
 
 export const classificationLearnKo: LearnContent = {
   intro:
@@ -36,7 +48,8 @@ export const classificationLearnKo: LearnContent = {
         "Sensitivity만 보면 위양성 부담이 보이지 않습니다.",
         "Specificity만 보면 놓친 양성 수가 보이지 않습니다.",
       ],
-      figure: "cls-confusion",
+      figure: "cls-rows",
+      miniSim: miniSim("cls-row-tradeoff", "sensitivity"),
       complements: "클래스 비율이 기울어진 문제에서는 두 행을 함께 보세요.",
     },
     {
@@ -54,7 +67,8 @@ export const classificationLearnKo: LearnContent = {
         "Sensitivity와 Specificity가 같아도 prevalence가 바뀌면 PPV와 NPV가 바뀝니다.",
         "희귀 양성 문제에서는 Sensitivity가 높아도 PPV가 낮을 수 있습니다.",
       ],
-      figure: "cls-confusion",
+      figure: "cls-columns",
+      miniSim: miniSim("cls-prevalence-columns", "ppv"),
     },
     {
       id: "accuracy-balanced-accuracy",
@@ -71,7 +85,8 @@ export const classificationLearnKo: LearnContent = {
         "유병률 5%에서 모두 음성으로 예측하면 Accuracy는 0.95이고 Sensitivity는 0입니다.",
         "Balanced Accuracy도 두 행을 하나로 요약하므로 Sensitivity와 Specificity를 함께 확인해야 합니다.",
       ],
-      figure: "cls-confusion",
+      figure: "cls-accuracy",
+      miniSim: miniSim("cls-accuracy-imbalance", "accuracy"),
     },
     {
       id: "precision-recall-f1-fbeta",
@@ -88,7 +103,8 @@ export const classificationLearnKo: LearnContent = {
         "F1과 F-beta는 선택한 임계값에 의존합니다.",
         "TN을 포함하지 않으므로 오경보가 중요하면 Specificity와 함께 봐야 합니다.",
       ],
-      figure: "cls-confusion",
+      figure: "cls-f1",
+      miniSim: miniSim("cls-fbeta-weight", "fBeta"),
     },
     {
       id: "roc-auroc",

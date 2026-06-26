@@ -40,6 +40,7 @@ const L = {
     ppv: "Precision/PPV",
     npv: "NPV",
     accuracy: "Accuracy",
+    balancedAccuracy: "Balanced Acc",
     f1: "F1",
   },
   en: {
@@ -71,9 +72,81 @@ const L = {
     ppv: "Precision/PPV",
     npv: "NPV",
     accuracy: "Accuracy",
+    balancedAccuracy: "Balanced Acc",
     f1: "F1",
   },
 } as const;
+
+type ConfusionVariant = "overview" | "rows" | "columns" | "accuracy" | "f1";
+
+interface ConfusionExample {
+  readonly tp: number;
+  readonly fp: number;
+  readonly fn: number;
+  readonly tn: number;
+}
+
+const CONFUSION_EXAMPLES: Record<ConfusionVariant, ConfusionExample> = {
+  overview: { tp: 42, fn: 8, fp: 10, tn: 140 },
+  rows: { tp: 18, fn: 2, fp: 28, tn: 52 },
+  columns: { tp: 18, fn: 2, fp: 42, tn: 138 },
+  accuracy: { tp: 0, fn: 5, fp: 0, tn: 95 },
+  f1: { tp: 30, fn: 20, fp: 5, tn: 145 },
+};
+
+function ratio(numerator: number, denominator: number): string {
+  return denominator === 0 ? "—" : (numerator / denominator).toFixed(2);
+}
+
+function confusionChips(t: typeof L[keyof typeof L], example: ConfusionExample, variant: ConfusionVariant) {
+  const total = example.tp + example.fn + example.fp + example.tn;
+  const sensitivity = ratio(example.tp, example.tp + example.fn);
+  const specificity = ratio(example.tn, example.tn + example.fp);
+  const ppv = ratio(example.tp, example.tp + example.fp);
+  const npv = ratio(example.tn, example.tn + example.fn);
+  const accuracy = ratio(example.tp + example.tn, total);
+  const balancedAccuracy =
+    sensitivity === "—" || specificity === "—"
+      ? "—"
+      : ((Number(sensitivity) + Number(specificity)) / 2).toFixed(2);
+  const f1 = ratio(2 * example.tp, 2 * example.tp + example.fp + example.fn);
+
+  if (variant === "rows") {
+    return [
+      { label: t.sensitivity, formula: `${example.tp} / (${example.tp}+${example.fn})`, value: sensitivity },
+      { label: t.specificity, formula: `${example.tn} / (${example.tn}+${example.fp})`, value: specificity },
+      { label: t.balancedAccuracy, formula: "(Sens+Spec)/2", value: balancedAccuracy },
+    ];
+  }
+  if (variant === "columns") {
+    return [
+      { label: t.ppv, formula: `${example.tp} / (${example.tp}+${example.fp})`, value: ppv },
+      { label: t.npv, formula: `${example.tn} / (${example.tn}+${example.fn})`, value: npv },
+    ];
+  }
+  if (variant === "accuracy") {
+    return [
+      { label: t.accuracy, formula: `(${example.tp}+${example.tn}) / ${total}`, value: accuracy },
+      { label: t.sensitivity, formula: `${example.tp} / (${example.tp}+${example.fn})`, value: sensitivity },
+      { label: t.balancedAccuracy, formula: "(Sens+Spec)/2", value: balancedAccuracy },
+    ];
+  }
+  if (variant === "f1") {
+    return [
+      { label: t.ppv, formula: `${example.tp} / (${example.tp}+${example.fp})`, value: ppv },
+      { label: t.sensitivity, formula: `${example.tp} / (${example.tp}+${example.fn})`, value: sensitivity },
+      { label: t.f1, formula: "2TP / (2TP+FP+FN)", value: f1 },
+    ];
+  }
+  return [
+    { label: t.sensitivity, formula: `${example.tp} / (${example.tp}+${example.fn})`, value: sensitivity },
+    { label: t.specificity, formula: `${example.tn} / (${example.tn}+${example.fp})`, value: specificity },
+    { label: t.ppv, formula: `${example.tp} / (${example.tp}+${example.fp})`, value: ppv },
+    { label: t.npv, formula: `${example.tn} / (${example.tn}+${example.fn})`, value: npv },
+    { label: t.accuracy, formula: `(${example.tp}+${example.tn}) / ${total}`, value: accuracy },
+    { label: t.f1, formula: "2TP / (2TP+FP+FN)", value: f1 },
+  ];
+}
 
 function MatrixCell({
   x,
@@ -136,16 +209,24 @@ function MetricChip({
   );
 }
 
-export function ClassificationConfusionFigure() {
+function ClassificationConfusionExampleFigure({ variant = "overview" }: { readonly variant?: ConfusionVariant }) {
   const { lang } = useLang();
   const t = L[lang];
+  const example = CONFUSION_EXAMPLES[variant];
+  const actualPosTotal = example.tp + example.fn;
+  const actualNegTotal = example.fp + example.tn;
+  const predPosTotal = example.tp + example.fp;
+  const predNegTotal = example.fn + example.tn;
+  const total = actualPosTotal + actualNegTotal;
+  const chips = confusionChips(t, example, variant);
+
   return (
     <svg
       width="100%"
       height={320}
       viewBox="0 0 560 320"
       role="img"
-      aria-label={`${t.cm}: TP 42, FN 8, FP 10, TN 140`}
+      aria-label={`${t.cm}: TP ${example.tp}, FN ${example.fn}, FP ${example.fp}, TN ${example.tn}`}
       style={{ minWidth: 560 }}
     >
       <text x={28} y={138} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle} transform="rotate(-90 28 138)">
@@ -167,35 +248,55 @@ export function ClassificationConfusionFigure() {
         {t.neg}
       </text>
       <text x={74} y={110} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
-        {t.actualPosTotal}
+        {`${t.actualPosTotal.split(" ")[0]} ${t.actualPosTotal.split(" ")[1]} ${actualPosTotal}`}
       </text>
       <text x={74} y={192} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
-        {t.actualNegTotal}
+        {`${t.actualNegTotal.split(" ")[0]} ${t.actualNegTotal.split(" ")[1]} ${actualNegTotal}`}
       </text>
 
-      <MatrixCell x={136} y={58} fill="var(--c-gt)" stroke="var(--c-gt-text)" code="TP" count={42} label={t.hit} />
-      <MatrixCell x={268} y={58} fill="var(--c-warn)" stroke="var(--c-warn-text)" code="FN" count={8} label={t.miss} />
-      <MatrixCell x={136} y={140} fill="var(--c-warn)" stroke="var(--c-warn-text)" code="FP" count={10} label={t.falseAlarm} />
-      <MatrixCell x={268} y={140} fill="var(--c-gt)" stroke="var(--c-gt-text)" code="TN" count={140} label={t.correctReject} />
+      <MatrixCell x={136} y={58} fill="var(--c-gt)" stroke="var(--c-gt-text)" code="TP" count={example.tp} label={t.hit} />
+      <MatrixCell x={268} y={58} fill="var(--c-warn)" stroke="var(--c-warn-text)" code="FN" count={example.fn} label={t.miss} />
+      <MatrixCell x={136} y={140} fill="var(--c-warn)" stroke="var(--c-warn-text)" code="FP" count={example.fp} label={t.falseAlarm} />
+      <MatrixCell x={268} y={140} fill="var(--c-gt)" stroke="var(--c-gt-text)" code="TN" count={example.tn} label={t.correctReject} />
 
       <text x={194} y={232} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
-        {t.predPosTotal}
+        {`${t.predPosTotal.split(" ")[0]} ${t.predPosTotal.split(" ")[1]} ${predPosTotal}`}
       </text>
       <text x={326} y={232} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
-        {t.predNegTotal}
+        {`${t.predNegTotal.split(" ")[0]} ${t.predNegTotal.split(" ")[1]} ${predNegTotal}`}
       </text>
       <text x={74} y={232} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
-        {t.total}
+        {`${t.total.split(" ")[0]} ${total}`}
       </text>
 
-      <MetricChip x={410} y={58} label={t.sensitivity} formula="42 / (42+8)" value="0.84" />
-      <MetricChip x={410} y={112} label={t.specificity} formula="140 / (140+10)" value="0.93" />
-      <MetricChip x={410} y={166} label={t.ppv} formula="42 / (42+10)" value="0.81" />
-      <MetricChip x={410} y={220} label={t.npv} formula="140 / (140+8)" value="0.95" />
-      <MetricChip x={136} y={260} width={190} label={t.accuracy} formula="(42+140) / 200" value="0.91" />
-      <MetricChip x={336} y={260} width={190} label={t.f1} formula="2TP / (2TP+FP+FN)" value="0.82" />
+      {chips.slice(0, 4).map((chip, index) => (
+        <MetricChip key={`${chip.label}-${index}`} x={410} y={58 + index * 54} label={chip.label} formula={chip.formula} value={chip.value} />
+      ))}
+      {chips.slice(4, 6).map((chip, index) => (
+        <MetricChip key={`${chip.label}-${index + 4}`} x={136 + index * 200} y={260} width={190} label={chip.label} formula={chip.formula} value={chip.value} />
+      ))}
     </svg>
   );
+}
+
+export function ClassificationConfusionFigure() {
+  return <ClassificationConfusionExampleFigure />;
+}
+
+export function ClassificationRowsFigure() {
+  return <ClassificationConfusionExampleFigure variant="rows" />;
+}
+
+export function ClassificationColumnsFigure() {
+  return <ClassificationConfusionExampleFigure variant="columns" />;
+}
+
+export function ClassificationAccuracyFigure() {
+  return <ClassificationConfusionExampleFigure variant="accuracy" />;
+}
+
+export function ClassificationF1Figure() {
+  return <ClassificationConfusionExampleFigure variant="f1" />;
 }
 
 export function ClassificationThresholdFigure() {
