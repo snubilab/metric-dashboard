@@ -20,7 +20,7 @@ export const L = {
     gatedNegative: "이제 실제 음성 사례를 하나 이상 추가하세요.",
     gatedMetrics: "양성과 음성이 모두 있어야 지표가 열립니다.",
     presetsLabel: "분류 데이터셋",
-    empty: "실제 양성/음성 사례를 직접 추가하면 점수표가 시작됩니다.",
+    empty: "필요하면 임계값이나 점수 그룹을 조정해 지표 변화를 확인하세요.",
   },
   en: {
     step: "Step",
@@ -41,7 +41,7 @@ export const L = {
     gatedNegative: "Now add at least one actual negative case.",
     gatedMetrics: "Metrics unlock when both actual classes exist.",
     presetsLabel: "Classification datasets",
-    empty: "Add actual positive/negative cases yourself to begin the score table.",
+    empty: "Adjust the threshold or score groups to see how the metrics move.",
   },
 } as const;
 
