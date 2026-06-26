@@ -83,6 +83,7 @@ const frameStyle: React.CSSProperties = {
   background: "var(--bg-secondary)",
   border: "1px solid var(--border-secondary)",
   borderRadius: "var(--radius-xl)",
+  overflowX: "auto",
 };
 
 const captionStyle: React.CSSProperties = {

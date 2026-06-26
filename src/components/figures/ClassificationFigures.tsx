@@ -1,11 +1,5 @@
 import { useLang } from "../../i18n/LanguageContext";
 
-const cellStyle: React.CSSProperties = {
-  fill: "var(--c-surface)",
-  stroke: "var(--c-border)",
-  strokeWidth: 1.5,
-};
-
 const labelStyle: React.CSSProperties = {
   fontFamily: "var(--font-ui)",
   fontSize: "var(--text-xs)",
@@ -31,6 +25,22 @@ const L = {
     tpr: "TPR",
     recall: "Recall",
     precision: "Precision",
+    count: "예시 수",
+    actualPosTotal: "실제 양성 50",
+    actualNegTotal: "실제 음성 150",
+    predPosTotal: "예측 양성 52",
+    predNegTotal: "예측 음성 148",
+    total: "전체 200",
+    hit: "맞춘 양성",
+    miss: "놓친 양성",
+    falseAlarm: "오경보",
+    correctReject: "맞춘 음성",
+    sensitivity: "Recall/Sens",
+    specificity: "Specificity",
+    ppv: "Precision/PPV",
+    npv: "NPV",
+    accuracy: "Accuracy",
+    f1: "F1",
   },
   en: {
     cm: "Classification confusion matrix",
@@ -46,40 +56,144 @@ const L = {
     tpr: "TPR",
     recall: "Recall",
     precision: "Precision",
+    count: "Example counts",
+    actualPosTotal: "Actual positive 50",
+    actualNegTotal: "Actual negative 150",
+    predPosTotal: "Predicted positive 52",
+    predNegTotal: "Predicted negative 148",
+    total: "Total 200",
+    hit: "positive hit",
+    miss: "missed positive",
+    falseAlarm: "false alarm",
+    correctReject: "correct rejection",
+    sensitivity: "Recall/Sens",
+    specificity: "Specificity",
+    ppv: "Precision/PPV",
+    npv: "NPV",
+    accuracy: "Accuracy",
+    f1: "F1",
   },
 } as const;
+
+function MatrixCell({
+  x,
+  y,
+  fill,
+  stroke,
+  code,
+  count,
+  label,
+}: {
+  x: number;
+  y: number;
+  fill: string;
+  stroke: string;
+  code: string;
+  count: number;
+  label: string;
+}) {
+  return (
+    <g>
+      <rect x={x} y={y} width={118} height={66} rx={6} fill={fill} fillOpacity={0.16} stroke={stroke} strokeWidth={1.8} />
+      <text x={x + 59} y={y + 25} fill={stroke} textAnchor="middle" style={{ ...monoStyle, fontWeight: 700 }}>
+        {code}={count}
+      </text>
+      <text x={x + 59} y={y + 46} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function MetricChip({
+  x,
+  y,
+  width = 138,
+  label,
+  value,
+  formula,
+}: {
+  x: number;
+  y: number;
+  width?: number;
+  label: string;
+  value: string;
+  formula: string;
+}) {
+  return (
+    <g>
+      <rect x={x} y={y} width={width} height={50} rx={7} fill="var(--c-surface)" stroke="var(--c-border)" />
+      <text x={x + 10} y={y + 16} fill="var(--c-text)" style={{ ...labelStyle, fontWeight: 700 }}>
+        {label}
+      </text>
+      <text x={x + width - 10} y={y + 16} fill="var(--c-pred-a-text)" textAnchor="end" style={{ ...monoStyle, fontWeight: 700 }}>
+        {value}
+      </text>
+      <text x={x + 10} y={y + 36} fill="var(--c-text-dim)" style={monoStyle}>
+        {formula}
+      </text>
+    </g>
+  );
+}
 
 export function ClassificationConfusionFigure() {
   const { lang } = useLang();
   const t = L[lang];
   return (
-    <svg width="100%" height={190} viewBox="0 0 360 190" role="img" aria-label={t.cm}>
-      <text x={42} y={102} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle} transform="rotate(-90 42 102)">
+    <svg
+      width="100%"
+      height={320}
+      viewBox="0 0 560 320"
+      role="img"
+      aria-label={`${t.cm}: TP 42, FN 8, FP 10, TN 140`}
+      style={{ minWidth: 560 }}
+    >
+      <text x={28} y={138} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle} transform="rotate(-90 28 138)">
         {t.actual}
       </text>
-      <text x={220} y={20} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+      <text x={254} y={20} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
         {t.predicted}
       </text>
-      <text x={160} y={44} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+      <text x={194} y={45} fill="var(--c-pred-a-text)" textAnchor="middle" style={{ ...labelStyle, fontWeight: 700 }}>
         {t.pos}
       </text>
-      <text x={280} y={44} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+      <text x={326} y={45} fill="var(--c-pred-b-text)" textAnchor="middle" style={{ ...labelStyle, fontWeight: 700 }}>
         {t.neg}
       </text>
-      <text x={84} y={88} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+      <text x={74} y={92} fill="var(--c-gt-text)" textAnchor="middle" style={{ ...labelStyle, fontWeight: 700 }}>
         {t.pos}
       </text>
-      <text x={84} y={148} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+      <text x={74} y={174} fill="var(--c-warn-text)" textAnchor="middle" style={{ ...labelStyle, fontWeight: 700 }}>
         {t.neg}
       </text>
-      <rect x={110} y={58} width={100} height={52} style={cellStyle} fillOpacity={0.8} />
-      <rect x={230} y={58} width={100} height={52} style={cellStyle} />
-      <rect x={110} y={122} width={100} height={52} style={cellStyle} />
-      <rect x={230} y={122} width={100} height={52} style={cellStyle} fillOpacity={0.8} />
-      <text x={160} y={90} fill="var(--c-gt-text)" textAnchor="middle" style={monoStyle}>TP</text>
-      <text x={280} y={90} fill="var(--c-warn-text)" textAnchor="middle" style={monoStyle}>FN</text>
-      <text x={160} y={154} fill="var(--c-warn-text)" textAnchor="middle" style={monoStyle}>FP</text>
-      <text x={280} y={154} fill="var(--c-gt-text)" textAnchor="middle" style={monoStyle}>TN</text>
+      <text x={74} y={110} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+        {t.actualPosTotal}
+      </text>
+      <text x={74} y={192} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+        {t.actualNegTotal}
+      </text>
+
+      <MatrixCell x={136} y={58} fill="var(--c-gt)" stroke="var(--c-gt-text)" code="TP" count={42} label={t.hit} />
+      <MatrixCell x={268} y={58} fill="var(--c-warn)" stroke="var(--c-warn-text)" code="FN" count={8} label={t.miss} />
+      <MatrixCell x={136} y={140} fill="var(--c-warn)" stroke="var(--c-warn-text)" code="FP" count={10} label={t.falseAlarm} />
+      <MatrixCell x={268} y={140} fill="var(--c-gt)" stroke="var(--c-gt-text)" code="TN" count={140} label={t.correctReject} />
+
+      <text x={194} y={232} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+        {t.predPosTotal}
+      </text>
+      <text x={326} y={232} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+        {t.predNegTotal}
+      </text>
+      <text x={74} y={232} fill="var(--c-text-dim)" textAnchor="middle" style={labelStyle}>
+        {t.total}
+      </text>
+
+      <MetricChip x={410} y={58} label={t.sensitivity} formula="42 / (42+8)" value="0.84" />
+      <MetricChip x={410} y={112} label={t.specificity} formula="140 / (140+10)" value="0.93" />
+      <MetricChip x={410} y={166} label={t.ppv} formula="42 / (42+10)" value="0.81" />
+      <MetricChip x={410} y={220} label={t.npv} formula="140 / (140+8)" value="0.95" />
+      <MetricChip x={136} y={260} width={190} label={t.accuracy} formula="(42+140) / 200" value="0.91" />
+      <MetricChip x={336} y={260} width={190} label={t.f1} formula="2TP / (2TP+FP+FN)" value="0.82" />
     </svg>
   );
 }

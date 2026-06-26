@@ -104,6 +104,11 @@ const headerStyle: React.CSSProperties = {
 /** Small attribution at the very top — color is theme-aware (black on light, white
  *  on dark) via the `.app-credit` class so it stays legible in both themes. */
 const CREDIT = "리더: 이주희 · 보조: 고예현";
+const CLASSIFICATION_REGRESSION_CREDIT = "리더: 전경민 · 보조: 조경형";
+
+function topicCredit(topicId: string): string {
+  return topicId === "classification" || topicId === "regression" ? CLASSIFICATION_REGRESSION_CREDIT : CREDIT;
+}
 
 /** Lab homepage linked from the footer credit. */
 const BILAB_URL = "http://bilab.snu.ac.kr";
@@ -275,7 +280,7 @@ function App() {
   return (
     <div className="app-shell" style={shellStyle}>
       <style>{SHELL_CSS}</style>
-      <Sidebar topics={topics} activeId={topic.id} onSelect={setSelectedId} credit={CREDIT} />
+      <Sidebar topics={topics} activeId={topic.id} onSelect={setSelectedId} credit={topicCredit(topic.id)} />
       <main className="app-main" style={mainStyle}>
         <header style={headerStyle}>
           <div style={titleRowStyle}>
