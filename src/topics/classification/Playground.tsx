@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import type { ClassificationCase } from "../../types/engine";
 import { AnimatedMetricBlock } from "../../components/minisims/AnimatedMetricBlock";
 import {
@@ -10,7 +11,6 @@ import { CLS_PRESETS } from "./presets";
 import type { ClassificationPreset } from "./presets";
 import {
   L,
-  activeButtonStyle,
   buttonStyle,
   cellStyle,
   columnStyle,
@@ -27,6 +27,43 @@ import {
   tableStyle,
 } from "./playgroundUi";
 import type { Stage } from "./playgroundUi";
+
+const presetGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))",
+  gap: "var(--space-2)",
+};
+
+const presetCardStyle: CSSProperties = {
+  ...buttonStyle,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  gap: "var(--space-2)",
+  minHeight: "112px",
+  padding: "var(--space-2)",
+  textAlign: "left",
+};
+
+const activePresetCardStyle: CSSProperties = {
+  ...presetCardStyle,
+  border: "1px solid var(--c-gt)",
+  color: "var(--c-gt-text)",
+};
+
+const presetLabelStyle: CSSProperties = {
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+const thumbnailStyle: CSSProperties = {
+  width: "100%",
+  height: "64px",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+  background: "var(--c-surface)",
+};
 
 function stageFor(cases: readonly ClassificationCase[]): Stage {
   const hasPositive = cases.some((item) => item.actual === "positive");
@@ -67,6 +104,56 @@ function scoreGroups(cases: readonly ClassificationCase[]): ScoreGroup[] {
   });
 }
 
+function ClassificationPresetThumbnail({ preset }: { readonly preset: ClassificationPreset }) {
+  const groups = scoreGroups(preset.cases);
+
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      viewBox="0 0 120 64"
+      preserveAspectRatio="none"
+      style={thumbnailStyle}
+    >
+      <line x1="10" y1="20" x2="110" y2="20" stroke="var(--c-border)" strokeWidth="1" />
+      <line x1="10" y1="44" x2="110" y2="44" stroke="var(--c-border)" strokeWidth="1" />
+      <line
+        x1={10 + preset.threshold * 100}
+        y1="8"
+        x2={10 + preset.threshold * 100}
+        y2="56"
+        stroke="var(--c-warn)"
+        strokeWidth="2"
+        strokeDasharray="4 3"
+      />
+      <text x="6" y="23" fill="var(--c-gt-text)" fontSize="9" textAnchor="start">
+        P
+      </text>
+      <text x="6" y="47" fill="var(--c-pred-b-text)" fontSize="9" textAnchor="start">
+        N
+      </text>
+      {groups.map((group) => {
+        const x = 10 + group.score * 100;
+        const y = group.actual === "positive" ? 20 : 44;
+        const radius = Math.min(8, 3 + Math.sqrt(group.count));
+        const fill = group.actual === "positive" ? "var(--c-gt)" : "var(--c-pred-b)";
+        const textFill = group.actual === "positive" ? "var(--c-gt-text)" : "var(--c-pred-b-text)";
+
+        return (
+          <g key={`${group.actual}-${group.score}`}>
+            <circle cx={x} cy={y} r={radius} fill={fill} opacity="0.86" />
+            {group.count > 1 ? (
+              <text x={x + radius + 2} y={y + 3} fill={textFill} fontSize="8">
+                {group.count}
+              </text>
+            ) : null}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 export function ClassificationPlayground() {
   const { lang } = useLang();
   const t = L[lang];
@@ -105,16 +192,17 @@ export function ClassificationPlayground() {
           <span style={stepStyle}>{stepText(stage, lang)}</span>
           <section style={panelStyle} aria-label={t.presetsLabel}>
             <h3 style={headingStyle}>{t.examples}</h3>
-            <div style={rowStyle} role="group" aria-label={t.presetsLabel}>
+            <div style={presetGridStyle} role="group" aria-label={t.presetsLabel}>
               {CLS_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
                   type="button"
                   aria-pressed={preset.id === activePresetId}
-                  style={preset.id === activePresetId ? activeButtonStyle : buttonStyle}
+                  style={preset.id === activePresetId ? activePresetCardStyle : presetCardStyle}
                   onClick={() => loadPreset(preset)}
                 >
-                  {lang === "ko" ? preset.labelKo : preset.label}
+                  <ClassificationPresetThumbnail preset={preset} />
+                  <span style={presetLabelStyle}>{lang === "ko" ? preset.labelKo : preset.label}</span>
                 </button>
               ))}
             </div>

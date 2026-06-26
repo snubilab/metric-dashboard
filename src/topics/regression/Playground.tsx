@@ -17,7 +17,7 @@ const L = {
     addPair: "점 추가",
     addResidual: "잔차로 추가",
     reset: "초기화",
-    examples: "예시 불러오기",
+    examples: "데이터 선택",
     empty: "아직 점이 없습니다. 첫 점을 추가하면 산점도가 시작됩니다.",
     metrics: "현재 점들의 지표",
     needMore: "상관과 R²는 적어도 두 점이 필요합니다.",
@@ -31,7 +31,7 @@ const L = {
     addPair: "Add point",
     addResidual: "Add residual",
     reset: "Reset",
-    examples: "Load an example",
+    examples: "Choose data",
     empty: "No points yet. Add the first point to start the scatter plot.",
     metrics: "Metrics for current points",
     needMore: "Correlation and R² need at least two points.",
@@ -78,6 +78,12 @@ const rowStyle: CSSProperties = {
   alignItems: "flex-end",
 };
 
+const presetGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))",
+  gap: "var(--space-2)",
+};
+
 const inputStyle: CSSProperties = {
   width: "8rem",
   padding: "var(--space-2)",
@@ -109,10 +115,35 @@ const buttonStyle: CSSProperties = {
   cursor: "pointer",
 };
 
-const activeButtonStyle: CSSProperties = {
+const presetCardStyle: CSSProperties = {
   ...buttonStyle,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  gap: "var(--space-2)",
+  minHeight: "112px",
+  padding: "var(--space-2)",
+  textAlign: "left",
+};
+
+const activePresetCardStyle: CSSProperties = {
+  ...presetCardStyle,
   border: "1px solid var(--c-pred-a)",
   color: "var(--c-pred-a-text)",
+};
+
+const presetLabelStyle: CSSProperties = {
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+const thumbnailStyle: CSSProperties = {
+  width: "100%",
+  height: "64px",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+  background: "var(--c-surface)",
 };
 
 const textStyle: CSSProperties = {
@@ -140,6 +171,39 @@ function numeric(value: string): number | undefined {
 
 function clonePoints(points: readonly RegressionPoint[]): RegressionPoint[] {
   return points.map((point) => ({ ...point }));
+}
+
+function RegressionPresetThumbnail({ points }: { readonly points: readonly RegressionPoint[] }) {
+  const values = points.flatMap((point) => [point.target, point.prediction]);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const scale = (value: number) => 12 + ((value - min) / span) * 96;
+  const yScale = (value: number) => 54 - ((value - min) / span) * 44;
+
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      viewBox="0 0 120 64"
+      preserveAspectRatio="none"
+      style={thumbnailStyle}
+    >
+      <line x1="12" y1="54" x2="108" y2="54" stroke="var(--c-border)" strokeWidth="1" />
+      <line x1="12" y1="10" x2="12" y2="54" stroke="var(--c-border)" strokeWidth="1" />
+      <line x1="12" y1="54" x2="108" y2="10" stroke="var(--c-text-dim)" strokeWidth="1" strokeDasharray="3 3" />
+      {points.map((point, index) => (
+        <circle
+          key={`${point.target}-${point.prediction}-${index}`}
+          cx={scale(point.target)}
+          cy={yScale(point.prediction)}
+          r="3.8"
+          fill="var(--c-pred-a)"
+          opacity="0.88"
+        />
+      ))}
+    </svg>
+  );
 }
 
 export default function RegressionPlayground() {
@@ -182,19 +246,20 @@ export default function RegressionPlayground() {
       <p style={textStyle}>{t.prompt}</p>
       <section style={examplePanelStyle} aria-label={t.examples}>
         <h3 style={{ margin: 0, fontSize: "var(--text-sm)", color: "var(--c-text-dim)" }}>{t.examples}</h3>
-        <div style={rowStyle}>
+        <div style={presetGridStyle}>
           {REG_PRESETS.map((preset) => (
             <button
               key={preset.id}
               type="button"
               aria-pressed={activePreset === preset.id}
-              style={activePreset === preset.id ? activeButtonStyle : buttonStyle}
+              style={activePreset === preset.id ? activePresetCardStyle : presetCardStyle}
               onClick={() => {
                 setPoints(clonePoints(preset.points));
                 setActivePreset(preset.id);
               }}
             >
-              {lang === "ko" ? preset.labelKo : preset.label}
+              <RegressionPresetThumbnail points={preset.points} />
+              <span style={presetLabelStyle}>{lang === "ko" ? preset.labelKo : preset.label}</span>
             </button>
           ))}
         </div>
