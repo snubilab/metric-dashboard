@@ -138,7 +138,8 @@ const titleRowStyle: React.CSSProperties = {
 
 const titleGroupStyle: React.CSSProperties = {
   display: "flex",
-  alignItems: "baseline",
+  alignItems: "center",
+  flexWrap: "wrap",
   gap: "var(--space-3)",
   minWidth: 0,
 };
@@ -153,11 +154,13 @@ const titleStyle: React.CSSProperties = {
 };
 
 const groupTagStyle: React.CSSProperties = {
+  flexShrink: 0,
   padding: "4px 11px",
   fontSize: "var(--text-xs)",
   fontFamily: "var(--font-ui)",
   fontWeight: 600,
   lineHeight: 1,
+  whiteSpace: "nowrap",
   color: "var(--text-brand-secondary)",
   background: "var(--bg-brand-primary)",
   borderRadius: "var(--radius-full)",
