@@ -320,13 +320,13 @@ export function ClassificationPlayground() {
             {isCompare ? (
               <>
                 <div style={rowStyle}>
-                  <AnimatedMetricBlock dataMetric="accuracy" label="Accuracy" value={metrics.accuracy} decimals={3} />
-                  <AnimatedMetricBlock dataMetric="balanced-accuracy" label="Balanced Acc" value={metrics.balancedAccuracy} decimals={3} />
-                  <AnimatedMetricBlock dataMetric="sensitivity" label="Sensitivity" value={metrics.sensitivity} decimals={3} />
-                  <AnimatedMetricBlock dataMetric="specificity" label="Specificity" value={metrics.specificity} decimals={3} />
-                  <AnimatedMetricBlock dataMetric="ppv" label="PPV" value={metrics.ppv} decimals={3} />
-                  <AnimatedMetricBlock dataMetric="npv" label="NPV" value={metrics.npv} decimals={3} />
-                  <AnimatedMetricBlock dataMetric="f1" label="F1" value={metrics.f1} decimals={3} />
+                  <AnimatedMetricBlock dataMetric="accuracy" label="Accuracy" value={metrics.accuracy} decimals={3} size="sm" />
+                  <AnimatedMetricBlock dataMetric="balanced-accuracy" label="Balanced Acc" value={metrics.balancedAccuracy} decimals={3} size="sm" />
+                  <AnimatedMetricBlock dataMetric="sensitivity" label="Sensitivity" value={metrics.sensitivity} decimals={3} size="sm" />
+                  <AnimatedMetricBlock dataMetric="specificity" label="Specificity" value={metrics.specificity} decimals={3} size="sm" />
+                  <AnimatedMetricBlock dataMetric="ppv" label="PPV" value={metrics.ppv} decimals={3} size="sm" />
+                  <AnimatedMetricBlock dataMetric="npv" label="NPV" value={metrics.npv} decimals={3} size="sm" />
+                  <AnimatedMetricBlock dataMetric="f1" label="F1" value={metrics.f1} decimals={3} size="sm" />
                 </div>
                 <table style={tableStyle} aria-label="Confusion Matrix">
                   <tbody>

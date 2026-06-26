@@ -10,7 +10,7 @@
  * All visual values come from design-system tokens.
  */
 
-import { AnimatedMetric, type MetricTone } from "../AnimatedMetric";
+import { AnimatedMetric, type MetricSize, type MetricTone } from "../AnimatedMetric";
 
 interface AnimatedMetricBlockProps {
   /** Identifier exposed as the `data-metric` attribute on the numeral span. */
@@ -25,6 +25,7 @@ interface AnimatedMetricBlockProps {
   unit?: string;
   /** Visual tone for the numeral. */
   tone?: MetricTone;
+  size?: MetricSize;
 }
 
 const labelStyle: React.CSSProperties = {
@@ -42,12 +43,13 @@ export function AnimatedMetricBlock({
   decimals = 2,
   unit,
   tone,
+  size,
 }: AnimatedMetricBlockProps) {
   return (
     <span style={{ display: "inline-flex", flexDirection: "column", gap: "var(--space-1)" }}>
       <span style={labelStyle}>{label}</span>
       <span data-metric={dataMetric}>
-        <AnimatedMetric value={value} decimals={decimals} unit={unit} tone={tone} />
+        <AnimatedMetric value={value} decimals={decimals} unit={unit} tone={tone} size={size} />
       </span>
     </span>
   );
