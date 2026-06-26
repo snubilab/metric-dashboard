@@ -27,14 +27,14 @@ export const segmentationScenarios: Scenario[] = [
     clinical: {
       situation:
         "A whole-brain screening MRI carries one dominant metastasis and a tiny " +
-        "second lesion. The model segments the large lesion beautifully but " +
+        "second lesion. The model segments the large lesion closely but " +
         "completely misses the small one.",
       modality: "Contrast-enhanced brain MRI",
       atStake:
         "An untreated metastasis can grow, bleed, or seed further disease before " +
         "the next scan.",
       consequence:
-        "Voxel Dice looks excellent and the report passes review, yet a treatable " +
+        "Voxel Dice stays high and the report passes review, yet a treatable " +
         "lesion was never flagged.",
     },
     state: {
@@ -277,7 +277,7 @@ export const segmentationScenarios: Scenario[] = [
     title: "Broken vessel topology (clDice teaser)",
     clinical: {
       situation:
-        "A vessel-segmentation model produces a mask with good voxel overlap, but " +
+        "A vessel-segmentation model produces a mask with high voxel overlap, but " +
         "the centerline is broken — a branch is disconnected into two pieces.",
       modality: "CT angiography (tubular structure)",
       atStake:

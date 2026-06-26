@@ -74,7 +74,7 @@ describe("MetricTable", () => {
     expect(screen.getByText("예측 A")).toBeInTheDocument();
     expect(screen.getByText("예측 B")).toBeInTheDocument();
     expect(screen.getByText("순위 불일치")).toBeInTheDocument();
-    expect(screen.getByText("굵게 = 해당 지표에서 우세")).toBeInTheDocument();
+    expect(screen.getByText("굵게 = 해당 지표에서 앞섬")).toBeInTheDocument();
   });
 
   it("explains the bold convention in the English legend", () => {
@@ -84,10 +84,10 @@ describe("MetricTable", () => {
       </LanguageProvider>,
     );
 
-    expect(screen.getByText("Bold = better on this metric")).toBeInTheDocument();
+    expect(screen.getByText("Bold = leads on this metric")).toBeInTheDocument();
   });
 
-  it("marks each metric with its higher/lower-is-better direction", () => {
+  it("marks each metric with its higher/lower-leads direction", () => {
     render(
       <LanguageProvider initialLang="en">
         <MetricTable rows={opposingRows} />
@@ -97,13 +97,13 @@ describe("MetricTable", () => {
     const diceRow = screen.getByText("Dice").closest("tr");
     expect(diceRow).not.toBeNull();
     expect(
-      within(diceRow as HTMLElement).getByLabelText(/higher is better/i),
+      within(diceRow as HTMLElement).getByLabelText(/higher value leads/i),
     ).toBeInTheDocument();
 
     const hd95Row = screen.getByText("HD95").closest("tr");
     expect(hd95Row).not.toBeNull();
     expect(
-      within(hd95Row as HTMLElement).getByLabelText(/lower is better/i),
+      within(hd95Row as HTMLElement).getByLabelText(/lower value leads/i),
     ).toBeInTheDocument();
   });
 
@@ -114,8 +114,8 @@ describe("MetricTable", () => {
       </LanguageProvider>,
     );
 
-    expect(screen.getByLabelText("높을수록 좋음")).toBeInTheDocument();
-    expect(screen.getByLabelText("낮을수록 좋음")).toBeInTheDocument();
+    expect(screen.getByLabelText("높을수록 우세")).toBeInTheDocument();
+    expect(screen.getByLabelText("낮을수록 우세")).toBeInTheDocument();
   });
 
   it("colors the A and B column headers with the prediction text tokens", () => {

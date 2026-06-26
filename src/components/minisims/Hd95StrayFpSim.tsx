@@ -34,7 +34,7 @@ const L = {
   en: {
     title: "Stray false positive: Dice vs HD vs HD95",
     caption:
-      "A near-perfect prediction with one tiny stray blob far away. Dice hardly notices the few extra pixels, but HD jumps to the full stray distance because it is the single worst point. HD95 absorbs part of the outlier, landing between the two.",
+      "A near-overlapping prediction with one tiny stray blob far away. Dice hardly notices the few extra pixels, but HD jumps to the full stray distance because it is the single farthest point. HD95 absorbs part of the outlier, landing between the two.",
     strayDistance: "Stray FP distance (mm)",
     canvasAria: "Ground truth, prediction, and a far-away stray false-positive blob",
   },

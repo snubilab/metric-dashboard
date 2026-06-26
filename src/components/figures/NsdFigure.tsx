@@ -12,21 +12,21 @@ import { SvgPanelCaption, SvgWarnMark } from "./detPanels";
 
 const L = {
   ko: {
-    aria: "NSD 예시: 허용 오차 띠 안의 경계점 비율, 그리고 허용 오차가 크면 나쁜 경계도 통과하는 오해 사례",
+    aria: "NSD 예시: 허용 오차 띠 안의 경계점 비율, 그리고 허용 오차가 크면 어긋난 경계도 통과하는 오해 사례",
     typical: "정상 예시",
     misleading: "오해 사례",
     tau: "허용 오차 τ",
     caption: "NSD@τ = 띠 안 경계점 비율",
-    trap: "허용 오차가 크면 나쁜 경계도 통과",
+    trap: "허용 오차가 크면 어긋난 경계도 통과",
     loose: "큰 τ",
   },
   en: {
-    aria: "NSD example: fraction of boundary inside the tolerance band, plus a misleading case where a loose tolerance lets a bad boundary pass",
+    aria: "NSD example: fraction of boundary inside the tolerance band, plus a misleading case where a loose tolerance lets a shifted boundary pass",
     typical: "typical",
     misleading: "misleading",
     tau: "tolerance τ",
     caption: "NSD@τ = fraction of boundary in band",
-    trap: "A loose tolerance lets a bad boundary pass",
+    trap: "A loose tolerance lets a shifted boundary pass",
     loose: "wide τ",
   },
 } as const;

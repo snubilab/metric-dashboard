@@ -27,14 +27,14 @@ const L = {
   ko: {
     chartLabel: "지표별 A 대 B 막대 비교",
     legend: "A 대 B",
-    higherBetter: "↑ 높을수록 좋음",
-    lowerBetter: "↓ 낮을수록 좋음",
+    higherBetter: "↑ 높을수록 우세",
+    lowerBetter: "↓ 낮을수록 우세",
   },
   en: {
     chartLabel: "Per-metric A vs B bar comparison",
     legend: "A vs B",
-    higherBetter: "↑ higher is better",
-    lowerBetter: "↓ lower is better",
+    higherBetter: "↑ higher value leads",
+    lowerBetter: "↓ lower value leads",
   },
 } as const;
 

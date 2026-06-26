@@ -27,8 +27,8 @@ const L = {
     typicalTag: "정상 예시",
     misleadingTag: "오해 사례",
     typicalCaption: "AP ≈ 보간된 PR 곡선 아래 면적",
-    good: "운용 양호",
-    bad: "운용 불량",
+    good: "곡선 A",
+    bad: "곡선 B",
     misleadingCaption: "AP가 비슷해도 실제 운용점 성능은 다를 수 있음",
   },
   en: {
@@ -36,8 +36,8 @@ const L = {
     typicalTag: "typical",
     misleadingTag: "misleading",
     typicalCaption: "AP ≈ area under the INTERPOLATED PR curve",
-    good: "usable",
-    bad: "poor in use",
+    good: "curve A",
+    bad: "curve B",
     misleadingCaption: "Similar AP can hide very different operating-point behavior",
   },
 } as const;
@@ -187,7 +187,7 @@ export function PrCurveFigure() {
         aria-hidden="true"
       >
         <polyline
-          data-role="bad-curve"
+          data-role="curve-b"
           points={BAD_POINTS.map((p) => {
             const plotW = CHART_W - MARGIN.left - MARGIN.right;
             const plotH = CHART_H - MARGIN.top - MARGIN.bottom;

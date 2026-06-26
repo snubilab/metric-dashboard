@@ -25,13 +25,13 @@ const L = {
   ko: {
     title: "Dice와 IoU: 같은 순위, 다른 척도",
     caption:
-      "모든 겹침에서 Dice ≥ IoU이며, 한쪽은 다른 쪽의 단조 증가 함수입니다 — 하나의 사례에서 둘은 예측의 순위를 동일하게 매기므로, 어느 쪽을 고르든 어떤 결과가 더 좋아 보이는지는 절대 바뀌지 않습니다.",
+      "모든 겹침에서 Dice ≥ IoU이며, 한쪽은 다른 쪽의 단조 증가 함수입니다 — 하나의 사례에서 둘은 예측의 순위를 동일하게 매기므로, 어느 쪽을 고르든 앞서는 결과는 바뀌지 않습니다.",
     overlapOffset: "겹침 오프셋 (px)",
   },
   en: {
     title: "Dice and IoU: same ranking, different scale",
     caption:
-      "Dice ≥ IoU for every overlap, and the two are a strictly increasing function of each other — for a single case they rank predictions identically, so picking one over the other never changes which result looks better.",
+      "Dice ≥ IoU for every overlap, and the two are a strictly increasing function of each other — for a single case they rank predictions identically, so picking one over the other never changes which result leads.",
     overlapOffset: "Overlap offset (px)",
   },
 } as const;

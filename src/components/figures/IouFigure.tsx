@@ -29,7 +29,7 @@ const L = {
     union: "union",
     caption: "IoU = intersection / union",
     trap: "High IoU still hides boundary error",
-    bad: "bad edge",
+    bad: "edge error",
   },
 } as const;
 

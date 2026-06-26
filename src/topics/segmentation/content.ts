@@ -260,7 +260,7 @@ export const segmentationLearn: LearnContent = {
       ],
       figure: "volume",
       complements:
-        "Report with Dice/HD95: equal volume can still be badly localized — a shifted mask matches in volume yet misses spatially.",
+        "Report with Dice/HD95: equal volume can still be mislocalized — a shifted mask matches in volume yet misses spatially.",
     },
     {
       id: "lesionwise",
@@ -298,7 +298,7 @@ export const segmentationLearn: LearnContent = {
         "structures such as vessels and airways. It harmonizes topology precision " +
         "(predicted centerline inside the GT mask) and topology sensitivity (GT " +
         "centerline inside the predicted mask), so a vessel can have high Dice yet " +
-        "score poorly when its centerline is broken.",
+        "lose topology agreement when its centerline is broken.",
       features: [
         "Sensitive to connectivity: rewards an unbroken centerline, not just voxel overlap.",
         "Designed for tubular, tree-like structures (vessels, airways, neurons).",

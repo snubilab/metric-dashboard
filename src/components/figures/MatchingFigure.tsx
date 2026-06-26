@@ -18,7 +18,7 @@ import { TwoPanelFigure } from "./detPanels";
 
 const L = {
   ko: {
-    aria: "탐지 1:1 매칭 개념과, 임계값 바로 아래의 좋은 박스가 거짓양성으로 처리되는 오해 사례를 함께 보여주는 그림.",
+    aria: "탐지 1:1 매칭 개념과, 임계값 바로 아래의 가까운 박스가 거짓양성으로 처리되는 오해 사례를 함께 보여주는 그림.",
     typicalTag: "정상 예시",
     misleadingTag: "오해 사례",
     gt: "정답(GT)",
@@ -28,10 +28,10 @@ const L = {
     iouLow: "IoU 0.49",
     fpNear: "FP (임계값 미달)",
     fpDup: "FP (중복)",
-    misleadingCaption: "임계값 바로 아래의 좋은 박스도 거짓양성 처리",
+    misleadingCaption: "임계값 바로 아래의 가까운 박스도 거짓양성 처리",
   },
   en: {
-    aria: "Detection one-to-one matching concept, plus a misleading case where a good box just under the IoU threshold is counted as a false positive.",
+    aria: "Detection one-to-one matching concept, plus a misleading case where a close box just under the IoU threshold is counted as a false positive.",
     typicalTag: "typical",
     misleadingTag: "misleading",
     gt: "GT",
@@ -41,7 +41,7 @@ const L = {
     iouLow: "IoU 0.49",
     fpNear: "FP (below threshold)",
     fpDup: "FP (duplicate)",
-    misleadingCaption: "A good box just under the IoU threshold is still counted FP",
+    misleadingCaption: "A close box just under the IoU threshold is still counted FP",
   },
 } as const;
 
