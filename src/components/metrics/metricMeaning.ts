@@ -75,6 +75,30 @@ const METRIC_MEANINGS: Record<string, Record<Lang, string>> = {
     ko: "정답 대비 예측 부피의 상대 차이",
     en: "Relative difference in volume versus ground truth",
   },
+  lexicalOverlap: {
+    ko: "reference와 candidate의 표면 단어 겹침",
+    en: "Surface token overlap between reference and candidate",
+  },
+  findingF1: {
+    ko: "finding 단위가 reference와 맞는 정도",
+    en: "Matches report findings regardless of exact wording",
+  },
+  assertionF1: {
+    ko: "finding의 present/absent 상태까지 맞는 정도",
+    en: "Matches whether each finding is present or absent",
+  },
+  lateralityF1: {
+    ko: "right/left/bilateral 같은 좌우 정보 일치",
+    en: "Compares right, left, and bilateral laterality cues",
+  },
+  temporalF1: {
+    ko: "improved/worsened/stable 같은 변화 방향 일치",
+    en: "Compares temporal change cues such as improved, worsened, or stable",
+  },
+  safetyErrors: {
+    ko: "없는 소견 생성, 소견 누락, assertion 뒤집힘의 개수",
+    en: "Counts false findings, omissions, and assertion flips",
+  },
 };
 
 /**

@@ -6,9 +6,15 @@ describe("topicRegistry", () => {
     expect(TOPICS.length).toBe(9);
   });
 
-  it("marks classification, regression, segmentation, and detection as available", () => {
+  it("marks implemented topics as available", () => {
     const available = TOPICS.filter((t) => t.status === "available").map((t) => t.id).sort();
-    expect(available).toEqual(["classification", "detection", "regression", "segmentation"]);
+    expect(available).toEqual([
+      "classification",
+      "detection",
+      "regression",
+      "report-generation",
+      "segmentation",
+    ]);
   });
 
   it("orders the discriminative group as classification, regression, segmentation, detection", () => {

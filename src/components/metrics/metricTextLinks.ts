@@ -14,6 +14,13 @@
  * "Surface Dice" / "표면 Dice" over a bare "Dice".
  */
 const METRIC_TOKENS: { token: string; sectionIds: readonly string[] }[] = [
+  { token: "Clinical Acceptance", sectionIds: ["clinical-acceptance"] },
+  { token: "SRR-BERT F1", sectionIds: ["concept-label-f1"] },
+  { token: "CheXbert F1", sectionIds: ["concept-label-f1"] },
+  { token: "Temporal F1", sectionIds: ["concept-label-f1"] },
+  { token: "RadGraph F1", sectionIds: ["graph-f1"] },
+  { token: "BERTScore", sectionIds: ["embedding-similarity"] },
+  { token: "RaTEscore", sectionIds: ["embedding-similarity"] },
   { token: "Balanced Accuracy", sectionIds: ["accuracy-balanced-accuracy"] },
   { token: "Confusion Matrix", sectionIds: ["confusion-matrix"] },
   { token: "Specificity", sectionIds: ["sensitivity-specificity"] },
@@ -32,6 +39,11 @@ const METRIC_TOKENS: { token: string; sectionIds: readonly string[] }[] = [
   { token: "ROC", sectionIds: ["roc-auroc"] },
   { token: "PR", sectionIds: ["pr-auprc-ap"] },
   { token: "F1", sectionIds: ["f1", "precision-recall-f1-fbeta"] },
+  { token: "METEOR", sectionIds: ["lexical-overlap"] },
+  { token: "ROUGE", sectionIds: ["lexical-overlap"] },
+  { token: "BLEU", sectionIds: ["lexical-overlap"] },
+  { token: "CRIMSON", sectionIds: ["llm-evaluators"] },
+  { token: "GREEN", sectionIds: ["llm-evaluators"] },
   { token: "AP", sectionIds: ["ap", "pr-auprc-ap"] },
   { token: "Mean signed bias", sectionIds: ["bias"] },
   { token: "평균 부호 편향", sectionIds: ["bias"] },

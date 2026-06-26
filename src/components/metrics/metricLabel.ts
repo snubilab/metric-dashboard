@@ -24,6 +24,12 @@ const KO_METRIC_LABELS: Record<string, string> = {
   surfaceDice: "표면 Dice (NSD)",
   volRel: "상대 부피차",
   volumeDiff: "상대 부피차",
+  lexicalOverlap: "Lexical overlap proxy",
+  findingF1: "Finding F1",
+  assertionF1: "Assertion F1",
+  lateralityF1: "Laterality F1",
+  temporalF1: "Temporal F1",
+  safetyErrors: "Safety error count",
 };
 
 /** The display label for a metric row in the active language. */
