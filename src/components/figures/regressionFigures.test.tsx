@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import type { ComponentType } from "react";
 import { LanguageProvider } from "../../i18n/LanguageContext";
 import type { Lang } from "../../i18n/LanguageContext";
-import RegressionErrorFigure from "./RegressionErrorFigure";
+import {
+  RegressionMaeFigure,
+  RegressionMseFigure,
+  RegressionRmseFigure,
+} from "./RegressionErrorFigure";
 import RegressionFitFigure from "./RegressionFitFigure";
 import { MetricFigure } from "./MetricFigure";
 
@@ -16,7 +20,9 @@ function renderFigure(Figure: ComponentType, lang: Lang) {
 }
 
 const FIGURES: Array<[string, ComponentType]> = [
-  ["RegressionErrorFigure", RegressionErrorFigure],
+  ["RegressionMaeFigure", RegressionMaeFigure],
+  ["RegressionMseFigure", RegressionMseFigure],
+  ["RegressionRmseFigure", RegressionRmseFigure],
   ["RegressionFitFigure", RegressionFitFigure],
 ];
 
@@ -46,7 +52,7 @@ describe("Regression figures", () => {
   }
 
   it("regression figures are available through MetricFigure dispatch", () => {
-    for (const figure of ["reg-error", "reg-fit"] as const) {
+    for (const figure of ["reg-mae", "reg-mse", "reg-rmse", "reg-fit"] as const) {
       const { container } = render(
         <LanguageProvider initialLang="en">
           <MetricFigure figure={figure} />
@@ -56,5 +62,18 @@ describe("Regression figures", () => {
       expect(container.querySelector("svg")).toBeInTheDocument();
       expect(HANGUL.test(container.textContent ?? "")).toBe(false);
     }
+  });
+
+  it("MAE, MSE, and RMSE dispatch to distinct visual examples", () => {
+    const labels = ["reg-mae", "reg-mse", "reg-rmse"].map((figure) => {
+      const { container } = render(
+        <LanguageProvider initialLang="en">
+          <MetricFigure figure={figure} />
+        </LanguageProvider>,
+      );
+      return container.querySelector("svg")?.getAttribute("aria-label");
+    });
+
+    expect(new Set(labels).size).toBe(3);
   });
 });

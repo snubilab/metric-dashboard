@@ -37,7 +37,11 @@ import {
   ClassificationRowsFigure,
   ClassificationThresholdFigure,
 } from "./ClassificationFigures";
-import RegressionErrorFigure from "./RegressionErrorFigure";
+import {
+  RegressionMaeFigure,
+  RegressionMseFigure,
+  RegressionRmseFigure,
+} from "./RegressionErrorFigure";
 import RegressionFitFigure from "./RegressionFitFigure";
 
 interface MetricFigureProps {
@@ -74,7 +78,9 @@ const FIGURES: Record<string, ComponentType> = {
   "cls-f1": ClassificationF1Figure,
   "cls-threshold": ClassificationThresholdFigure,
   "cls-curves": ClassificationCurveFigure,
-  "reg-error": RegressionErrorFigure,
+  "reg-mae": RegressionMaeFigure,
+  "reg-mse": RegressionMseFigure,
+  "reg-rmse": RegressionRmseFigure,
   "reg-fit": RegressionFitFigure,
 };
 
