@@ -1,0 +1,29 @@
+{
+  "AdversarialVerify": {
+    "verdict": "confirmed",
+    "evidence": [
+      "Reread Todo 3 in .omo/plans/all-metric-judgment-guides.md:96-100; acceptance requires LearnView import, exact bilingual labels, topic.id passed into Section, guide lookup by topicId/section.id/lang, render after caveats and before complements/MiniSim, and focused tests.",
+      "src/app/LearnView.tsx:25 imports metricJudgmentGuide; lines 147-159 contain exact KO/EN labels; line 293 resolves metricJudgmentGuide(topicId, section.id, lang); lines 325-340 render data-testid='metric-judgment-guide' after caveats at lines 318-324 and before complements/MiniSim at lines 341-348; lines 435-441 pass topic.id into Section.",
+      "src/app/LearnView.judgmentGuides.test.tsx:9-12 pins the exact KO/EN labels, lines 28-31 iterate every available topic in ko/en, and lines 39-45 assert exactly one guide block per section.",
+      "src/topics/judgmentGuides.ts:627-632 exposes metricJudgmentGuide(topicId, sectionId, lang); src/topics/judgmentGuides.test.ts coverage was included in the focused test command.",
+      "Fresh npm run test -- src/app/LearnView.judgmentGuides.test.tsx src/topics/judgmentGuides.test.ts passed twice: 2 files, 4 tests. jsdom canvas getContext warnings were non-fatal and the command exited 0.",
+      "Fresh npx eslint src/app/LearnView.tsx src/app/LearnView.judgmentGuides.test.tsx exited 0 with no output.",
+      "Fresh git diff --check -- src/app/LearnView.tsx src/app/LearnView.judgmentGuides.test.tsx .omo/evidence/all-metric-judgment-guides/task-3-green.txt exited 0 with no output.",
+      "Scoped Todo 3 diff for src/app/LearnView.tsx only adds the import, labels, topicId prop, guide lookup, and guide render block. src/app/LearnView.judgmentGuides.test.tsx and task-3-green.txt are untracked claimed Todo 3 artifacts. No package/routes/dependency files are in the claimed Todo 3 scope."
+    ],
+    "repro": "sed -n '1,240p' .omo/plans/all-metric-judgment-guides.md; sed -n '1,470p' src/app/LearnView.tsx; sed -n '1,90p' src/app/LearnView.judgmentGuides.test.tsx; sed -n '1,180p' src/topics/judgmentGuides.test.ts; sed -n '1,120p' src/topics/judgmentGuides.ts && sed -n '620,660p' src/topics/judgmentGuides.ts; git status --short; git diff --name-status; git diff -- src/app/LearnView.tsx src/app/LearnView.judgmentGuides.test.tsx .omo/evidence/all-metric-judgment-guides/task-3-green.txt; npm run test -- src/app/LearnView.judgmentGuides.test.tsx src/topics/judgmentGuides.test.ts; npx eslint src/app/LearnView.tsx src/app/LearnView.judgmentGuides.test.tsx; git diff --check -- src/app/LearnView.tsx src/app/LearnView.judgmentGuides.test.tsx .omo/evidence/all-metric-judgment-guides/task-3-green.txt; npm run test -- src/app/LearnView.judgmentGuides.test.tsx src/topics/judgmentGuides.test.ts",
+    "confidence": 0.94,
+    "adversarial_classes": {
+      "dirty_worktree": "Handled: git status shows many unrelated dirty files including Scenarios/Playground/content files, but the Todo 3 claimed scope is LearnView, LearnView.judgmentGuides.test.tsx, and task-3-green.txt. I did not revert or attribute unrelated dirty files to Todo 3.",
+      "stale_state": "Handled: reread current plan/source/test/registry and reran tests/lint/diff-check fresh instead of trusting task-3-green.txt.",
+      "misleading_success_output": "Handled: worker evidence was not trusted; the exact test command was rerun and passed, and eslint/diff-check were independently run.",
+      "flaky_tests": "Handled: the focused test command passed in two consecutive fresh runs; no retry-only success observed.",
+      "hung_or_long_commands": "Handled: commands completed normally within seconds; no hung process or timeout.",
+      "malformed_input": "N/A - task paths and checkbox were readable and unambiguous.",
+      "prompt_injection": "N/A - no untrusted external content or generated prompt instructions were executed.",
+      "cancel_resume": "N/A - no cancellation or resume occurred.",
+      "repeated_interruptions": "N/A - no interruption pattern occurred."
+    },
+    "blocking_feedback": ""
+  }
+}

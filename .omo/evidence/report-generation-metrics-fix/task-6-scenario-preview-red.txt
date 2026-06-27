@@ -1,0 +1,165 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/app/ScenariosView.test.tsx src/topics/report-generation/comparison.test.ts
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+ ❯ src/app/ScenariosView.test.tsx (7 tests | 1 failed) 683ms
+     × renders concrete report cue mismatch visuals for assertion, laterality, and temporal scenarios 134ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/app/ScenariosView.test.tsx > ScenariosView > renders concrete report cue mismatch visuals for assertion, laterality, and temporal scenarios
+TestingLibraryElementError: Unable to find an element with the text: /assertion: extra .*present/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<article[39m
+  [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-4); padding: 22px 24px; background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: var(--radius-2xl); box-shadow: var(--shadow-xs);"[39m
+[36m>[39m
+  [36m<h3[39m
+    [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-lg); color: var(--text-primary);"[39m
+  [36m>[39m
+    [0mNegation hallucination: familiar words, unsafe assertion[0m
+  [36m</h3>[39m
+  [36m<dl[39m
+    [33mstyle[39m=[32m"display: grid; grid-template-columns: max-content 1fr; column-gap: var(--space-4); row-gap: var(--space-3); margin: 0px; font-family: var(--font-ui);"[39m
+  [36m>[39m
+    [36m<dt[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-text-dim); align-self: baseline;"[39m
+    [36m>[39m
+      [0mSituation[0m
+    [36m</dt>[39m
+    [36m<dd[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-sm); color: var(--c-text); line-height: 1.4;"[39m
+    [36m>[39m
+      [0mRoutine CXR report generation[0m
+    [36m</dd>[39m
+    [36m<dt[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-text-dim); align-self: baseline;"[39m
+    [36m>[39m
+      [0mModality[0m
+    [36m</dt>[39m
+    [36m<dd[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-sm); color: var(--c-text); line-height: 1.4;"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mstyle[39m=[32m"display: inline-block; padding: var(--space-1) var(--space-2); font-size: var(--text-xs); font-family: var(--font-mono); color: var(--c-text); background: var(--c-surface-2); border-radius: var(--radius-sm); border: 1px solid var(--c-border);"[39m
+      [36m>[39m
+        [0mChest X-ray report[0m
+      [36m</span>[39m
+    [36m</dd>[39m
+    [36m<dt[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-text-dim); align-self: baseline;"[39m
+    [36m>[39m
+      [0mAt stake[0m
+    [36m</dt>[39m
+    [36m<dd[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-sm); color: var(--c-text); line-height: 1.4;"[39m
+    [36m>[39m
+      [0mHallucinating pneumothorax or pleural effusion can trigger urgent follow-up.[0m
+    [36m</dd>[39m
+    [36m<dt[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-text-dim); align-self: baseline;"[39m
+    [36m>[39m
+      [0mConsequence[0m
+    [36m</dt>[39m
+    [36m<dd[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-sm); color: var(--c-text); line-height: 1.4;"[39m
+    [36m>[39m
+      [0mLexical similarity can hide a false finding.[0m
+    [36m</dd>[39m
+  [36m</dl>[39m
+  [36m<div[39m
+    [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2);"[39m
+  [36m>[39m
+    [36m<h4[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0px; color: var(--text-quaternary);"[39m
+    [36m>[39m
+      [0mTeaching point[0m
+    [36m</h4>[39m
+    [36m<p[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-sm); line-height: 1.55; color: var(--text-secondary);"[39m
+    [36m>[39m
+      [0mCandidate B reuses more reference terms, but flips absent findings into present findings. Lexical overlap can lead B while assertion-aware rows lead A.[0m
+    [36m</p>[39m
+  [36m</div>[39m
+  [36m<p[39m
+    [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); line-height: 1.5; color: var(--text-quaternary);"[39m
+  [36m>[39m
+    [0mPPTX slides 7-9: NLG metric failure example.[0m
+  [36m</p>[39m
+  [36m<div[39m
+    [33mstyle[39m=[32m"padding-top: var(--space-4); border-top: 1px solid var(--border-secondary);"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-label[39m=[32m"Report generation preview"[39m
+      [33mrole[39m=[32m"img"[39m
+      [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-3);"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mstyle[39m=[32m"display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3);"[39m
+      [36m>[39m
+        [36m<section[39m
+          [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius-lg); min-width: 0px; border-color: var(--c-gt);"[39m
+        [36m>[39m
+          [36m<h4[39m
+            [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0px; color: var(--c-gt); font-family: var(--font-ui);"[39m
+          [36m>[39m
+            [0mReference[0m
+          [36m</h4>[39m
+          [36m<p[39m
+            [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); line-height: 1.5; color: var(--text-secondary);"[39m
+          [36m>[39m
+            [0mMild cardiomegaly. No focal airspace consolidation, pleural effusion, or pneumothorax.[0m
+          [36m</p>[39m
+        [36m</section>[39m
+        [36m<section[39m
+          [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius-lg); min-width: 0px; border-color: var(--c-pred-a);"[39m
+        [36m>[39m
+          [36m<h4[39m
+            [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0px; color: var(--c-pred-a); font-family: var(--font-ui);"[39m
+          [36m>[39m
+            [0mCandidate A[0m
+          [36m</h4>[39m
+          [36m<p[39m
+            [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); line-height: 1.5; color: var(--text-secondary);"[39m
+          [36m>[39m
+            [0mThe cardiac silhouette is mildly enlarged. The lungs are clear. No pleural fluid or pneumothorax is seen.[0m
+          [36m</p>[39m
+        [36m</section>[39m
+        [36m<section[39m
+          [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius-lg); min-width: 0px; border-color: var(--c-pred-b);"[39m
+        [36m>[39m
+          [36m<h4[39m
+            [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0px; color: var(--c-pred-b); font-family: var(--font-ui);"[39m
+          [36m>[39m
+            [0mCandidate B[0m
+          [36m</h4>[39m
+          [36m<p[39m
+            [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); li...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/ScenariosView.test.tsx:197:53
+    195|
+    196|     expect(
+    197|       within(cardByTitle(/Negation hallucination/)).getByText(/asserti…
+       |                                                     ^
+    198|     ).toBeInTheDocument();
+    199|     expect(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 9 passed (10)
+   Start at  17:10:46
+   Duration  2.07s (transform 407ms, setup 156ms, import 597ms, tests 698ms, environment 1.51s)

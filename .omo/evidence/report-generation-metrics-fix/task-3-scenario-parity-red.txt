@@ -1,0 +1,43 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/topics/report-generation/comparison.test.ts
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+ ❯ src/topics/report-generation/comparison.test.ts (3 tests | 1 failed) 9ms
+     × keeps Korean scenarios in exact parity with English scenarios 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/topics/report-generation/comparison.test.ts > report generation scenarios > keeps Korean scenarios in exact parity with English scenarios
+AssertionError: expected [ 'negation-hallucination', …(3) ] to deeply equal [ 'negation-hallucination', …(6) ]
+
+- Expected
++ Received
+
+  [
+    "negation-hallucination",
+    "laterality-swap",
+    "temporal-direction",
+    "entity-assertion-swap",
+-   "paraphrase-tolerance",
+-   "label-granularity",
+-   "error-category-context",
+  ]
+
+ ❯ src/topics/report-generation/comparison.test.ts:12:23
+     10|     const koreanIds = reportGenerationScenariosKo.map((scenario) => sc…
+     11|
+     12|     expect(koreanIds).toEqual(englishIds);
+       |                       ^
+     13|   });
+     14|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  16:48:18
+   Duration  1.08s (transform 122ms, setup 138ms, import 114ms, tests 9ms, environment 716ms)

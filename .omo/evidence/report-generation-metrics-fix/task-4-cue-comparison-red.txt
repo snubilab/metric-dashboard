@@ -1,0 +1,302 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/topics/report-generation/ReportCueBoard.test.tsx src/topics/report-generation/Playground.test.tsx
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+ ❯ src/topics/report-generation/ReportCueBoard.test.tsx (1 test | 1 failed) 43ms
+     × renders report identities and marks cue mismatches against the reference 41ms
+ ❯ src/topics/report-generation/Playground.test.tsx (3 tests | 1 failed) 343ms
+     × lets a single report edit change the visible clinical cue rows 38ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/topics/report-generation/Playground.test.tsx > report generation Playground > lets a single report edit change the visible clinical cue rows
+TestingLibraryElementError: Unable to find an element with the text: /Laterality F1/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-5); color: var(--c-text); font-family: var(--font-ui);"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mstyle[39m=[32m"align-self: flex-start; display: inline-flex; align-items: center; padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill, var(--radius-sm)); background: var(--c-surface-2); border: 1px solid var(--c-border); font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--c-text);"[39m
+      [36m>[39m
+        [0mCOMPARE · The leading candidate changes with the unit the metric can observe.[0m
+      [36m</span>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"report-pg-split"[39m
+        [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: flex-start;"[39m
+      [36m>[39m
+        [36m<section[39m
+          [33mclass[39m=[32m"report-pg-editor"[39m
+          [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-md);"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"font-size: var(--text-sm); font-weight: 700; color: var(--c-text);"[39m
+            [36m>[39m
+              [0mReference report[0m
+            [36m</span>[39m
+            [36m<textarea[39m
+              [33maria-label[39m=[32m"Reference report"[39m
+              [33mstyle[39m=[32m"min-height: 72px; width: 100%; resize: vertical; box-sizing: border-box; padding: var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); font: inherit;"[39m
+            [36m>[39m
+              [0mRight pneumothorax has improved. No pleural effusion.[0m
+            [36m</textarea>[39m
+          [36m</label>[39m
+          [36m<label[39m
+            [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"font-size: var(--text-sm); font-weight: 700; color: var(--c-text);"[39m
+            [36m>[39m
+              [0mCandidate A[0m
+            [36m</span>[39m
+            [36m<textarea[39m
+              [33maria-label[39m=[32m"Candidate A"[39m
+              [33mstyle[39m=[32m"min-height: 72px; width: 100%; resize: vertical; box-sizing: border-box; padding: var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); font: inherit;"[39m
+            [36m>[39m
+              [0mRight pneumothorax has improved. No pleural effusion.[0m
+            [36m</textarea>[39m
+          [36m</label>[39m
+          [36m<label[39m
+            [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"font-size: var(--text-sm); font-weight: 700; color: var(--c-text);"[39m
+            [36m>[39m
+              [0mCandidate B[0m
+            [36m</span>[39m
+            [36m<textarea[39m
+              [33maria-label[39m=[32m"Candidate B"[39m
+              [33mstyle[39m=[32m"min-height: 72px; width: 100%; resize: vertical; box-sizing: border-box; padding: var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); font: inherit;"[39m
+            [36m>[39m
+              [0mLeft pneumothorax has worsened. Pleural effusion is present.[0m
+            [36m</textarea>[39m
+          [36m</label>[39m
+          [36m<details>[39m
+            [36m<summary[39m
+              [33mstyle[39m=[32m"font-size: var(--text-sm); font-weight: 700; color: var(--c-text); cursor: pointer;"[39m
+            [36m>[39m
+              [0mLoad an example[0m
+            [36m</summary>[39m
+            [36m<div[39m
+              [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3);"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-pressed[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 150px; min-width: 0px; padding: var(--space-2) var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); text-align: left; cursor: pointer;"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<strong>[39m
+                  [0mNegation flip[0m
+                [36m</strong>[39m
+                [36m<span[39m
+                  [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); line-height: 1.55; color: var(--c-text-dim);"[39m
+                [36m>[39m
+                  [0mLexical overlap can favor the unsafe candidate when absent findings become present.[0m
+                [36m</span>[39m
+              [36m</button>[39m
+              [36m<button[39m
+                [33maria-pressed[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 150px; min-width: 0px; padding: var(--space-2) var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); text-align: left; cursor: pointer;"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<strong>[39m
+                  [0mLaterality swap[0m
+                [36m</strong>[39m
+                [36m<span[39m
+                  [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); line-height: 1.55; color: var(--c-text-dim);"[39m
+                [36m>[39m
+                  [0mThe phrase template stays close while the side changes from right to left.[0m
+                [36m</span>[39m
+              [36m</button>[39m
+              [36m<button[39m
+                [33maria-pressed[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 150px; min-width: 0px; padding: var(--space-2) var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); text-align: left; cursor: pointer;"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<strong>[39m
+              ...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/topics/report-generation/Playground.test.tsx:53:19
+     51|     });
+     52|
+     53|     expect(screen.getByText(/Laterality F1/i)).toBeInTheDocument();
+       |                   ^
+     54|     expect(screen.getByText(/Temporal F1/i)).toBeInTheDocument();
+     55|     expect(screen.getByText(/GREEN error count/i)).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/topics/report-generation/ReportCueBoard.test.tsx > ReportCueBoard > renders report identities and marks cue mismatches against the reference
+TestingLibraryElementError: Unable to find an element with the text: Cue mismatch. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<h3[39m
+      [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-sm); letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-text-dim);"[39m
+    [36m>[39m
+      [0mExtracted cues[0m
+    [36m</h3>[39m
+    [36m<div[39m
+      [33mstyle[39m=[32m"display: grid; gap: var(--space-3);"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--c-surface-2); border: 1px solid var(--c-border); border-radius: var(--radius-sm);"[39m
+      [36m>[39m
+        [36m<h4[39m
+          [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-sm); letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-text-dim);"[39m
+        [36m>[39m
+          [0mReference report[0m
+        [36m</h4>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-xs); font-weight: 700; color: var(--c-text);"[39m
+          [36m>[39m
+            [0mfindings[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"padding: 2px 6px; border-radius: var(--radius-full); border: 1px solid var(--c-gt); color: var(--c-gt-text); background: var(--c-surface); font-size: 10px; font-weight: 700;"[39m
+            [36m>[39m
+              [0mpleural effusion[0m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"padding: 2px 6px; border-radius: var(--radius-full); border: 1px solid var(--c-gt); color: var(--c-gt-text); background: var(--c-surface); font-size: 10px; font-weight: 700;"[39m
+            [36m>[39m
+              [0mpneumothorax[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-xs); font-weight: 700; color: var(--c-text);"[39m
+          [36m>[39m
+            [0mpresent[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"padding: 2px 6px; border-radius: var(--radius-full); border: 1px solid var(--c-pred-a); color: var(--c-pred-a-text); background: var(--c-surface); font-size: 10px; font-weight: 700;"[39m
+            [36m>[39m
+              [0mpneumothorax: present[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-xs); font-weight: 700; color: var(--c-text);"[39m
+          [36m>[39m
+            [0mabsent[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"padding: 2px 6px; border-radius: var(--radius-full); border: 1px solid var(--c-pred-b); color: var(--c-pred-b-text); background: var(--c-surface); font-size: 10px; font-weight: 700;"[39m
+            [36m>[39m
+              [0mpleural effusion: absent[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-xs); font-weight: 700; color: var(--c-text);"[39m
+          [36m>[39m
+            [0mlaterality[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"padding: 2px 6px; border-radius: var(--radius-full); border: 1px solid var(--c-warn); color: var(--c-warn-text); background: var(--c-surface); font-size: 10px; font-weight: 700;"[39m
+            [36m>[39m
+              [0mright[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-xs); font-weight: 700; color: var(--c-text);"[39m
+          [36m>[39m
+            [0mtemporal[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"padding: 2px 6px; border-radius: var(--radius-full); border: 1px solid var(--c-pred-a); color: var(--c-pred-a-text); background: var(--c-surface); font-size: 10px; font-weight: 700;"[39m
+            [36m>[39m
+              [0mimproved[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+      [36m<section[39m
+        [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--c-surface-2); border: 1px solid var(--c-border); border-radius: var(--radius-sm);"[39m
+      [36m>[39m
+        [36m<h4[39m
+          [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-sm); letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-text-dim);"[39m
+        [36m>[39m
+          [0mCandidate A[0m
+        [36m</h4>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-xs); font-weight: 700; color: var(--c-text);"[39m
+          [36m>[39m
+            [0mfindings[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"padding: 2px 6px; border-radius: var(--radius-full); border: 1px solid var(--c-gt); color: var(--c-gt-text); background: var(--c-surface); font-size: 10px; font-weight: 700;"[39m
+            [36m>[39m
+              [0mpleural effusion[0m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"padding: 2px 6px; border-radius: var(--radius-full); border: 1px solid var(--c-gt); color: var(--c-gt-text); background: var(--c-surface); font-size: 10px; font-weight: 700;"[39m
+            [36m>[39m
+              [0mpneumothorax[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"font-size: var(--text-xs); font-weight: 700; color: var(--c-text);"[39m
+          [36m>[39m
+            [0mpresent[0m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"display...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:109:15
+ ❯ src/topics/report-generation/ReportCueBoard.test.tsx:25:19
+     23|     expect(screen.getByText("Candidate A")).toBeInTheDocument();
+     24|     expect(screen.getByText("Candidate B")).toBeInTheDocument();
+     25|     expect(screen.getAllByText("Cue mismatch").length).toBeGreaterThan…
+       |                   ^
+     26|   });
+     27| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 2 passed (4)
+   Start at  16:57:39
+   Duration  850ms (transform 90ms, setup 54ms, import 194ms, tests 386ms, environment 532ms)

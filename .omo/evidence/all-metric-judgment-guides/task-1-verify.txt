@@ -1,0 +1,39 @@
+VERDICT: confirmed
+
+PLAN CHECK:
+- .omo/plans/all-metric-judgment-guides.md:79 remains "- [ ] 1. Preflight dirty worktree and add failing coverage/UI tests".
+
+TEST FILE CHECK:
+- src/topics/judgmentGuides.test.ts:23 derives availableTopics from TOPICS.filter((topic) => topic.status === "available").
+- src/topics/judgmentGuides.test.ts:37-47 compares learn.sections and learnKo.sections ID parity.
+- src/topics/judgmentGuides.test.ts:19-20 and 51-69 require KO/EN trustWhen, doubtWhen, tryThis fields to be nonempty for every available section.
+- src/app/LearnView.judgmentGuides.test.tsx:9-12 defines KO/EN guide labels.
+- src/app/LearnView.judgmentGuides.test.tsx:27-55 asserts exactly one metric-judgment-guide block per available section and all labels inside it.
+
+COMMAND RUN:
+npm run test -- src/topics/judgmentGuides.test.ts src/app/LearnView.judgmentGuides.test.tsx
+
+RESULT:
+- Exit code: 1
+- Runtime: node v22.19.0 at /Users/kyh/.local/bin/node
+- Vitest compiled and ran 2 files / 3 tests; no syntax/setup failure.
+- Expected RED causes:
+  - src/topics/judgmentGuides.test.ts: Error: Expected src/topics/judgmentGuides.ts to export metricJudgmentGuide(topicId, sectionId, lang).
+  - src/app/LearnView.judgmentGuides.test.tsx: AssertionError: classification/confusion-matrix/ko should render exactly one judgment guide: expected to have a length of 1 but got 0.
+
+DIFF CHECK RUN:
+git diff --check -- src/topics/judgmentGuides.test.ts src/app/LearnView.judgmentGuides.test.tsx .omo/evidence/all-metric-judgment-guides/task-1-red.txt
+
+DIFF CHECK RESULT:
+- Exit code: 0
+- Output: none.
+- Note: the listed paths are untracked in this dirty worktree, so this exact git diff --check invocation emits no whitespace findings but also does not materialize an untracked-file diff.
+
+DIRTY WORKTREE:
+- git status --short showed many pre-existing modified files plus untracked .omo, AGENTS.md, the two test files, and related report-generation files.
+- Verification stayed read-only for product/test files; only this evidence file was written.
+
+SLOP / OVERFIT PASS:
+- No deletion-only, tautological, implementation-mirroring, or requested-removal-only tests found.
+- The tests assert the planned user-visible contract: coverage across available topics, bilingual section parity, required guide fields, and LearnView guide labels/blocks.
+- No unnecessary production extraction, parsing, normalization, dependencies, or product files were added by Todo 1.

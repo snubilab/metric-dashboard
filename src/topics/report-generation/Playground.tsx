@@ -1,10 +1,18 @@
 import { useMemo, useState } from "react";
 import { MetricTable } from "../../components/MetricTable";
 import { reportComparisonRows } from "../../components/metrics/reportComparisonRows";
+import type { MetricRow } from "../../components/metrics/types";
+import { extractClinicalCues } from "../../engine/metrics/reportGeneration";
+import type { ClinicalCues } from "../../engine/metrics/reportGeneration";
 import { useLang } from "../../i18n/LanguageContext";
 import { ReportCueBoard } from "./ReportCueBoard";
 import { ReportPresetPicker } from "./ReportPresetPicker";
 import type { ReportExample } from "./reportExamples";
+import {
+  REPORT_METRIC_FAMILY_LABEL,
+  REPORT_METRIC_FAMILY_ORDER,
+  reportMetricFamilyForKey,
+} from "./reportMetricFamilies";
 
 type Stage = "reference" | "candidateA" | "candidateB" | "compare";
 
@@ -21,6 +29,13 @@ const L = {
     candidateA: "Candidate A",
     candidateB: "Candidate B",
     metrics: "Live metrics",
+    summary: "At-a-glance results",
+    clinicalAcceptance: "Clinical Acceptance endpoint",
+    endpoint: "non-numeric endpoint",
+    riskCue: "Highest-risk cue mismatch",
+    noCueRisk: "No cue mismatch detected",
+    summaryLegend:
+      "A/B counts tally rows where that candidate leads; warning flags mark ranking or large-gap disagreements.",
     compareNote:
       "어떤 candidate가 앞서는지는 metric이 보는 단위에 따라 달라집니다. Lexical row와 clinical cue row가 갈라지는 지점을 보세요.",
   },
@@ -36,6 +51,13 @@ const L = {
     candidateA: "Candidate A",
     candidateB: "Candidate B",
     metrics: "Live metrics",
+    summary: "At-a-glance results",
+    clinicalAcceptance: "Clinical Acceptance endpoint",
+    endpoint: "non-numeric endpoint",
+    riskCue: "Highest-risk cue mismatch",
+    noCueRisk: "No cue mismatch detected",
+    summaryLegend:
+      "A/B counts tally rows where that candidate leads; warning flags mark ranking or large-gap disagreements.",
     compareNote:
       "The leading candidate changes with the unit the metric can observe. Watch where lexical rows and clinical-cue rows split.",
   },
@@ -69,8 +91,7 @@ const RESPONSIVE_CSS = `
 .report-pg-results { position: sticky; top: var(--space-4); max-height: calc(100vh - 190px); overflow: auto; }
 @media (max-width: 860px) {
   .report-pg-editor, .report-pg-results { flex-basis: 100%; min-width: 0; }
-  .report-pg-results { position: static; max-height: none; order: 1; }
-  .report-pg-editor { order: 2; }
+  .report-pg-results { position: static; max-height: none; }
 }
 `;
 
@@ -142,6 +163,68 @@ const noteStyle: React.CSSProperties = {
   color: "var(--c-text-dim)",
 };
 
+const summaryGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+  gap: "var(--space-2)",
+};
+
+const summaryStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--space-2)",
+};
+
+const summaryCardStyle: React.CSSProperties = {
+  padding: "var(--space-2)",
+  background: "var(--c-surface-2)",
+  border: "1px solid var(--c-border)",
+  borderRadius: "var(--radius-sm)",
+};
+
+function lead(row: MetricRow): "A" | "B" | "tie" {
+  if (row.a === row.b) return "tie";
+  const aLeads = row.higherIsBetter ? row.a > row.b : row.a < row.b;
+  return aLeads ? "A" : "B";
+}
+
+function assertionValues(cues: ClinicalCues): string[] {
+  return [
+    ...cues.presentFindings.map((finding) => `${finding}: present`),
+    ...cues.absentFindings.map((finding) => `${finding}: absent`),
+  ];
+}
+
+function mismatchLabels(reference: readonly string[], candidate: readonly string[], label: string): string[] {
+  const candidateSet = new Set(candidate);
+  const referenceSet = new Set(reference);
+  return [
+    ...reference.filter((value) => !candidateSet.has(value)).map((value) => `${label}: missing ${value}`),
+    ...candidate.filter((value) => !referenceSet.has(value)).map((value) => `${label}: extra ${value}`),
+  ];
+}
+
+function topCueMismatch(reference: string, candidateA: string, candidateB: string): string | undefined {
+  const ref = extractClinicalCues(reference);
+  const candidates = [
+    { name: "Candidate A", cues: extractClinicalCues(candidateA) },
+    { name: "Candidate B", cues: extractClinicalCues(candidateB) },
+  ];
+  for (const [label, values] of [
+    ["assertion", assertionValues(ref)],
+    ["laterality", ref.laterality],
+    ["temporal", ref.temporal],
+    ["findings", ref.findings],
+  ] as const) {
+    for (const candidate of candidates) {
+      const candidateValues = label === "assertion" ? assertionValues(candidate.cues) : candidate.cues[label];
+      const [first] = mismatchLabels(values, candidateValues, label);
+      if (first) return `${candidate.name}: ${first}`;
+    }
+  }
+  return undefined;
+}
+
 function setExample(
   example: ReportExample,
   setters: {
@@ -170,6 +253,25 @@ export default function Playground() {
       currentStage === "compare"
         ? reportComparisonRows(reference, candidateA, candidateB)
         : [],
+    [candidateA, candidateB, currentStage, reference],
+  );
+  const familyCounts = useMemo(() => {
+    const counts = {
+      lexical: { A: 0, B: 0, tie: 0 },
+      semantic: { A: 0, B: 0, tie: 0 },
+      proxy: { A: 0, B: 0, tie: 0 },
+    };
+    for (const row of rows) {
+      const family = reportMetricFamilyForKey(row.key);
+      counts[family][lead(row)] += 1;
+    }
+    return counts;
+  }, [rows]);
+  const riskCue = useMemo(
+    () =>
+      currentStage === "compare"
+        ? topCueMismatch(reference, candidateA, candidateB)
+        : undefined,
     [candidateA, candidateB, currentStage, reference],
   );
 
@@ -229,6 +331,29 @@ export default function Playground() {
             <>
               <h3 style={headingStyle}>{t.metrics}</h3>
               <p style={noteStyle}>{t.compareNote}</p>
+              <section data-testid="report-pg-summary" style={summaryStyle}>
+                <h3 style={headingStyle}>{t.summary}</h3>
+                <div style={summaryGridStyle}>
+                  {REPORT_METRIC_FAMILY_ORDER.map((family) => (
+                    <div key={family} style={summaryCardStyle}>
+                      <strong>{REPORT_METRIC_FAMILY_LABEL[family]}</strong>
+                      <p style={noteStyle}>
+                        A {familyCounts[family].A} · B {familyCounts[family].B} · tie{" "}
+                        {familyCounts[family].tie}
+                      </p>
+                    </div>
+                  ))}
+                  <div style={summaryCardStyle}>
+                    <strong>{t.riskCue}</strong>
+                    <p style={noteStyle}>{riskCue ?? t.noCueRisk}</p>
+                  </div>
+                  <div style={summaryCardStyle}>
+                    <strong>{t.clinicalAcceptance}</strong>
+                    <p style={noteStyle}>{t.endpoint}</p>
+                  </div>
+                </div>
+                <p style={noteStyle}>{t.summaryLegend}</p>
+              </section>
               <MetricTable rows={rows} showRelativeCue showBars compact />
               <ReportCueBoard
                 reference={reference}

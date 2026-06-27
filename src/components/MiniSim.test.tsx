@@ -37,6 +37,19 @@ describe("MiniSim dispatcher", () => {
     expect(screen.getByText(/sort by confidence/i)).toBeInTheDocument();
   });
 
+  it("renders the report teaching widget for report metric movement", () => {
+    renderEn(<MiniSim config={config("report-error-weighting", "GREEN")} />);
+
+    expect(screen.getByRole("slider", { name: /error severity/i })).toBeInTheDocument();
+    expect(screen.getByText(/qualitative teaching cues only/i)).toBeInTheDocument();
+    expect(screen.getByText(/error count cue/i)).toBeInTheDocument();
+    expect(screen.getByText(/clinical weight cue/i)).toBeInTheDocument();
+    expect(screen.queryByText(/GREEN-style count/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/CRIMSON-style weight/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/F1/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
+  });
+
   it("renders the coming-soon note for an unknown kind without crashing", () => {
     renderEn(<MiniSim config={config("totally-unknown-kind")} />);
 

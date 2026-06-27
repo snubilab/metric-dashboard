@@ -1,4 +1,16 @@
-import type { LearnContent } from "../../types/topic";
+import type { EngineState } from "../../types/engine";
+import type { LearnContent, MiniSimConfig } from "../../types/topic";
+
+const SIM_STATE: EngineState = {
+  grid: { width: 1, height: 1, spacingMm: [1, 1] },
+  gt: [],
+  predictions: [],
+  policy: { emptyDice: "one", emptyDistance: "undefined" },
+};
+
+function miniSim(kind: string, spotlightMetric: string): MiniSimConfig {
+  return { kind, spotlightMetric, initialState: SIM_STATE };
+}
 
 export const reportGenerationLearn: LearnContent = {
   intro:
@@ -21,6 +33,7 @@ export const reportGenerationLearn: LearnContent = {
         "It does not know whether pneumothorax is present or absent.",
       ],
       figure: "report-bleu",
+      miniSim: miniSim("report-lexical-paraphrase", "BLEU"),
       complements: "Pair BLEU with assertion-aware and error-category rows.",
     },
     {
@@ -99,6 +112,7 @@ export const reportGenerationLearn: LearnContent = {
         "The Playground represents it with an entity/assertion proxy.",
       ],
       figure: "report-ratescore",
+      miniSim: miniSim("report-entity-assertion", "RaTEscore"),
       complements: "Pair RaTEscore with RadGraph F1.",
     },
     {
@@ -119,6 +133,7 @@ export const reportGenerationLearn: LearnContent = {
         "It does not evaluate non-temporal clinical correctness.",
       ],
       figure: "report-temporal-f1",
+      miniSim: miniSim("report-temporal-direction", "Temporal F1"),
       complements: "Pair Temporal F1 with concept labels and graph metrics.",
     },
     {
@@ -159,6 +174,7 @@ export const reportGenerationLearn: LearnContent = {
         "The extractor's errors are inherited by the metric.",
       ],
       figure: "report-srr-bert-f1",
+      miniSim: miniSim("report-label-graph-granularity", "SRR-BERT F1"),
       complements: "Pair SRR-BERT F1 with graph and error-category metrics.",
     },
     {
@@ -198,6 +214,7 @@ export const reportGenerationLearn: LearnContent = {
         "For this static dashboard, show precomputed examples only.",
       ],
       figure: "report-green",
+      miniSim: miniSim("report-error-weighting", "GREEN"),
       complements: "Pair GREEN with CRIMSON when patient context changes severity.",
     },
     {
@@ -218,6 +235,25 @@ export const reportGenerationLearn: LearnContent = {
       ],
       figure: "report-crimson",
       complements: "Pair CRIMSON with deterministic automatic metrics and reader studies.",
+    },
+    {
+      id: "llm-evaluator-landscape",
+      title: "Related learned evaluators",
+      meaning:
+        "VERT, ReFINE, and RadOT-Eval sit in the learned/LLM evaluator landscape: they score report quality through model-based judgments, refinement signals, or radiology-oriented evaluation prompts rather than simple token overlap.",
+      features: [
+        "Makes the family beyond GREEN and CRIMSON visible without turning every paper-specific evaluator into a live dashboard metric.",
+        "Useful when a study needs learned judgments for factuality, refinement quality, or radiology-specific error patterns.",
+        "Helps separate deterministic proxy rows from evaluator families that depend on model, prompt, rubric, or calibration choices.",
+      ],
+      caveats: [
+        "These are not live static-dashboard judges here; the app links them as related evaluator coverage only.",
+        "Scores can shift with the evaluator model, prompt, rubric, data domain, and deployment details.",
+        "They still need automatic metric context and reader-facing evidence before being treated as endpoint support.",
+      ],
+      figure: "report-llm-evaluator",
+      complements:
+        "Read VERT, ReFINE, and RadOT-Eval next to GREEN, CRIMSON, and Clinical Acceptance instead of as standalone verdicts.",
     },
     {
       id: "clinical-acceptance",

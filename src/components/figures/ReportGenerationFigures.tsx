@@ -89,6 +89,7 @@ export function ReportBleuFigure() {
       <text x={350} y={100} style={textStyle}>matched candidate tokens</text>
       <line x1={350} y1={108} x2={488} y2={108} stroke="var(--c-text-dim)" />
       <text x={372} y={134} style={textStyle}>candidate tokens</text>
+      <text x={350} y={164} style={dimTextStyle}>2 / 3 matched; assertion still wrong</text>
     </svg>
   );
 }
@@ -127,41 +128,6 @@ export function ReportMeteorFigure() {
       <text x={350} y={98} style={dimTextStyle}>precision + recall</text>
       <text x={350} y={124} style={dimTextStyle}>+ synonym/stem match</text>
       <text x={350} y={150} style={dimTextStyle}>- fragmentation penalty</text>
-    </svg>
-  );
-}
-
-export function ReportLexicalOverlapFigure() {
-  return (
-    <svg
-      viewBox="0 0 520 170"
-      role="img"
-      aria-label="Lexical overlap can miss negation"
-      style={svgStyle}
-    >
-      <Box x={20} y={24} w={220} h={54} color="var(--c-gt)" />
-      <text x={34} y={55} style={textStyle}>
-        No pneumothorax
-      </text>
-      <Box x={280} y={24} w={220} h={54} color="var(--c-pred-b)" />
-      <text x={294} y={55} style={textStyle}>
-        pneumothorax present
-      </text>
-      <line
-        x1={240}
-        y1={51}
-        x2={280}
-        y2={51}
-        stroke="var(--c-warn)"
-        strokeWidth={2}
-        strokeDasharray="5 4"
-      />
-      <text x={34} y={116} style={dimTextStyle}>
-        same key term
-      </text>
-      <text x={294} y={116} style={dimTextStyle}>
-        opposite assertion
-      </text>
     </svg>
   );
 }
@@ -216,51 +182,6 @@ export function ReportRateScoreFigure() {
   );
 }
 
-export function ReportEntitySimilarityFigure() {
-  return (
-    <svg viewBox="0 0 520 170" role="img" aria-label="Entity assertion matching" style={svgStyle}>
-      <Box x={20} y={24} w={220} h={54} color="var(--c-gt)" />
-      <text x={34} y={55} style={textStyle}>
-        pneumothorax: present
-      </text>
-      <Box x={280} y={24} w={220} h={54} color="var(--c-warn)" />
-      <text x={294} y={55} style={textStyle}>
-        pneumothorax: absent
-      </text>
-      <Box x={20} y={96} w={220} h={54} color="var(--c-gt)" />
-      <text x={34} y={127} style={textStyle}>
-        effusion: absent
-      </text>
-      <Box x={280} y={96} w={220} h={54} color="var(--c-warn)" />
-      <text x={294} y={127} style={textStyle}>
-        effusion: present
-      </text>
-    </svg>
-  );
-}
-
-export function ReportLabelF1Figure() {
-  return (
-    <svg viewBox="0 0 520 150" role="img" aria-label="Label F1 extraction" style={svgStyle}>
-      {["cardiomegaly", "edema", "pneumothorax"].map((label, index) => (
-        <g key={label}>
-          <circle
-            cx={56 + index * 160}
-            cy={56}
-            r={24}
-            fill="var(--c-pred-a)"
-            fillOpacity={0.18}
-            stroke="var(--c-pred-a)"
-          />
-          <text x={56 + index * 160} y={102} textAnchor="middle" style={textStyle}>
-            {label}
-          </text>
-        </g>
-      ))}
-    </svg>
-  );
-}
-
 export function ReportTemporalF1Figure() {
   return (
     <svg viewBox="0 0 520 170" role="img" aria-label="Temporal F1 compares change labels" style={svgStyle}>
@@ -272,6 +193,7 @@ export function ReportTemporalF1Figure() {
       <SmallToken x={220} y={124} text="effusion: stable" color="var(--c-pred-a)" />
       <line x1={98} y1={74} x2={104} y2={124} stroke="var(--c-warn)" strokeWidth={2} />
       <text x={360} y={114} style={dimTextStyle}>direction matters</text>
+      <text x={360} y={142} style={dimTextStyle}>TP=1 · FP=1 · FN=1</text>
     </svg>
   );
 }
@@ -297,7 +219,7 @@ export function ReportCheXbertF1Figure() {
           </text>
         </g>
       ))}
-      <text x={28} y={132} style={dimTextStyle}>presence/absence labels, little location detail</text>
+      <text x={28} y={132} style={dimTextStyle}>TP=2 · FP=1 · FN=1; little location detail</text>
     </svg>
   );
 }
@@ -315,6 +237,7 @@ export function ReportSrrBertF1Figure() {
       <SmallToken x={174} y={132} text="worsened" color="var(--c-warn)" />
       <text x={330} y={92} style={dimTextStyle}>same finding label</text>
       <text x={330} y={118} style={dimTextStyle}>different attribute labels</text>
+      <text x={330} y={144} style={dimTextStyle}>label TP=1, attribute errors=2</text>
     </svg>
   );
 }
@@ -347,6 +270,9 @@ export function ReportGraphF1Figure() {
       <text x={255} y={62} textAnchor="middle" style={dimTextStyle}>
         located_at
       </text>
+      <text x={255} y={126} textAnchor="middle" style={dimTextStyle}>
+        entity TP=1; relation TP=1
+      </text>
     </svg>
   );
 }
@@ -368,7 +294,7 @@ export function ReportGreenFigure() {
       {rows[1].slice(1).map((token, index) => (
         <SmallToken key={token} x={196 + (index % 2) * 124} y={104 + Math.floor(index / 2) * 34} text={token} color="var(--c-warn)" />
       ))}
-      <text x={42} y={196} style={dimTextStyle}>error count = unsupported + missing + wrong-category findings</text>
+      <text x={42} y={196} style={dimTextStyle}>error count = 3 = unsupported + missing + wrong-category</text>
     </svg>
   );
 }
@@ -387,7 +313,7 @@ export function ReportCrimsonFigure() {
       <line x1={429} y1={70} x2={328} y2={116} stroke="var(--c-text-dim)" strokeWidth={2} />
       <Box x={150} y={116} w={220} h={54} color="var(--c-warn)" />
       <text x={260} y={148} textAnchor="middle" style={textStyle}>weighted clinical error</text>
-      <text x={78} y={196} style={dimTextStyle}>normal findings can be ignored; significant errors carry weight</text>
+      <text x={78} y={196} style={dimTextStyle}>patient context raises error severity; normal findings can be ignored</text>
     </svg>
   );
 }

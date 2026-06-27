@@ -1,0 +1,142 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/topics/report-generation/Playground.test.tsx
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+ ❯ src/topics/report-generation/Playground.test.tsx (4 tests | 1 failed) 390ms
+     × renders a compact result summary before the full metric table 42ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/topics/report-generation/Playground.test.tsx > report generation Playground > renders a compact result summary before the full metric table
+TestingLibraryElementError: Unable to find an element by: [data-testid="report-pg-summary"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-5); color: var(--c-text); font-family: var(--font-ui);"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mstyle[39m=[32m"align-self: flex-start; display: inline-flex; align-items: center; padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill, var(--radius-sm)); background: var(--c-surface-2); border: 1px solid var(--c-border); font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--c-text);"[39m
+      [36m>[39m
+        [0mCOMPARE · The leading candidate changes with the unit the metric can observe.[0m
+      [36m</span>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"report-pg-split"[39m
+        [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: flex-start;"[39m
+      [36m>[39m
+        [36m<section[39m
+          [33mclass[39m=[32m"report-pg-editor"[39m
+          [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-md);"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"font-size: var(--text-sm); font-weight: 700; color: var(--c-text);"[39m
+            [36m>[39m
+              [0mReference report[0m
+            [36m</span>[39m
+            [36m<textarea[39m
+              [33maria-label[39m=[32m"Reference report"[39m
+              [33mstyle[39m=[32m"min-height: 72px; width: 100%; resize: vertical; box-sizing: border-box; padding: var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); font: inherit;"[39m
+            [36m>[39m
+              [0mRight pneumothorax has improved. No pleural effusion.[0m
+            [36m</textarea>[39m
+          [36m</label>[39m
+          [36m<label[39m
+            [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"font-size: var(--text-sm); font-weight: 700; color: var(--c-text);"[39m
+            [36m>[39m
+              [0mCandidate A[0m
+            [36m</span>[39m
+            [36m<textarea[39m
+              [33maria-label[39m=[32m"Candidate A"[39m
+              [33mstyle[39m=[32m"min-height: 72px; width: 100%; resize: vertical; box-sizing: border-box; padding: var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); font: inherit;"[39m
+            [36m>[39m
+              [0mRight pneumothorax has improved. No pleural effusion.[0m
+            [36m</textarea>[39m
+          [36m</label>[39m
+          [36m<label[39m
+            [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-2);"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mstyle[39m=[32m"font-size: var(--text-sm); font-weight: 700; color: var(--c-text);"[39m
+            [36m>[39m
+              [0mCandidate B[0m
+            [36m</span>[39m
+            [36m<textarea[39m
+              [33maria-label[39m=[32m"Candidate B"[39m
+              [33mstyle[39m=[32m"min-height: 72px; width: 100%; resize: vertical; box-sizing: border-box; padding: var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); font: inherit;"[39m
+            [36m>[39m
+              [0mLeft pneumothorax has worsened. Pleural effusion is present.[0m
+            [36m</textarea>[39m
+          [36m</label>[39m
+          [36m<details>[39m
+            [36m<summary[39m
+              [33mstyle[39m=[32m"font-size: var(--text-sm); font-weight: 700; color: var(--c-text); cursor: pointer;"[39m
+            [36m>[39m
+              [0mLoad an example[0m
+            [36m</summary>[39m
+            [36m<div[39m
+              [33mstyle[39m=[32m"display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3);"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-pressed[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 150px; min-width: 0px; padding: var(--space-2) var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); text-align: left; cursor: pointer;"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<strong>[39m
+                  [0mNegation flip[0m
+                [36m</strong>[39m
+                [36m<span[39m
+                  [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); line-height: 1.55; color: var(--c-text-dim);"[39m
+                [36m>[39m
+                  [0mLexical overlap can favor the unsafe candidate when absent findings become present.[0m
+                [36m</span>[39m
+              [36m</button>[39m
+              [36m<button[39m
+                [33maria-pressed[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 150px; min-width: 0px; padding: var(--space-2) var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); text-align: left; cursor: pointer;"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<strong>[39m
+                  [0mLaterality swap[0m
+                [36m</strong>[39m
+                [36m<span[39m
+                  [33mstyle[39m=[32m"margin: 0px; font-size: var(--text-xs); line-height: 1.55; color: var(--c-text-dim);"[39m
+                [36m>[39m
+                  [0mThe phrase template stays close while the side changes from right to left.[0m
+                [36m</span>[39m
+              [36m</button>[39m
+              [36m<button[39m
+                [33maria-pressed[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 150px; min-width: 0px; padding: var(--space-2) var(--space-3); border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface-2); color: var(--c-text); text-align: left; cursor: pointer;"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<strong>[39m
+              ...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/topics/report-generation/Playground.test.tsx:82:28
+     80|     });
+     81|
+     82|     const summary = screen.getByTestId("report-pg-summary");
+       |                            ^
+     83|     const table = screen.getByRole("table");
+     84|     expect(summary.compareDocumentPosition(table) & Node.DOCUMENT_POSI…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  17:10:55
+   Duration  890ms (transform 76ms, setup 29ms, import 129ms, tests 390ms, environment 269ms)

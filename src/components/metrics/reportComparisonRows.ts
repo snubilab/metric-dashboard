@@ -1,11 +1,31 @@
 import { compareReports } from "../../engine/metrics/reportGeneration";
 import type { MetricRow } from "./types";
 
+export const REPORT_COMPARISON_ROW_KEYS = [
+  "bleu1",
+  "rougeL",
+  "meteor",
+  "bertScore",
+  "rateScore",
+  "chexbertF1",
+  "srrBertF1",
+  "temporalF1",
+  "radGraphF1",
+  "greenErrors",
+  "crimsonWeightedErrors",
+] as const;
+
+export type ReportComparisonRowKey = (typeof REPORT_COMPARISON_ROW_KEYS)[number];
+
+export interface ReportComparisonRow extends MetricRow {
+  readonly key: ReportComparisonRowKey;
+}
+
 export function reportComparisonRows(
   reference: string,
   candidateA: string,
   candidateB: string,
-): MetricRow[] {
+): ReportComparisonRow[] {
   const comparison = compareReports(reference, candidateA, candidateB);
   return [
     {
@@ -45,7 +65,7 @@ export function reportComparisonRows(
     },
     {
       key: "chexbertF1",
-      label: "CheXbert F1 proxy",
+      label: "CheXbert finding F1 proxy",
       a: comparison.a.chexbertF1,
       b: comparison.b.chexbertF1,
       higherIsBetter: true,
@@ -59,16 +79,9 @@ export function reportComparisonRows(
     },
     {
       key: "temporalF1",
-      label: "Temporal F1",
+      label: "Temporal cue F1 proxy",
       a: comparison.a.temporalF1,
       b: comparison.b.temporalF1,
-      higherIsBetter: true,
-    },
-    {
-      key: "lateralityF1",
-      label: "Laterality F1",
-      a: comparison.a.lateralityF1,
-      b: comparison.b.lateralityF1,
       higherIsBetter: true,
     },
     {
@@ -80,14 +93,14 @@ export function reportComparisonRows(
     },
     {
       key: "greenErrors",
-      label: "GREEN error count",
+      label: "GREEN-style error count",
       a: comparison.a.greenErrors,
       b: comparison.b.greenErrors,
       higherIsBetter: false,
     },
     {
       key: "crimsonWeightedErrors",
-      label: "CRIMSON weighted errors",
+      label: "CRIMSON-style weighted errors",
       a: comparison.a.crimsonWeightedErrors,
       b: comparison.b.crimsonWeightedErrors,
       higherIsBetter: false,

@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 2,
+  "teamId": "6b51365b-74f0-45db-bcdd-2226f5e7b044",
+  "teamName": "report-generation-metrics-fix",
+  "sessionName": "metric-dashboard",
+  "sessionId": "019f03ed-f61c-7860-b69e-0dddc132ecc6",
+  "threadTitleConvention": "[report-generation-metrics-fix] <member name>",
+  "status": "active",
+  "createdAt": "2026-06-27T07:44:06.723Z",
+  "updatedAt": "2026-06-27T08:09:10.855Z",
+  "archivedAt": null,
+  "leader": {
+    "kind": "main-session",
+    "sessionId": "019f03ed-f61c-7860-b69e-0dddc132ecc6"
+  },
+  "communication": {
+    "memberLanguage": "english",
+    "replyToUserInUserLanguage": true
+  },
+  "worktree": {
+    "enabled": false,
+    "baseBranch": "main",
+    "root": "/Users/kyh/Workspace/metric_dashboard/.omo/teams/019f03ed-f61c-7860-b69e-0dddc132ecc6/worktrees"
+  },
+  "paths": {
+    "dir": "/Users/kyh/Workspace/metric_dashboard/.omo/teams/019f03ed-f61c-7860-b69e-0dddc132ecc6",
+    "team": "/Users/kyh/Workspace/metric_dashboard/.omo/teams/019f03ed-f61c-7860-b69e-0dddc132ecc6/team.json",
+    "guide": "/Users/kyh/Workspace/metric_dashboard/.omo/teams/019f03ed-f61c-7860-b69e-0dddc132ecc6/guide.md",
+    "artifacts": "/Users/kyh/Workspace/metric_dashboard/.omo/teams/019f03ed-f61c-7860-b69e-0dddc132ecc6/artifacts"
+  },
+  "members": [
+    {
+      "id": "C",
+      "name": "scenario-parity",
+      "focus": "Todo 3 Korean scenario parity for seven report-generation scenarios and scenario tests",
+      "lens": "area",
+      "deliverable": "Implement Todo 3 from .omo/plans/report-generation-metrics-fix.md with Korean scenarios and RED/GREEN parity evidence",
+      "threadId": "019f080a-ac82-7713-8642-2f4b6a10f871",
+      "threadTitle": "[report-generation-metrics-fix] scenario-parity",
+      "cwd": "/Users/kyh/Workspace/metric_dashboard",
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "A",
+      "name": "metric-row-contract",
+      "focus": "Todo 1 metric row contract, proxy labels, and reportComparisonRows/metric label tests",
+      "lens": "area",
+      "deliverable": "Implement Todo 1 from .omo/plans/report-generation-metrics-fix.md with RED/GREEN evidence and no fake Clinical Acceptance numeric row",
+      "threadId": "019f080a-9231-78b2-95bb-dafe50263433",
+      "threadTitle": "[report-generation-metrics-fix] metric-row-contract",
+      "cwd": "/Users/kyh/Workspace/metric_dashboard",
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "B",
+      "name": "learn-inventory",
+      "focus": "Todo 2 Learn inventory for VERT ReFINE RadOT-Eval and metric text links/content tests",
+      "lens": "area",
+      "deliverable": "Implement Todo 2 from .omo/plans/report-generation-metrics-fix.md with bilingual concise evaluator coverage and RED/GREEN evidence",
+      "threadId": "019f080a-a0ef-7b03-95ab-0411a971b7ff",
+      "threadTitle": "[report-generation-metrics-fix] learn-inventory",
+      "cwd": "/Users/kyh/Workspace/metric_dashboard",
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "G",
+      "name": "learn-teaching",
+      "focus": "Todo 7 report Learn figures and minimal miniSims",
+      "lens": "area",
+      "deliverable": "Implement Todo 7 from .omo/plans/report-generation-metrics-fix.md with focused Learn/figure/miniSim tests and evidence; do not delete figure registry keys or touch Todo 4/5/6 UI files",
+      "threadId": "019f0813-09da-75e2-91be-50ffcdb225e5",
+      "threadTitle": "[report-generation-metrics-fix] learn-teaching",
+      "cwd": "/Users/kyh/Workspace/metric_dashboard",
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    },
+    {
+      "id": "D",
+      "name": "cue-comparison",
+      "focus": "Todo 4 shared report cue comparison surface",
+      "lens": "area",
+      "deliverable": "Implement Todo 4 from .omo/plans/report-generation-metrics-fix.md with RED/GREEN evidence for cue mismatch rendering; do not touch Playground summary or Scenarios preview except if a tiny shared helper requires exports",
+      "threadId": "019f0812-fc81-79d0-a9a4-861f5aabdcdb",
+      "threadTitle": "[report-generation-metrics-fix] cue-comparison",
+      "cwd": "/Users/kyh/Workspace/metric_dashboard",
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "status": "archived"
+    }
+  ],
+  "log": [
+    {
+      "ts": "2026-06-27T07:44:06.723Z",
+      "event": "created",
+      "detail": "team report-generation-metrics-fix"
+    },
+    {
+      "ts": "2026-06-27T07:44:56.624Z",
+      "event": "add-member",
+      "detail": "member C (area): Todo 3 Korean scenario parity for seven report-generation scenarios and scenario tests"
+    },
+    {
+      "ts": "2026-06-27T07:44:56.639Z",
+      "event": "add-member",
+      "detail": "member A (area): Todo 1 metric row contract, proxy labels, and reportComparisonRows/metric label tests"
+    },
+    {
+      "ts": "2026-06-27T07:44:56.662Z",
+      "event": "add-member",
+      "detail": "member B (area): Todo 2 Learn inventory for VERT ReFINE RadOT-Eval and metric text links/content tests"
+    },
+    {
+      "ts": "2026-06-27T07:46:19.904Z",
+      "event": "bind-thread",
+      "detail": "member B -> thread 019f080a-a0ef-7b03-95ab-0411a971b7ff"
+    },
+    {
+      "ts": "2026-06-27T07:46:19.917Z",
+      "event": "bind-thread",
+      "detail": "member A -> thread 019f080a-9231-78b2-95bb-dafe50263433"
+    },
+    {
+      "ts": "2026-06-27T07:46:19.938Z",
+      "event": "bind-thread",
+      "detail": "member C -> thread 019f080a-ac82-7713-8642-2f4b6a10f871"
+    },
+    {
+      "ts": "2026-06-27T07:46:34.404Z",
+      "event": "set-status",
+      "detail": "member A -> active: WORKING: read guide/team.json, locating row contract/tests"
+    },
+    {
+      "ts": "2026-06-27T07:46:34.442Z",
+      "event": "set-status",
+      "detail": "member B -> active: thread created and dispatched"
+    },
+    {
+      "ts": "2026-06-27T07:46:34.486Z",
+      "event": "set-status",
+      "detail": "member C -> active: thread created and dispatched"
+    },
+    {
+      "ts": "2026-06-27T07:47:00.397Z",
+      "event": "set-status",
+      "detail": "member B -> active: WORKING: read guide/team.json, Todo 2 Learn inventory scope confirmed"
+    },
+    {
+      "ts": "2026-06-27T07:47:26.124Z",
+      "event": "set-status",
+      "detail": "member A -> active: WORKING: running failing row-contract test before production edits"
+    },
+    {
+      "ts": "2026-06-27T07:47:26.165Z",
+      "event": "set-status",
+      "detail": "member C -> active: WORKING: Todo 3 scope confirmed; Korean seven scenarios plus RED/GREEN evidence"
+    },
+    {
+      "ts": "2026-06-27T07:47:26.201Z",
+      "event": "set-status",
+      "detail": "member B -> active: WORKING: Todo 2 boundary confirmed; bilingual evaluator landscape no live rows"
+    },
+    {
+      "ts": "2026-06-27T07:50:48.926Z",
+      "event": "set-status",
+      "detail": "member C -> reported: Todo 3 DONE claim received; awaiting independent verification"
+    },
+    {
+      "ts": "2026-06-27T07:50:48.956Z",
+      "event": "set-status",
+      "detail": "member A -> reported: Todo 1 DONE claim received; awaiting independent verification"
+    },
+    {
+      "ts": "2026-06-27T07:51:40.413Z",
+      "event": "set-status",
+      "detail": "member B -> reported: Todo 2 DONE claim received; awaiting independent verification"
+    },
+    {
+      "ts": "2026-06-27T07:54:19.494Z",
+      "event": "set-status",
+      "detail": "member A -> archived: Todo 1 verified PASS by wave1 verifier"
+    },
+    {
+      "ts": "2026-06-27T07:54:19.500Z",
+      "event": "set-status",
+      "detail": "member B -> archived: Todo 2 verified PASS by wave1 verifier"
+    },
+    {
+      "ts": "2026-06-27T07:54:19.549Z",
+      "event": "set-status",
+      "detail": "member C -> archived: Todo 3 verified PASS by wave1 verifier"
+    },
+    {
+      "ts": "2026-06-27T07:54:30.847Z",
+      "event": "add-member",
+      "detail": "member G (area): Todo 7 report Learn figures and minimal miniSims"
+    },
+    {
+      "ts": "2026-06-27T07:54:30.859Z",
+      "event": "add-member",
+      "detail": "member D (area): Todo 4 shared report cue comparison surface"
+    },
+    {
+      "ts": "2026-06-27T07:55:13.851Z",
+      "event": "bind-thread",
+      "detail": "member G -> thread 019f0813-09da-75e2-91be-50ffcdb225e5"
+    },
+    {
+      "ts": "2026-06-27T07:55:13.860Z",
+      "event": "bind-thread",
+      "detail": "member D -> thread 019f0812-fc81-79d0-a9a4-861f5aabdcdb"
+    },
+    {
+      "ts": "2026-06-27T08:02:25.513Z",
+      "event": "set-status",
+      "detail": "member D -> reported: DONE reported; independent verification in progress"
+    },
+    {
+      "ts": "2026-06-27T08:04:00.985Z",
+      "event": "set-status",
+      "detail": "member G -> reported: DONE reported; independent verification pending"
+    },
+    {
+      "ts": "2026-06-27T08:09:10.837Z",
+      "event": "set-status",
+      "detail": "member D -> archived: Todo 4 verified after test-strength fix"
+    },
+    {
+      "ts": "2026-06-27T08:09:10.855Z",
+      "event": "set-status",
+      "detail": "member G -> archived: Todo 7 independent verification PASS"
+    }
+  ]
+}

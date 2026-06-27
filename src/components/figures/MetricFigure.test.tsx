@@ -30,4 +30,22 @@ describe("MetricFigure", () => {
 
     expect(container.firstChild).toBeNull();
   });
+
+  it("renders report figure cues without fabricated CRIMSON score math", () => {
+    const bleu = renderFigure("report-bleu");
+    expect(bleu.container).toHaveTextContent("2 / 3 matched");
+    bleu.unmount();
+
+    const temporal = renderFigure("report-temporal-f1");
+    expect(temporal.container).toHaveTextContent("TP=1");
+    temporal.unmount();
+
+    const green = renderFigure("report-green");
+    expect(green.container).toHaveTextContent("error count = 3");
+    green.unmount();
+
+    const crimson = renderFigure("report-crimson");
+    expect(crimson.container).toHaveTextContent("patient context raises error severity");
+    expect(crimson.container).not.toHaveTextContent(/weight\s+\d+\s*x\s*severity\s+\d+\s*=/i);
+  });
 });

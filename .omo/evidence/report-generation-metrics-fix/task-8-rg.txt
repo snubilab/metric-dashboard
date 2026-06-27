@@ -1,0 +1,12 @@
+BEFORE cleanup
+src/topics/report-generation/content.ts:254:      figure: "report-llm-evaluator",
+src/topics/report-generation/contentKo.ts:254:      figure: "report-llm-evaluator",
+src/components/figures/MetricFigure.tsx:111:  "report-lexical-overlap": ReportLexicalOverlapFigure,
+src/components/figures/MetricFigure.tsx:117:  "report-entity-similarity": ReportEntitySimilarityFigure,
+src/components/figures/MetricFigure.tsx:118:  "report-label-f1": ReportLabelF1Figure,
+src/components/figures/MetricFigure.tsx:125:  "report-llm-evaluator": ReportLlmEvaluatorFigure,
+
+AFTER cleanup
+src/topics/report-generation/content.ts:254:      figure: "report-llm-evaluator",
+src/topics/report-generation/contentKo.ts:254:      figure: "report-llm-evaluator",
+src/components/figures/MetricFigure.tsx:119:  "report-llm-evaluator": ReportLlmEvaluatorFigure,

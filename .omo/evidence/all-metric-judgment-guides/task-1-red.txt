@@ -1,0 +1,97 @@
+RUNTIME: node v22.19.0 at /Users/kyh/.local/bin/node
+COMMAND: npm run test -- src/topics/judgmentGuides.test.ts src/app/LearnView.judgmentGuides.test.tsx
+GIT_STATUS_SHORT:
+ M src/App.tsx
+ M src/app/ScenariosView.test.tsx
+ M src/app/ScenariosView.tsx
+ M src/components/MiniSim.test.tsx
+ M src/components/MiniSim.tsx
+ M src/components/figures/MetricFigure.test.tsx
+ M src/components/figures/MetricFigure.tsx
+ M src/components/figures/ReportGenerationFigures.tsx
+ M src/components/metrics/metricLabel.ts
+ M src/components/metrics/metricTextLinks.test.ts
+ M src/components/metrics/metricTextLinks.ts
+ M src/components/metrics/reportComparisonRows.test.ts
+ M src/components/metrics/reportComparisonRows.ts
+ M src/topics/report-generation/Playground.test.tsx
+ M src/topics/report-generation/Playground.tsx
+ M src/topics/report-generation/ReportCueBoard.tsx
+ M src/topics/report-generation/comparison.test.ts
+ M src/topics/report-generation/content.test.ts
+ M src/topics/report-generation/content.ts
+ M src/topics/report-generation/contentKo.ts
+ M src/topics/report-generation/scenariosKo.ts
+?? .agents/
+?? .codex/
+?? .omo/
+?? AGENTS.md
+?? src/app/LearnView.judgmentGuides.test.tsx
+?? src/components/minisims/ReportMetricSim.tsx
+?? src/topics/judgmentGuides.test.ts
+?? src/topics/report-generation/ReportCueBoard.test.tsx
+?? src/topics/report-generation/reportMetricFamilies.ts
+
+TEST_OUTPUT:
+
+> metric_dashboard@0.0.0 test
+> vitest run src/topics/judgmentGuides.test.ts src/app/LearnView.judgmentGuides.test.tsx
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+ ❯ src/topics/judgmentGuides.test.ts (2 tests | 1 failed) 3ms
+     × has nonempty Korean and English guide fields for every available section 1ms
+ ❯ src/app/LearnView.judgmentGuides.test.tsx (1 test | 1 failed) 160ms
+     × renders one labeled guide block per available section in Korean and English 159ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/app/LearnView.judgmentGuides.test.tsx > LearnView metric judgment guides > renders one labeled guide block per available section in Korean and English
+AssertionError: classification/confusion-matrix/ko should render exactly one judgment guide: expected  to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/app/LearnView.judgmentGuides.test.tsx:45:13
+     43|             guides,
+     44|             `${topic.id}/${section.id}/${lang} should render exactly o…
+     45|           ).toHaveLength(1);
+       |             ^
+     46|
+     47|           const guide = guides[0];
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/topics/judgmentGuides.test.ts > metric judgment guide coverage > has nonempty Korean and English guide fields for every available section
+Error: Expected src/topics/judgmentGuides.ts to export metricJudgmentGuide(topicId, sectionId, lang).
+ ❯ loadGuides src/topics/judgmentGuides.test.ts:28:11
+     26|   const load = guideModules["./judgmentGuides.ts"];
+     27|   if (!load) {
+     28|     throw new Error(
+       |           ^
+     29|       "Expected src/topics/judgmentGuides.ts to export metricJudgmentG…
+     30|     );
+ ❯ src/topics/judgmentGuides.test.ts:52:43
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 1 passed (3)
+   Start at  21:22:12
+   Duration  1.23s (transform 601ms, setup 116ms, import 772ms, tests 163ms, environment 920ms)
+
+
+DIFF_CHECK_COMMAND: git diff --check -- src/topics/judgmentGuides.test.ts src/app/LearnView.judgmentGuides.test.tsx .omo/evidence/all-metric-judgment-guides/task-1-red.txt
+
+WORKER_SUMMARY:
+task=todo-1-red-tests
+binary_observable=Vitest reported 2 failed tests for missing guide registry and missing LearnView guide block; no syntax/setup failure.
+diff_check_observable=git diff --check command emitted no whitespace errors.
+cleanup=No dev server, browser, port, or background process was started. Evidence directory retained for plan.
+stale_state=Plan reread shows Todo 1 still unchecked and requirements unchanged.
+dirty_worktree=git status --short captured above; only allowed files were created by this worker.

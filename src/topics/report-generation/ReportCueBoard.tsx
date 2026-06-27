@@ -13,8 +13,13 @@ const L = {
     findings: "findings",
     present: "present",
     absent: "absent",
+    assertion: "assertion",
     laterality: "laterality",
     temporal: "temporal",
+    cueMismatch: "Cue mismatch",
+    matchesReference: "Matches reference cues",
+    missing: "missing",
+    extra: "extra",
   },
   en: {
     reference: "Reference report",
@@ -25,8 +30,13 @@ const L = {
     findings: "findings",
     present: "present",
     absent: "absent",
+    assertion: "assertion",
     laterality: "laterality",
     temporal: "temporal",
+    cueMismatch: "Cue mismatch",
+    matchesReference: "Matches reference cues",
+    missing: "missing",
+    extra: "extra",
   },
 } as const;
 
@@ -73,6 +83,14 @@ const chipRowStyle: React.CSSProperties = {
   gap: "var(--space-2)",
 };
 
+const mismatchPanelStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--space-1)",
+  paddingTop: "var(--space-1)",
+  borderTop: "1px dashed var(--c-border)",
+};
+
 const chipStyle = (color: string, textColor: string): React.CSSProperties => ({
   padding: "2px 6px",
   borderRadius: "var(--radius-full)",
@@ -109,6 +127,71 @@ function CueChips({
         ) : (
           <span style={{ ...noteStyle, fontSize: "var(--text-xs)" }}>{empty}</span>
         )}
+      </div>
+    </div>
+  );
+}
+
+function assertionValues(cues: ClinicalCues): string[] {
+  return [
+    ...cues.presentFindings.map((finding) => `${finding}: present`),
+    ...cues.absentFindings.map((finding) => `${finding}: absent`),
+  ];
+}
+
+function differenceLabels(
+  referenceValues: readonly string[],
+  candidateValues: readonly string[],
+  label: string,
+  lang: Lang,
+): string[] {
+  const t = L[lang];
+  const candidateSet = new Set(candidateValues);
+  const referenceSet = new Set(referenceValues);
+  return [
+    ...referenceValues
+      .filter((value) => !candidateSet.has(value))
+      .map((value) => `${label}: ${t.missing} ${value}`),
+    ...candidateValues
+      .filter((value) => !referenceSet.has(value))
+      .map((value) => `${label}: ${t.extra} ${value}`),
+  ];
+}
+
+function cueMismatchLabels(reference: ClinicalCues, candidate: ClinicalCues, lang: Lang): string[] {
+  const t = L[lang];
+  return [
+    ...differenceLabels(reference.findings, candidate.findings, t.findings, lang),
+    ...differenceLabels(assertionValues(reference), assertionValues(candidate), t.assertion, lang),
+    ...differenceLabels(reference.laterality, candidate.laterality, t.laterality, lang),
+    ...differenceLabels(reference.temporal, candidate.temporal, t.temporal, lang),
+  ];
+}
+
+function CueMismatchPanel({
+  reference,
+  candidate,
+  lang,
+}: {
+  reference: ClinicalCues;
+  candidate: ClinicalCues;
+  lang: Lang;
+}) {
+  const t = L[lang];
+  const mismatches = cueMismatchLabels(reference, candidate, lang);
+  const values = mismatches.length > 0 ? mismatches : [t.matchesReference];
+  const color = mismatches.length > 0 ? "var(--c-warn)" : "var(--c-gt)";
+  const textColor = mismatches.length > 0 ? "var(--c-warn-text)" : "var(--c-gt-text)";
+
+  return (
+    <div style={mismatchPanelStyle}>
+      <div style={{ ...labelStyle, fontSize: "var(--text-xs)" }}>{t.cueMismatch}</div>
+      <div style={chipRowStyle}>
+        {values.map((value) => (
+          <span key={value} style={chipStyle(color, textColor)}>
+            {value}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -155,11 +238,13 @@ function ReportCueCard({
   text,
   lang,
   compact,
+  referenceCues,
 }: {
   title: string;
   text: string;
   lang: Lang;
   compact: boolean;
+  referenceCues?: ClinicalCues;
 }) {
   const t = L[lang];
   const cues = extractClinicalCues(text);
@@ -178,6 +263,9 @@ function ReportCueCard({
           empty={t.noCues}
         />
       ))}
+      {referenceCues ? (
+        <CueMismatchPanel reference={referenceCues} candidate={cues} lang={lang} />
+      ) : null}
     </section>
   );
 }
@@ -196,6 +284,7 @@ export function ReportCueBoard({
   const { lang } = useLang();
   const t = L[lang];
   const hasAnyText = Boolean(reference.trim() || candidateA.trim() || candidateB.trim());
+  const referenceCues = extractClinicalCues(reference);
 
   return (
     <>
@@ -205,8 +294,20 @@ export function ReportCueBoard({
       {hasAnyText ? (
         <div style={cueGridStyle(compact)}>
           <ReportCueCard title={t.reference} text={reference} lang={lang} compact={compact} />
-          <ReportCueCard title={t.candidateA} text={candidateA} lang={lang} compact={compact} />
-          <ReportCueCard title={t.candidateB} text={candidateB} lang={lang} compact={compact} />
+          <ReportCueCard
+            title={t.candidateA}
+            text={candidateA}
+            lang={lang}
+            compact={compact}
+            referenceCues={referenceCues}
+          />
+          <ReportCueCard
+            title={t.candidateB}
+            text={candidateB}
+            lang={lang}
+            compact={compact}
+            referenceCues={referenceCues}
+          />
         </div>
       ) : (
         <p style={noteStyle}>{t.noCues}</p>

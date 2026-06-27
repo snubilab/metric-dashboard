@@ -1,0 +1,82 @@
+Adversarial verification for Todo 2: central bilingual judgment guide registry
+
+Verdict: confirmed
+
+Artifacts inspected:
+- .omo/plans/all-metric-judgment-guides.md
+- src/topics/judgmentGuides.ts
+- src/topics/judgmentGuides.test.ts
+- src/app/topicRegistry.ts
+- .omo/evidence/all-metric-judgment-guides/task-2-green.txt
+
+Direct checks:
+- Todo 2 requires typed exports MetricJudgmentGuide, LocalizedMetricJudgmentGuide,
+  METRIC_JUDGMENT_GUIDES, and metricJudgmentGuide(topicId, sectionId, lang).
+- src/topics/judgmentGuides.ts exports all four names.
+- The registry is a pure data table with a SIZE_OK opt-out comment in the first
+  five lines; pure LOC is 628.
+- src/topics/judgmentGuides.test.ts derives available topics from
+  TOPICS.filter((topic) => topic.status === "available") and iterates current
+  topic.learn.sections for coverage.
+- The test asserts English/Korean section id parity, nonempty guide fields,
+  Hangul in KO copy, KO/EN field inequality, banned verdict term exclusion, and
+  report-generation live/numeric evaluator wording exclusion.
+- Banned term grep found matches only in the test regex definitions, not in
+  src/topics/judgmentGuides.ts.
+- Report-generation forbidden wording grep found matches only in the test regex
+  definitions, not in src/topics/judgmentGuides.ts.
+- Worker evidence file exists and records the focused test passing.
+
+Commands run:
+- cat /Users/kyh/.codex/plugins/cache/sisyphuslabs/omo/4.13.0/skills/remove-ai-slops/SKILL.md
+- cat /Users/kyh/.codex/plugins/cache/sisyphuslabs/omo/4.13.0/skills/programming/SKILL.md
+- cat /Users/kyh/.codex/plugins/cache/sisyphuslabs/omo/4.13.0/skills/programming/references/typescript/README.md
+- sed -n '1,220p' .omo/plans/all-metric-judgment-guides.md
+- sed -n '1,260p' src/topics/judgmentGuides.ts
+- sed -n '261,620p' src/topics/judgmentGuides.ts
+- sed -n '621,645p' src/topics/judgmentGuides.ts
+- sed -n '1,260p' src/topics/judgmentGuides.test.ts
+- sed -n '1,120p' src/app/topicRegistry.ts
+- rg -n "^export (interface|type|const|function)|metricJudgmentGuide|METRIC_JUDGMENT_GUIDES|LocalizedMetricJudgmentGuide|MetricJudgmentGuide" src/topics/judgmentGuides.ts
+- rg -n "availableTopics|TOPICS\\.filter|status === \"available\"|learn\\.sections|learnKo\\.sections|BANNED_VERDICT_TERMS|REPORT_GENERATION_LIVE_EVALUATOR_TERMS" src/topics/judgmentGuides.test.ts
+- rg -n "좋음|나쁨|우수|열등|\\bgood\\b|\\bbad\\b|best metric|worst metric" src/topics/judgmentGuides.ts src/topics/judgmentGuides.test.ts
+- rg -n "live LLM judge|API call|model download|numeric score|overall score" src/topics/judgmentGuides.ts src/topics/judgmentGuides.test.ts
+- cat .omo/evidence/all-metric-judgment-guides/task-2-green.txt
+- git status --short
+- git diff -- src/topics/judgmentGuides.ts src/topics/judgmentGuides.test.ts .omo/evidence/all-metric-judgment-guides/task-2-green.txt
+- npm run test -- src/topics/judgmentGuides.test.ts
+- git diff --check -- src/topics/judgmentGuides.ts src/topics/judgmentGuides.test.ts .omo/evidence/all-metric-judgment-guides/task-2-green.txt
+- rg -n "[[:blank:]]$" src/topics/judgmentGuides.ts src/topics/judgmentGuides.test.ts .omo/evidence/all-metric-judgment-guides/task-2-green.txt
+- npm run test -- src/topics/judgmentGuides.test.ts
+- git ls-files --others --exclude-standard -- src/topics/judgmentGuides.ts src/topics/judgmentGuides.test.ts .omo/evidence/all-metric-judgment-guides/task-2-green.txt
+- git diff --name-status -- src/topics/judgmentGuides.ts src/topics/judgmentGuides.test.ts .omo/evidence/all-metric-judgment-guides/task-2-green.txt
+- awk '!/^[[:space:]]*$/ && !/^[[:space:]]*(\\/\\/|#|--)/' src/topics/judgmentGuides.ts | wc -l
+- awk '!/^[[:space:]]*$/ && !/^[[:space:]]*(\\/\\/|#|--)/' src/topics/judgmentGuides.test.ts | wc -l
+
+Command results:
+- npm run test -- src/topics/judgmentGuides.test.ts: passed twice, 1 file / 3 tests.
+- git diff --check -- scoped files: exit 0, no output.
+- rg trailing whitespace over scoped files: exit 1, no matches.
+- git diff -- scoped files: no output because the Todo 2 files are untracked.
+- git ls-files --others confirms the three claimed changed files are untracked.
+
+Adversarial probes:
+- dirty_worktree: Triggered. git status shows many unrelated modified files plus
+  the Todo 2 files as untracked. Verification stayed scoped and did not revert.
+- stale_state: Mitigated by rereading the plan, registry, tests, topic registry,
+  and worker evidence from disk during this pass.
+- misleading_success_output: Mitigated. Worker green evidence matches a fresh test
+  pass. Caveat: git diff/diff-check do not inspect untracked content; direct file
+  reads and whitespace grep covered the untracked files.
+- flaky_tests: Mitigated by two consecutive focused Vitest passes.
+- hung_or_long_commands: Not observed; focused Vitest runs completed in about one
+  second and diff/grep checks returned immediately.
+- malformed_input: N/A, no malformed task input was provided.
+- prompt_injection: N/A, no untrusted prompt-bearing content was executed.
+- cancel_resume: N/A, no cancellation or resume occurred.
+- repeated_interruptions: N/A, no repeated interruption occurred.
+
+Remaining evidence gap:
+- Because Todo 2 files are untracked, git diff --check passing alone would be
+  insufficient evidence. This verification compensates with direct inspection,
+  regex scans, and repeated focused tests.

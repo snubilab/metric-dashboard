@@ -1,0 +1,102 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/topics/report-generation/content.test.ts src/components/MiniSim.test.tsx
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+ ❯ src/topics/report-generation/content.test.ts (5 tests | 1 failed) 7ms
+     × adds focused report miniSims to the metric families that move differently 3ms
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+ ❯ src/components/MiniSim.test.tsx (4 tests | 1 failed) 103ms
+     × renders the report teaching widget for report metric movement 49ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/MiniSim.test.tsx > MiniSim dispatcher > renders the report teaching widget for report metric movement
+TestingLibraryElementError: Unable to find an accessible element with the role "slider" and name `/error severity/i`
+
+Here are the accessible roles:
+
+  heading:
+
+  Name "Interactive demo":
+  [36m<h4[39m
+    [33mstyle[39m=[32m"margin: 0px; font-family: var(--font-ui); font-size: var(--text-sm); letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-text-dim);"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  note:
+
+  Name "":
+  [36m<p[39m
+    [33mrole[39m=[32m"note"[39m
+    [33mstyle[39m=[32m"margin: 0px; font-family: var(--font-ui); font-size: var(--text-sm); color: var(--c-text-dim);"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mstyle[39m=[32m"display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-md); font-family: var(--font-ui); color: var(--c-text);"[39m
+    [36m>[39m
+      [36m<h4[39m
+        [33mstyle[39m=[32m"margin: 0px; font-family: var(--font-ui); font-size: var(--text-sm); letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-text-dim);"[39m
+      [36m>[39m
+        [0mInteractive demo[0m
+      [36m</h4>[39m
+      [36m<p[39m
+        [33mrole[39m=[32m"note"[39m
+        [33mstyle[39m=[32m"margin: 0px; font-family: var(--font-ui); font-size: var(--text-sm); color: var(--c-text-dim);"[39m
+      [36m>[39m
+        [0mInteractive demo coming soon[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/MiniSim.test.tsx:43:19
+     41|     renderEn(<MiniSim config={config("report-error-weighting", "GREEN"…
+     42|
+     43|     expect(screen.getByRole("slider", { name: /error severity/i })).to…
+       |                   ^
+     44|     expect(screen.queryByRole("note")).not.toBeInTheDocument();
+     45|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/topics/report-generation/content.test.ts > report generation Learn content > adds focused report miniSims to the metric families that move differently
+AssertionError: expected [] to deeply equal [ 'report-lexical-paraphrase', …(4) ]
+
+- Expected
++ Received
+
+- [
+-   "report-lexical-paraphrase",
+-   "report-entity-assertion",
+-   "report-temporal-direction",
+-   "report-label-graph-granularity",
+-   "report-error-weighting",
+- ]
++ []
+
+ ❯ src/topics/report-generation/content.test.ts:80:22
+     78|       .filter((kind) => kind !== undefined);
+     79|
+     80|     expect(miniSims).toEqual(EXPECTED_MINISIMS);
+       |                      ^
+     81|     expect(reportGenerationLearnKo.sections.map((section) => section.m…
+     82|       reportGenerationLearn.sections.map((section) => section.miniSim?…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 7 passed (9)
+   Start at  16:56:52
+   Duration  714ms (transform 176ms, setup 101ms, import 264ms, tests 110ms, environment 608ms)

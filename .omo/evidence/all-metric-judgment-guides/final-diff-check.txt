@@ -1,0 +1,2 @@
+TIMESTAMP: 2026-06-27T22:00:40+09:00
+COMMAND: git diff --check | tee .omo/evidence/all-metric-judgment-guides/final-diff-check.txt

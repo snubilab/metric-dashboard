@@ -1,0 +1,62 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/components/metrics/reportComparisonRows.test.ts
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+ ❯ src/components/metrics/reportComparisonRows.test.ts (3 tests | 2 failed) 11ms
+     × returns the honest top-level report metric row contract 6ms
+     × keeps localized proxy and style labels explicit 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/metrics/reportComparisonRows.test.ts > reportComparisonRows > returns the honest top-level report metric row contract
+AssertionError: expected [ 'bleu1', 'rougeL', 'meteor', …(9) ] to deeply equal [ 'bleu1', 'rougeL', 'meteor', …(8) ]
+
+- Expected
++ Received
+
+@@ -5,9 +5,10 @@
+    "bertScore",
+    "rateScore",
+    "chexbertF1",
+    "srrBertF1",
+    "temporalF1",
++   "lateralityF1",
+    "radGraphF1",
+    "greenErrors",
+    "crimsonWeightedErrors",
+  ]
+
+ ❯ src/components/metrics/reportComparisonRows.test.ts:29:40
+     27|     );
+     28|
+     29|     expect(rows.map((row) => row.key)).toEqual([
+       |                                        ^
+     30|       "bleu1",
+     31|       "rougeL",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/components/metrics/reportComparisonRows.test.ts > reportComparisonRows > keeps localized proxy and style labels explicit
+AssertionError: expected 'CheXbert F1 proxy' to be 'CheXbert finding F1 proxy' // Object.is equality
+
+Expected: "CheXbert finding F1 proxy"
+Received: "CheXbert F1 proxy"
+
+ ❯ src/components/metrics/reportComparisonRows.test.ts:60:83
+     58|
+     59|   it("keeps localized proxy and style labels explicit", () => {
+     60|     expect(localizedMetricLabel("chexbertF1", "CheXbert finding F1 pro…
+       |                                                                                   ^
+     61|       "CheXbert finding F1 proxy",
+     62|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  16:48:34
+   Duration  585ms (transform 32ms, setup 30ms, import 30ms, tests 11ms, environment 414ms)

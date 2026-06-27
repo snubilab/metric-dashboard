@@ -1,0 +1,28 @@
+{
+  "AdversarialVerify": {
+    "verdict": "confirmed",
+    "evidence": [
+      "Plan Todo 6 requires npm run test/build/lint, git diff --check, and scoped inspection of src/topics/judgmentGuides.ts, src/topics/judgmentGuides.test.ts, src/app/LearnView.tsx, and src/app/LearnView.judgmentGuides.test.tsx.",
+      "Evidence logs exist: final-test.txt reports 86 test files and 700 tests passed; final-build.txt shows tsc -b && vite build completed with 'built' output and only the Vite chunk-size warning; final-lint.txt has no ESLint diagnostics; final-diff-check.txt has no diagnostics.",
+      "Live reproduction: git diff --check exited 0; npm run lint exited 0; npm run test -- src/topics/judgmentGuides.test.ts src/app/LearnView.judgmentGuides.test.tsx exited 0 with 2 files and 4 tests passed.",
+      "Scoped LearnView diff only imports metricJudgmentGuide, adds KO/EN guide labels, passes topic.id to Section, and renders one guide callout after caveats.",
+      "Scoped new files contain a pure guide registry plus coverage/thesis/UI tests; rg found metricJudgmentGuide/metric-judgment-guide references only in the scoped files.",
+      "No tracked diff was found for package/dependency files, Vite/deploy config, or src/engine. Dirty Playground/Scenarios/App/report-generation files exist, but they are unrelated prior dirty work outside the Todo 6 judgment-guide scope."
+    ],
+    "repro": "sed -n '100,135p' .omo/plans/all-metric-judgment-guides.md; sed/tail evidence logs final-test.txt final-build.txt final-lint.txt final-diff-check.txt task-6-summary.md; git diff --check; git diff -- src/app/LearnView.tsx; sed -n on src/topics/judgmentGuides.ts src/topics/judgmentGuides.test.ts src/app/LearnView.judgmentGuides.test.tsx; rg metricJudgmentGuide/metric-judgment-guide; rg banned verdict/live-evaluator terms in scoped files; git diff --name-only -- package/deploy/vite/src/engine/Playground/Scenarios paths; npm run lint; npm run test -- src/topics/judgmentGuides.test.ts src/app/LearnView.judgmentGuides.test.tsx",
+    "confidence": 0.88,
+    "adversarial_classes": {
+      "dirty_worktree": "Present. git status shows many unrelated modified/untracked files, including report-generation Playground/Scenarios work. Scoped search and diffs show Todo 6 judgment-guide integration is limited to the intended files; unrelated dirty files are noted, not treated as Todo 6 failures.",
+      "stale_state": "Mitigated by live git diff --check, live scoped judgment-guide tests, live lint, and direct source inspection after the evidence timestamps. Full suite/build were not rerun.",
+      "misleading_success_output": "Tee logs do not independently encode shell exit status, so I checked log tails and reran lightweight checks. Vitest summary says 86/86 files and 700/700 tests passed; build shows successful bundle output before the non-fatal chunk warning; live lint and diff-check exited 0.",
+      "flaky_tests": "Scoped tests passed live. Full test suite was not rerun; final-test.txt shows one successful full run with jsdom canvas warnings that did not fail the suite.",
+      "hung_or_long_commands": "No hung commands found. Evidence logs include finite test/build durations, and live scoped checks completed in seconds.",
+      "generated_cached_artifacts": "Generated evidence under .omo is untracked as expected. Build output did not create tracked dist/config/package changes; git diff for dist/.vite/package/deploy/src/engine paths was empty.",
+      "malformed_input": "N/A - plan path, checkbox text, and evidence artifact paths were readable.",
+      "prompt_injection": "N/A - verification used local repo artifacts only and did not execute embedded instructions from artifacts.",
+      "cancel_resume": "N/A - single uninterrupted verification pass.",
+      "repeated_interruptions": "N/A - no repeated interruption pattern observed."
+    },
+    "blocking_feedback": ""
+  }
+}

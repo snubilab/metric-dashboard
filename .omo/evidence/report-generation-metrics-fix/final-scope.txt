@@ -1,0 +1,78 @@
+# Final Scope
+Sat Jun 27 17:34:00 KST 2026
+
+ M src/App.tsx
+ M src/app/ScenariosView.test.tsx
+ M src/app/ScenariosView.tsx
+ M src/components/MiniSim.test.tsx
+ M src/components/MiniSim.tsx
+ M src/components/figures/MetricFigure.test.tsx
+ M src/components/figures/MetricFigure.tsx
+ M src/components/figures/ReportGenerationFigures.tsx
+ M src/components/metrics/metricLabel.ts
+ M src/components/metrics/metricTextLinks.test.ts
+ M src/components/metrics/metricTextLinks.ts
+ M src/components/metrics/reportComparisonRows.test.ts
+ M src/components/metrics/reportComparisonRows.ts
+ M src/topics/report-generation/Playground.test.tsx
+ M src/topics/report-generation/Playground.tsx
+ M src/topics/report-generation/ReportCueBoard.tsx
+ M src/topics/report-generation/comparison.test.ts
+ M src/topics/report-generation/content.test.ts
+ M src/topics/report-generation/content.ts
+ M src/topics/report-generation/contentKo.ts
+ M src/topics/report-generation/scenariosKo.ts
+?? .agents/
+?? .codex/
+?? .omo/
+?? AGENTS.md
+?? src/components/minisims/ReportMetricSim.tsx
+?? src/topics/report-generation/ReportCueBoard.test.tsx
+?? src/topics/report-generation/reportMetricFamilies.ts
+
+# Diff Stat
+ src/App.tsx                                        |   4 +
+ src/app/ScenariosView.test.tsx                     |  29 ++++-
+ src/app/ScenariosView.tsx                          |  78 ++-----------
+ src/components/MiniSim.test.tsx                    |  13 +++
+ src/components/MiniSim.tsx                         |   6 +
+ src/components/figures/MetricFigure.test.tsx       |  18 +++
+ src/components/figures/MetricFigure.tsx            |   6 -
+ src/components/figures/ReportGenerationFigures.tsx |  92 ++-------------
+ src/components/metrics/metricLabel.ts              |   8 +-
+ src/components/metrics/metricTextLinks.test.ts     |   7 +-
+ src/components/metrics/metricTextLinks.ts          |   3 +
+ .../metrics/reportComparisonRows.test.ts           |  53 +++++++++
+ src/components/metrics/reportComparisonRows.ts     |  37 ++++--
+ src/topics/report-generation/Playground.test.tsx   |  67 +++++++++--
+ src/topics/report-generation/Playground.tsx        | 129 ++++++++++++++++++++-
+ src/topics/report-generation/ReportCueBoard.tsx    | 105 ++++++++++++++++-
+ src/topics/report-generation/comparison.test.ts    |   8 ++
+ src/topics/report-generation/content.test.ts       |  50 +++++++-
+ src/topics/report-generation/content.ts            |  38 +++++-
+ src/topics/report-generation/contentKo.ts          |  38 +++++-
+ src/topics/report-generation/scenariosKo.ts        |  45 +++++++
+ 21 files changed, 640 insertions(+), 194 deletions(-)
+
+# Diff Names
+src/App.tsx
+src/app/ScenariosView.test.tsx
+src/app/ScenariosView.tsx
+src/components/MiniSim.test.tsx
+src/components/MiniSim.tsx
+src/components/figures/MetricFigure.test.tsx
+src/components/figures/MetricFigure.tsx
+src/components/figures/ReportGenerationFigures.tsx
+src/components/metrics/metricLabel.ts
+src/components/metrics/metricTextLinks.test.ts
+src/components/metrics/metricTextLinks.ts
+src/components/metrics/reportComparisonRows.test.ts
+src/components/metrics/reportComparisonRows.ts
+src/topics/report-generation/Playground.test.tsx
+src/topics/report-generation/Playground.tsx
+src/topics/report-generation/ReportCueBoard.tsx
+src/topics/report-generation/comparison.test.ts
+src/topics/report-generation/content.test.ts
+src/topics/report-generation/content.ts
+src/topics/report-generation/contentKo.ts
+src/topics/report-generation/scenariosKo.ts

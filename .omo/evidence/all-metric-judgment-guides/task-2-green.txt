@@ -1,0 +1,14 @@
+
+$ npm run test -- src/topics/judgmentGuides.test.ts | tee .omo/evidence/all-metric-judgment-guides/task-2-green.txt
+
+> metric_dashboard@0.0.0 test
+> vitest run src/topics/judgmentGuides.test.ts
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  21:36:28
+   Duration  614ms (transform 223ms, setup 27ms, import 256ms, tests 11ms, environment 251ms)

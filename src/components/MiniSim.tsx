@@ -22,6 +22,7 @@ import ApReorderSim from "./minisims/ApReorderSim";
 import FrocAddFpSim from "./minisims/FrocAddFpSim";
 import MatchingDuplicateFpSim from "./minisims/MatchingDuplicateFpSim";
 import ClassificationMetricSim from "./minisims/ClassificationMetricSim";
+import ReportMetricSim from "./minisims/ReportMetricSim";
 
 export interface MiniSimProps {
   config: MiniSimConfig;
@@ -44,6 +45,11 @@ const WIDGETS: Record<string, ComponentType<WidgetProps>> = {
   "cls-prevalence-columns": ClassificationMetricSim,
   "cls-accuracy-imbalance": ClassificationMetricSim,
   "cls-fbeta-weight": ClassificationMetricSim,
+  "report-lexical-paraphrase": ReportMetricSim,
+  "report-entity-assertion": ReportMetricSim,
+  "report-temporal-direction": ReportMetricSim,
+  "report-label-graph-granularity": ReportMetricSim,
+  "report-error-weighting": ReportMetricSim,
 };
 
 const containerStyle: CSSProperties = {
