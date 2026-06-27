@@ -2,8 +2,11 @@ import type { EngineState } from "../../types/engine";
 import type { Scenario } from "../../types/topic";
 import {
   ENTITY_SWAP,
+  ERROR_CATEGORY_CONTEXT,
+  LABEL_GRANULARITY,
   LATERALITY_SWAP,
   NEGATION_FLIP,
+  PARAPHRASE_METEOR,
   TEMPORAL_CHANGE,
 } from "./reportExamples";
 import type { ReportExample } from "./reportExamples";
@@ -83,5 +86,47 @@ export const reportGenerationScenariosKo: Scenario[] = [
     teachingPoint:
       "Candidate B는 필요한 vocabulary를 포함하지만 presence와 absence를 잘못된 entity에 붙입니다. Entity/assertion row는 A를 앞세워야 하며, 이 예시는 RaTEscore가 보려는 방향을 보여줍니다.",
     reference: "PPTX slides 15-16: BERTScore vs RaTEscore entity example.",
+  },
+  {
+    id: "paraphrase-tolerance",
+    title: "Paraphrase tolerance: 내용은 같고 표현만 다름",
+    clinical: {
+      situation: "생성 report가 흔한 radiology synonym을 쓰는 상황",
+      modality: "Chest X-ray report",
+      atStake: "표현 차이가 clinical contradiction처럼 벌점 처리되면 안 됩니다.",
+      consequence: "BLEU/ROUGE는 떨어져도 METEOR-style matching은 더 관대할 수 있습니다.",
+    },
+    state: state(PARAPHRASE_METEOR),
+    teachingPoint:
+      "Candidate A는 effusion을 fluid로, improved를 decreased로 바꿉니다. METEOR-style matching은 순수 lexical row보다 이런 paraphrase에 관대하고, clinical row는 여전히 정렬된 상태로 남습니다.",
+    reference: "PPTX slides 3-6: BLEU, ROUGE, METEOR comparison.",
+  },
+  {
+    id: "label-granularity",
+    title: "Label granularity: finding은 같지만 attribute가 틀림",
+    clinical: {
+      situation: "CXR report에서 finding label을 추출하는 상황",
+      modality: "Chest X-ray report",
+      atStake: "coarse finding agreement는 wrong side나 wrong change direction을 가릴 수 있습니다.",
+      consequence: "넓은 label/attribute proxy는 coarse CheXbert-style F1과 분리되어 움직입니다.",
+    },
+    state: state(LABEL_GRANULARITY),
+    teachingPoint:
+      "Candidate B도 opacity를 언급하므로 coarse finding label은 높게 남을 수 있습니다. 하지만 SRR-BERT-style, temporal, laterality, graph row는 side와 change attribute가 바뀌었기 때문에 움직입니다.",
+    reference: "PPTX slides 12-14: CheXbert and SRR-BERT label F1.",
+  },
+  {
+    id: "error-category-context",
+    title: "Error category: reference에 없는 새 finding",
+    clinical: {
+      situation: "AI-generated impression을 safety review하는 상황",
+      modality: "Chest X-ray report",
+      atStake: "candidate-only pneumothorax는 urgent action을 유발할 수 있습니다.",
+      consequence: "error-category row는 fluent wording 보상보다 unsupported finding count를 봅니다.",
+    },
+    state: state(ERROR_CATEGORY_CONTEXT),
+    teachingPoint:
+      "Candidate B는 reference가 지지하지 않는 new right pneumothorax를 추가합니다. 다른 text overlap이 남아 있어도 GREEN/CRIMSON-style row는 이 unsupported finding 때문에 움직입니다.",
+    reference: "PPTX slides 17-19: GREEN and CRIMSON error categories.",
   },
 ];

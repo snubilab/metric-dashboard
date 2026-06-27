@@ -1,0 +1,45 @@
+{
+  "desktop": {
+    "title": "LLM 리포트 생성",
+    "learnMiniSimSliders": 5,
+    "hasEvaluatorLandscape": 6,
+    "hasQualitativeCueNote": 5,
+    "hasCrimsonQualitativeText": 1,
+    "hasCrimsonFakeMath": 0,
+    "summaryVisible": true,
+    "liveMetricRows": 11,
+    "hasClinicalAcceptanceEndpoint": 2,
+    "hasConcreteMismatch": 2,
+    "playgroundBox": {
+      "x": 793.796875,
+      "y": 272.375,
+      "width": 597.203125,
+      "height": 260.359375
+    },
+    "scenarioArticles": 7,
+    "scenarioCueBoardCount": 33
+  },
+  "mobile": {
+    "summaryVisible": true,
+    "summaryBox": {
+      "x": 33,
+      "y": 321.078125,
+      "width": 324,
+      "height": 376.953125
+    },
+    "tableBox": {
+      "x": 33,
+      "y": 710.03125,
+      "width": 324,
+      "height": 500.9375
+    },
+    "hasConcreteMismatch": 2
+  },
+  "screenshots": [
+    "final-learn-desktop.png",
+    "final-desktop-playground.png",
+    "final-mobile-playground.png",
+    "final-scenarios-ko.png"
+  ],
+  "pass": true
+}

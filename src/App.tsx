@@ -105,8 +105,12 @@ const headerStyle: React.CSSProperties = {
  *  on dark) via the `.app-credit` class so it stays legible in both themes. */
 const CREDIT = "리더: 이주희 · 보조: 고예현";
 const CLASSIFICATION_REGRESSION_CREDIT = "리더: 전경민 · 보조: 조경현";
+const REPORT_GENERATION_CREDIT = "리더: 고한빈";
 
 function topicCredit(topicId: string): string {
+  if (topicId === "report-generation") {
+    return REPORT_GENERATION_CREDIT;
+  }
   return topicId === "classification" || topicId === "regression" ? CLASSIFICATION_REGRESSION_CREDIT : CREDIT;
 }
 

@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "active_work_id": null,
+  "works": {
+    "report-generation-metrics-fix": {
+      "work_id": "report-generation-metrics-fix",
+      "active_plan": ".omo/plans/report-generation-metrics-fix.md",
+      "plan_name": "report-generation-metrics-fix",
+      "session_ids": ["codex:019f03ed-f61c-7860-b69e-0dddc132ecc6"],
+      "status": "paused",
+      "worktree_path": null
+    },
+    "all-metric-judgment-guides": {
+      "work_id": "all-metric-judgment-guides",
+      "active_plan": ".omo/plans/all-metric-judgment-guides.md",
+      "plan_name": "all-metric-judgment-guides",
+      "session_ids": ["codex:019f03ed-f61c-7860-b69e-0dddc132ecc6"],
+      "status": "completed",
+      "worktree_path": null
+    }
+  }
+}

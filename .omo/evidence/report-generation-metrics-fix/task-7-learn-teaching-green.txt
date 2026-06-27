@@ -1,0 +1,13 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/topics/report-generation/content.test.ts src/components/MiniSim.test.tsx src/components/figures/MetricFigure.test.tsx
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+
+ Test Files  3 passed (3)
+      Tests  13 passed (13)
+   Start at  17:00:17
+   Duration  1.02s (transform 550ms, setup 184ms, import 724ms, tests 156ms, environment 1.33s)

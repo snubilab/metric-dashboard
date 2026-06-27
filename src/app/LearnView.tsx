@@ -22,6 +22,7 @@ import { SectionNav } from "./SectionNav";
 import { useLang } from "../i18n/LanguageContext";
 import type { Lang } from "../i18n/LanguageContext";
 import { splitMetricText } from "../components/metrics/metricTextLinks";
+import { metricJudgmentGuide } from "../topics/judgmentGuides";
 
 interface LearnViewProps {
   topic: Topic;
@@ -143,6 +144,9 @@ const L = {
     complementsLabel: "함께 보는 지표",
     complementarityTitle: "지표는 어떻게 서로를 보완하는가",
     complementsNav: "보완책",
+    trustWhenLabel: "정보가 되는 상황",
+    doubtWhenLabel: "놓치는 부분",
+    tryThisLabel: "직접 확인할 것",
   },
   en: {
     featuresLabel: "Features",
@@ -150,6 +154,9 @@ const L = {
     complementsLabel: "Pairs well with",
     complementarityTitle: "How these metrics complement each other",
     complementsNav: "Complementarity",
+    trustWhenLabel: "Informative when",
+    doubtWhenLabel: "Blind spot when",
+    tryThisLabel: "Try this",
   },
 } as const;
 
@@ -273,14 +280,18 @@ function LabeledList({
 }
 
 function Section({
+  topicId,
   section,
   lang,
   sectionIds,
 }: {
+  topicId: string;
   section: MetricSection;
   lang: Lang;
   sectionIds: ReadonlySet<string>;
 }) {
+  const guide = metricJudgmentGuide(topicId, section.id, lang);
+
   return (
     <section id={sectionDomId(section.id)} style={sectionStyle}>
       <h3 style={titleStyle}>{section.title}</h3>
@@ -311,6 +322,22 @@ function Section({
         sectionIds={sectionIds}
         icon={CAVEAT_ICON}
       />
+      {guide && (
+        <div data-testid="metric-judgment-guide" style={calloutStyle}>
+          <div>
+            <h4 style={calloutLabelStyle}>{L[lang].trustWhenLabel}</h4>
+            <p style={calloutTextStyle}>{guide.trustWhen}</p>
+          </div>
+          <div>
+            <h4 style={calloutLabelStyle}>{L[lang].doubtWhenLabel}</h4>
+            <p style={calloutTextStyle}>{guide.doubtWhen}</p>
+          </div>
+          <div>
+            <h4 style={calloutLabelStyle}>{L[lang].tryThisLabel}</h4>
+            <p style={calloutTextStyle}>{guide.tryThis}</p>
+          </div>
+        </div>
+      )}
       {section.complements && (
         <div style={calloutStyle}>
           <h4 style={calloutLabelStyle}>{L[lang].complementsLabel}</h4>
@@ -406,7 +433,13 @@ export function LearnView({ topic }: LearnViewProps) {
     <div style={rootStyle}>
       <p style={introStyle}>{learn.intro}</p>
       {learn.sections.map((section) => (
-        <Section key={section.id} section={section} lang={lang} sectionIds={sectionIdSet} />
+        <Section
+          key={section.id}
+          topicId={topic.id}
+          section={section}
+          lang={lang}
+          sectionIds={sectionIdSet}
+        />
       ))}
       {learn.complementarity && (
         <ComplementaritySection complementarity={learn.complementarity} lang={lang} />

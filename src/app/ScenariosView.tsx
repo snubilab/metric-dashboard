@@ -25,6 +25,7 @@ import { classificationComparisonRows } from "../components/metrics/classificati
 import { reportComparisonRows } from "../components/metrics/reportComparisonRows";
 import { useLang } from "../i18n/LanguageContext";
 import type { Lang } from "../i18n/LanguageContext";
+import { ReportCueBoard } from "../topics/report-generation/ReportCueBoard";
 import { RegressionMetricTable } from "../topics/regression/RegressionMetricTable";
 import { RegressionPlot } from "../topics/regression/RegressionPlot";
 import { regressionComparisonRows } from "../topics/regression/scenarioRows";
@@ -375,82 +376,17 @@ function RegressionLegend({ lang }: { lang: Lang }) {
   );
 }
 
-const reportPreviewGridStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-  gap: "var(--space-3)",
-};
-
-const reportSnippetStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--space-2)",
-  padding: "var(--space-3)",
-  background: "var(--bg-secondary)",
-  border: "1px solid var(--border-secondary)",
-  borderRadius: "var(--radius-lg)",
-  minWidth: 0,
-};
-
-const reportSnippetTextStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: "var(--text-xs)",
-  lineHeight: 1.5,
-  color: "var(--text-secondary)",
-};
-
-function ReportLegend({ lang }: { lang: Lang }) {
-  const t = L[lang];
-  return (
-    <div style={legendStyle}>
-      <span style={legendItemStyle}>
-        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-gt)")} />
-        <span style={nameStyle("var(--c-gt-text)")}>{t.referenceReport}</span>
-      </span>
-      <span style={legendItemStyle}>
-        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-pred-a)")} />
-        <span style={nameStyle("var(--c-pred-a-text)")}>{t.candidateA}</span>
-      </span>
-      <span style={legendItemStyle}>
-        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-pred-b)")} />
-        <span style={nameStyle("var(--c-pred-b-text)")}>{t.candidateB}</span>
-      </span>
-      <span style={legendItemStyle}>
-        <span aria-hidden="true" data-swatch style={swatchStyle("var(--c-warn)")} />
-        <span style={nameStyle("var(--c-warn-text)")}>cue mismatch</span>
-      </span>
-    </div>
-  );
-}
-
-function ReportSnippet({
-  title,
-  text,
-  color,
-}: {
-  title: string;
-  text: string;
-  color: string;
-}) {
-  return (
-    <section style={{ ...reportSnippetStyle, borderColor: color }}>
-      <h4 style={{ ...detCaptionStyle, color }}>{title}</h4>
-      <p style={reportSnippetTextStyle}>{text}</p>
-    </section>
-  );
-}
-
 function ReportScenarioPreview({ scenario, lang }: { scenario: Scenario; lang: Lang }) {
   const report = scenario.state.reportGeneration;
   if (!report) return null;
   return (
     <div style={segPreviewStyle} role="img" aria-label={L[lang].reportPreviewLabel}>
-      <div style={reportPreviewGridStyle}>
-        <ReportSnippet title={L[lang].referenceReport} text={report.reference} color="var(--c-gt)" />
-        <ReportSnippet title={L[lang].candidateA} text={report.candidateA} color="var(--c-pred-a)" />
-        <ReportSnippet title={L[lang].candidateB} text={report.candidateB} color="var(--c-pred-b)" />
-      </div>
-      <ReportLegend lang={lang} />
+      <ReportCueBoard
+        reference={report.reference}
+        candidateA={report.candidateA}
+        candidateB={report.candidateB}
+        compact
+      />
       <MetricTable rows={reportComparisonRows(report.reference, report.candidateA, report.candidateB)} />
     </div>
   );

@@ -2,8 +2,10 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { LanguageProvider } from "../i18n/LanguageContext";
 import { ScenariosView } from "./ScenariosView";
+import reportGenerationTopic from "../topics/report-generation";
 import type { DegeneratePolicy, Vec2 } from "../types/engine";
 import type { Scenario, Topic } from "../types/topic";
+import type { Lang } from "../i18n/LanguageContext";
 
 const GRID = { width: 256, height: 256, spacingMm: [1, 1] as Vec2 };
 const POLICY: DegeneratePolicy = { emptyDice: "one", emptyDistance: "undefined" };
@@ -100,9 +102,9 @@ function topicWith(scenarios: Scenario[]): Topic {
   };
 }
 
-function renderView(topic: Topic) {
+function renderView(topic: Topic, lang: Lang = "ko") {
   return render(
-    <LanguageProvider initialLang="ko">
+    <LanguageProvider initialLang={lang}>
       <ScenariosView topic={topic} />
     </LanguageProvider>,
   );
@@ -183,5 +185,28 @@ describe("ScenariosView", () => {
     expect(within(card).queryByLabelText("신뢰도 임계값")).not.toBeInTheDocument();
     // The rank-flip marker fires: A and B win different metrics (recall vs precision).
     expect(within(card).getByText("순위 불일치")).toBeInTheDocument();
+  });
+
+  it("renders concrete report cue mismatch visuals for assertion, laterality, and temporal scenarios", () => {
+    renderView(reportGenerationTopic, "en");
+
+    const cardByTitle = (name: RegExp) =>
+      screen.getByRole("heading", { name }).closest("article") as HTMLElement;
+
+    expect(
+      within(cardByTitle(/Negation hallucination/)).getAllByText(/assertion: extra .*present/).length,
+    ).toBeGreaterThan(0);
+    expect(
+      within(cardByTitle(/Laterality swap/)).getAllByText("laterality: missing right").length,
+    ).toBeGreaterThan(0);
+    expect(
+      within(cardByTitle(/Temporal direction/)).getAllByText("temporal: extra worsened").length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("keeps the Korean report-generation scenarios tab at seven cards", () => {
+    renderView(reportGenerationTopic, "ko");
+
+    expect(screen.getAllByRole("article")).toHaveLength(7);
   });
 });

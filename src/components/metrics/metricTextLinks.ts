@@ -15,12 +15,15 @@
  */
 const METRIC_TOKENS: { token: string; sectionIds: readonly string[] }[] = [
   { token: "Clinical Acceptance", sectionIds: ["clinical-acceptance"] },
+  { token: "RadOT-Eval", sectionIds: ["llm-evaluator-landscape"] },
   { token: "SRR-BERT F1", sectionIds: ["srr-bert-f1"] },
   { token: "CheXbert F1", sectionIds: ["chexbert-f1"] },
   { token: "Temporal F1", sectionIds: ["temporal-f1"] },
   { token: "RadGraph F1", sectionIds: ["graph-f1"] },
   { token: "BERTScore", sectionIds: ["bertscore"] },
   { token: "RaTEscore", sectionIds: ["ratescore"] },
+  { token: "ReFINE", sectionIds: ["llm-evaluator-landscape"] },
+  { token: "VERT", sectionIds: ["llm-evaluator-landscape"] },
   { token: "Balanced Accuracy", sectionIds: ["accuracy-balanced-accuracy"] },
   { token: "Confusion Matrix", sectionIds: ["confusion-matrix"] },
   { token: "Specificity", sectionIds: ["sensitivity-specificity"] },

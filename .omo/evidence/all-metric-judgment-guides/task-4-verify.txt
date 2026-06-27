@@ -1,0 +1,27 @@
+Todo 4 verification: confirmed
+
+Artifacts inspected:
+- .omo/plans/all-metric-judgment-guides.md lines 103-108
+- src/topics/judgmentGuides.test.ts
+- src/topics/judgmentGuides.ts
+- src/topics/report-generation/content.test.ts
+- src/topics/classification/content.test.ts
+- .omo/evidence/all-metric-judgment-guides/task-4-green.txt
+
+Commands reproduced:
+- npm run test -- src/topics/judgmentGuides.test.ts src/topics/report-generation/content.test.ts src/topics/classification/content.test.ts
+  Result: pass, 3 files / 11 tests.
+- git diff --check -- src/topics/judgmentGuides.test.ts src/topics/report-generation/content.test.ts src/topics/classification/content.test.ts .omo/evidence/all-metric-judgment-guides/task-4-green.txt
+  Result: pass, no output.
+- npm run test -- src/topics/judgmentGuides.test.ts src/topics/report-generation/content.test.ts src/topics/classification/content.test.ts
+  Result: repeat pass, 3 files / 11 tests.
+
+Findings:
+- judgmentGuides.test.ts guards METRIC_JUDGMENT_GUIDES JSON against: 좋음|나쁨|우수|열등|good|bad|best metric|worst metric.
+- judgmentGuides.test.ts guards report-generation guide JSON against: live LLM judge|API call|model download|numeric score|overall score.
+- report-generation content test keeps the forbidden absolute-grade guard and adds live/static evaluator assertions; classification content test has no diff.
+- Direct rg over production guide/content files found no banned guide-copy terms outside test literals.
+
+Adversarial notes:
+- Worktree is dirty with many unrelated files; status was inspected and no files were reverted.
+- The requested git diff --check command exits clean, but untracked files are not fully represented by git diff output. Tests and direct file reads covered the untracked judgment guide test.

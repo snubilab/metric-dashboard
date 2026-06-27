@@ -1,0 +1,7 @@
+TIMESTAMP: 2026-06-27T21:59:12+09:00
+COMMAND: npm run lint | tee .omo/evidence/all-metric-judgment-guides/final-lint.txt
+NODE: v22.19.0
+NPM: 10.9.4
+
+> metric_dashboard@0.0.0 lint
+> eslint .

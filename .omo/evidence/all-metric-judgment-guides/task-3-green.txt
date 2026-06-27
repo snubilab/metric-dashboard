@@ -1,0 +1,12 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/app/LearnView.judgmentGuides.test.tsx src/topics/judgmentGuides.test.ts
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+
+ Test Files  2 passed (2)
+      Tests  4 passed (4)
+   Start at  21:44:29
+   Duration  2.10s (transform 708ms, setup 102ms, import 899ms, tests 1.03s, environment 835ms)

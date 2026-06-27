@@ -1,0 +1,248 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/topics/judgmentGuides.test.ts src/topics/report-generation/content.test.ts src/topics/classification/content.test.ts
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+
+ Test Files  3 passed (3)
+      Tests  11 passed (11)
+   Start at  21:44:36
+   Duration  738ms (transform 332ms, setup 111ms, import 364ms, tests 30ms, environment 963ms)
+
+
+--- guard assertions recorded from src/topics/judgmentGuides.test.ts ---
+    sectionId: string,
+    lang: Lang,
+  ) => MetricJudgmentGuide | undefined;
+}
+
+const GUIDE_FIELDS = ["trustWhen", "doubtWhen", "tryThis"] as const;
+const LANGS = ["ko", "en"] as const satisfies readonly Lang[];
+const HANGUL = /[가-힣]/;
+const BANNED_VERDICT_TERMS = /좋음|나쁨|우수|열등|\bgood\b|\bbad\b|best metric|worst metric/i;
+const REPORT_GENERATION_LIVE_EVALUATOR_TERMS =
+  /live LLM judge|API call|model download|numeric score|overall score/i;
+const guideModules = import.meta.glob<JudgmentGuideModule>("./judgmentGuides.ts");
+
+const availableTopics = TOPICS.filter((topic) => topic.status === "available");
+
+async function loadGuides(): Promise<JudgmentGuideModule> {
+  const load = guideModules["./judgmentGuides.ts"];
+  if (!load) {
+    throw new Error(
+      "Expected src/topics/judgmentGuides.ts to export metricJudgmentGuide(topicId, sectionId, lang).",
+    );
+  }
+
+  return load();
+}
+
+describe("metric judgment guide coverage", () => {
+  it("keeps English and Korean Learn section ids in parity for every available topic", () => {
+    for (const topic of availableTopics) {
+      expect(topic.learn, `${topic.id} needs English Learn content`).toBeDefined();
+      expect(topic.learnKo, `${topic.id} needs Korean Learn content`).toBeDefined();
+
+      const englishIds = topic.learn?.sections.map((section) => section.id);
+      const koreanIds = topic.learnKo?.sections.map((section) => section.id);
+
+      expect(koreanIds, `${topic.id} learnKo.sections must match learn.sections`).toEqual(
+        englishIds,
+      );
+    }
+  });
+
+  it("has nonempty Korean and English guide fields for every available section", async () => {
+    const { metricJudgmentGuide } = await loadGuides();
+
+    for (const topic of availableTopics) {
+      const sections = topic.learn?.sections ?? [];
+
+      for (const section of sections) {
+        for (const lang of LANGS) {
+          const guide = metricJudgmentGuide(topic.id, section.id, lang);
+          if (!guide) {
+            throw new Error(`Missing judgment guide: ${topic.id}/${section.id}/${lang}`);
+          }
+
+          for (const field of GUIDE_FIELDS) {
+            expect(
+              guide[field].trim().length,
+              `${topic.id}/${section.id}/${lang}.${field} must be nonempty`,
+            ).toBeGreaterThan(0);
+          }
+        }
+      }
+    }
+  });
+
+  it("keeps guide copy bilingual and thesis-safe", async () => {
+    const { METRIC_JUDGMENT_GUIDES, metricJudgmentGuide } = await loadGuides();
+
+    expect(
+      JSON.stringify(METRIC_JUDGMENT_GUIDES),
+      "guide registry JSON uses a forbidden verdict term",
+    ).not.toMatch(BANNED_VERDICT_TERMS);
+    expect(
+      JSON.stringify(METRIC_JUDGMENT_GUIDES["report-generation"]),
+      "report-generation guide registry JSON implies a live evaluator surface",
+    ).not.toMatch(REPORT_GENERATION_LIVE_EVALUATOR_TERMS);
+
+    for (const topic of availableTopics) {
+      const sections = topic.learn?.sections ?? [];
+
+      for (const section of sections) {
+        const koGuide = metricJudgmentGuide(topic.id, section.id, "ko");
+        const enGuide = metricJudgmentGuide(topic.id, section.id, "en");
+        if (!koGuide || !enGuide) {
+          throw new Error(`Missing judgment guide: ${topic.id}/${section.id}`);
+        }
+
+        expect(JSON.stringify(koGuide), `${topic.id}/${section.id}/ko must contain Hangul`).toMatch(
+          HANGUL,
+        );
+
+        for (const field of GUIDE_FIELDS) {
+          expect(
+            koGuide[field],
+            `${topic.id}/${section.id}.${field} must not reuse English copy`,
+          ).not.toBe(enGuide[field]);
+        }
+
+        const guideJson = JSON.stringify([koGuide, enGuide]);
+        expect(guideJson, `${topic.id}/${section.id} uses a forbidden verdict term`).not.toMatch(
+
+--- full judgment guide guard test with line numbers ---
+     1	import { describe, expect, it } from "vitest";
+     2	import { TOPICS } from "../app/topicRegistry";
+     3	import type { Lang } from "../i18n/LanguageContext";
+     4
+     5	type GuideField = "trustWhen" | "doubtWhen" | "tryThis";
+     6
+     7	type MetricJudgmentGuide = {
+     8	  readonly [field in GuideField]: string;
+     9	};
+    10
+    11	type MetricJudgmentGuideRegistry = Readonly<
+    12	  Record<string, Readonly<Record<string, Readonly<Record<Lang, MetricJudgmentGuide>>>>>
+    13	>;
+    14
+    15	interface JudgmentGuideModule {
+    16	  readonly METRIC_JUDGMENT_GUIDES: MetricJudgmentGuideRegistry;
+    17	  readonly metricJudgmentGuide: (
+    18	    topicId: string,
+    19	    sectionId: string,
+    20	    lang: Lang,
+    21	  ) => MetricJudgmentGuide | undefined;
+    22	}
+    23
+    24	const GUIDE_FIELDS = ["trustWhen", "doubtWhen", "tryThis"] as const;
+    25	const LANGS = ["ko", "en"] as const satisfies readonly Lang[];
+    26	const HANGUL = /[가-힣]/;
+    27	const BANNED_VERDICT_TERMS = /좋음|나쁨|우수|열등|\bgood\b|\bbad\b|best metric|worst metric/i;
+    28	const REPORT_GENERATION_LIVE_EVALUATOR_TERMS =
+    29	  /live LLM judge|API call|model download|numeric score|overall score/i;
+    30	const guideModules = import.meta.glob<JudgmentGuideModule>("./judgmentGuides.ts");
+    31
+    32	const availableTopics = TOPICS.filter((topic) => topic.status === "available");
+    33
+    34	async function loadGuides(): Promise<JudgmentGuideModule> {
+    35	  const load = guideModules["./judgmentGuides.ts"];
+    36	  if (!load) {
+    37	    throw new Error(
+    38	      "Expected src/topics/judgmentGuides.ts to export metricJudgmentGuide(topicId, sectionId, lang).",
+    39	    );
+    40	  }
+    41
+    42	  return load();
+    43	}
+    44
+    45	describe("metric judgment guide coverage", () => {
+    46	  it("keeps English and Korean Learn section ids in parity for every available topic", () => {
+    47	    for (const topic of availableTopics) {
+    48	      expect(topic.learn, `${topic.id} needs English Learn content`).toBeDefined();
+    49	      expect(topic.learnKo, `${topic.id} needs Korean Learn content`).toBeDefined();
+    50
+    51	      const englishIds = topic.learn?.sections.map((section) => section.id);
+    52	      const koreanIds = topic.learnKo?.sections.map((section) => section.id);
+    53
+    54	      expect(koreanIds, `${topic.id} learnKo.sections must match learn.sections`).toEqual(
+    55	        englishIds,
+    56	      );
+    57	    }
+    58	  });
+    59
+    60	  it("has nonempty Korean and English guide fields for every available section", async () => {
+    61	    const { metricJudgmentGuide } = await loadGuides();
+    62
+    63	    for (const topic of availableTopics) {
+    64	      const sections = topic.learn?.sections ?? [];
+    65
+    66	      for (const section of sections) {
+    67	        for (const lang of LANGS) {
+    68	          const guide = metricJudgmentGuide(topic.id, section.id, lang);
+    69	          if (!guide) {
+    70	            throw new Error(`Missing judgment guide: ${topic.id}/${section.id}/${lang}`);
+    71	          }
+    72
+    73	          for (const field of GUIDE_FIELDS) {
+    74	            expect(
+    75	              guide[field].trim().length,
+    76	              `${topic.id}/${section.id}/${lang}.${field} must be nonempty`,
+    77	            ).toBeGreaterThan(0);
+    78	          }
+    79	        }
+    80	      }
+    81	    }
+    82	  });
+    83
+    84	  it("keeps guide copy bilingual and thesis-safe", async () => {
+    85	    const { METRIC_JUDGMENT_GUIDES, metricJudgmentGuide } = await loadGuides();
+    86
+    87	    expect(
+    88	      JSON.stringify(METRIC_JUDGMENT_GUIDES),
+    89	      "guide registry JSON uses a forbidden verdict term",
+    90	    ).not.toMatch(BANNED_VERDICT_TERMS);
+    91	    expect(
+    92	      JSON.stringify(METRIC_JUDGMENT_GUIDES["report-generation"]),
+    93	      "report-generation guide registry JSON implies a live evaluator surface",
+    94	    ).not.toMatch(REPORT_GENERATION_LIVE_EVALUATOR_TERMS);
+    95
+    96	    for (const topic of availableTopics) {
+    97	      const sections = topic.learn?.sections ?? [];
+    98
+    99	      for (const section of sections) {
+   100	        const koGuide = metricJudgmentGuide(topic.id, section.id, "ko");
+   101	        const enGuide = metricJudgmentGuide(topic.id, section.id, "en");
+   102	        if (!koGuide || !enGuide) {
+   103	          throw new Error(`Missing judgment guide: ${topic.id}/${section.id}`);
+   104	        }
+   105
+   106	        expect(JSON.stringify(koGuide), `${topic.id}/${section.id}/ko must contain Hangul`).toMatch(
+   107	          HANGUL,
+   108	        );
+   109
+   110	        for (const field of GUIDE_FIELDS) {
+   111	          expect(
+   112	            koGuide[field],
+   113	            `${topic.id}/${section.id}.${field} must not reuse English copy`,
+   114	          ).not.toBe(enGuide[field]);
+   115	        }
+   116
+   117	        const guideJson = JSON.stringify([koGuide, enGuide]);
+   118	        expect(guideJson, `${topic.id}/${section.id} uses a forbidden verdict term`).not.toMatch(
+   119	          BANNED_VERDICT_TERMS,
+   120	        );
+   121
+   122	        if (topic.id === "report-generation") {
+   123	          expect(
+   124	            guideJson,
+   125	            `${topic.id}/${section.id} implies a live report evaluator surface`,
+   126	          ).not.toMatch(REPORT_GENERATION_LIVE_EVALUATOR_TERMS);
+   127	        }
+   128	      }
+   129	    }
+   130	  });
+   131	});

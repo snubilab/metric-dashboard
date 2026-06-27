@@ -1,0 +1,18 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/app/ScenariosView.test.tsx src/topics/report-generation/comparison.test.ts
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+
+ Test Files  2 passed (2)
+      Tests  10 passed (10)
+   Start at  17:12:01
+   Duration  1.60s (transform 277ms, setup 98ms, import 426ms, tests 668ms, environment 939ms)

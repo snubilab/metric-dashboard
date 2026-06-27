@@ -1,0 +1,28 @@
+{
+  "AdversarialVerify": {
+    "verdict": "confirmed",
+    "evidence": [
+      "Todo 5 requires browser evidence for classification and report-generation Learn tabs in Korean default and English toggled states, with URL, viewport, selected topic, selected tab, language, and visible labels.",
+      ".omo/evidence/all-metric-judgment-guides/task-5-browser.md includes URL http://127.0.0.1:5173/, viewport 1440x1000, HTTP 200, Playwright/system Chrome setup, exact KO/EN actions/selectors, selected topics/tabs/languages, visible guide labels, screenshot paths, adversarial cases, and cleanup receipt.",
+      "All four screenshot files exist, are non-empty PNGs, and report 1440 x 1000 dimensions: KO classification 173268 bytes, KO report-generation 168619 bytes, EN classification 192022 bytes, EN report-generation 176778 bytes.",
+      "Visual inspection of the four screenshots confirms the expected topic, Learn tab, active language toggle, and all three judgment guide labels are visible in each KO/EN surface.",
+      "No lingering Vite/npm dev server was found; pgrep returned no matches and ps only matched the verification grep command.",
+      "Relevant source mtimes predate screenshot mtimes: LearnView.tsx 21:43:10 KST and judgmentGuides.ts 21:36:23 KST; screenshots were written 21:52:53-21:52:54 KST and evidence markdown 21:54:16 KST."
+    ],
+    "repro": "sed -n '1,220p' .omo/plans/all-metric-judgment-guides.md; sed -n '1,240p' .omo/evidence/all-metric-judgment-guides/task-5-browser.md; stat -f '%N %z bytes' <four screenshots>; file <four screenshots>; view_image <four screenshots>; rg -n 'URL:|Viewport:|Selected topic|selected tab|language:|screenshot|task-5-.*learn\\\\.png|click|locator|data-testid|Cleanup Receipt|Post-cleanup|HTTP/1\\\\.1 200 OK|정보가 되는 상황|놓치는 부분|직접 확인할 것|Informative when|Blind spot when|Try this' .omo/evidence/all-metric-judgment-guides/task-5-browser.md; pgrep -fl 'vite --host 127.0.0.1|npm run dev|node .*vite|vite' || true; ps -axo pid,ppid,command | rg 'npm run dev|vite --host 127\\\\.0\\\\.0\\\\.1|node .*vite|/vite/bin' || true; git status --short; stat -f '%Sm %N' -t '%Y-%m-%d %H:%M:%S %Z' .omo/evidence/all-metric-judgment-guides/task-5-browser.md .omo/evidence/all-metric-judgment-guides/task-5-*.png src/app/LearnView.tsx src/topics/judgmentGuides.ts src/app/topicRegistry.ts src/App.tsx package.json",
+    "confidence": 0.94,
+    "adversarial_classes": {
+      "dirty_worktree": "Observed dirty worktree with many modified/untracked files. Non-blocking for Todo 5 verification because this check is artifact/process focused, and relevant source mtimes predate screenshot capture. I did not edit product code/tests/plan.",
+      "stale_state": "Mitigated by rereading the plan and current evidence markdown, checking relevant source mtimes against screenshot/evidence mtimes, and visually inspecting screenshots rather than relying on the QA worker summary.",
+      "misleading_success_output": "Mitigated: evidence was not accepted from PASS text alone. I confirmed required markdown fields, screenshot file metadata, visible labels in images, and process cleanup independently.",
+      "hung_or_long_commands": "No long-running command remained. pgrep returned no dev-server matches; ps only matched the verifier's own rg process.",
+      "generated_cached_artifacts": "Mitigated by file size/type/dimension checks, screenshot visual inspection, and mtimes showing screenshots were captured after relevant source files were last modified.",
+      "flaky_tests": "N/A: Todo 5 is browser/manual QA artifact verification, not a test-suite claim.",
+      "malformed_input": "N/A: no user input parser or data-ingestion path is exercised by this browser evidence check.",
+      "prompt_injection": "N/A: no external prompt/content source is consumed during this artifact verification.",
+      "cancel_resume": "N/A: no interruption/resume behavior is part of the Todo 5 browser QA claim.",
+      "repeated_interruptions": "N/A: no repeated-interruption behavior is part of the Todo 5 browser QA claim."
+    },
+    "blocking_feedback": ""
+  }
+}

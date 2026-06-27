@@ -1,4 +1,16 @@
-import type { LearnContent } from "../../types/topic";
+import type { EngineState } from "../../types/engine";
+import type { LearnContent, MiniSimConfig } from "../../types/topic";
+
+const SIM_STATE: EngineState = {
+  grid: { width: 1, height: 1, spacingMm: [1, 1] },
+  gt: [],
+  predictions: [],
+  policy: { emptyDice: "one", emptyDistance: "undefined" },
+};
+
+function miniSim(kind: string, spotlightMetric: string): MiniSimConfig {
+  return { kind, spotlightMetric, initialState: SIM_STATE };
+}
 
 export const reportGenerationLearnKo: LearnContent = {
   intro:
@@ -21,6 +33,7 @@ export const reportGenerationLearnKo: LearnContent = {
         "pneumothorax가 present인지 absent인지는 이해하지 못합니다.",
       ],
       figure: "report-bleu",
+      miniSim: miniSim("report-lexical-paraphrase", "BLEU"),
       complements: "BLEU는 assertion-aware row와 error-category row와 같이 읽어야 합니다.",
     },
     {
@@ -99,6 +112,7 @@ export const reportGenerationLearnKo: LearnContent = {
         "Playground는 entity/assertion proxy로 이 직관을 보여줍니다.",
       ],
       figure: "report-ratescore",
+      miniSim: miniSim("report-entity-assertion", "RaTEscore"),
       complements: "RaTEscore는 RadGraph F1과 같이 읽어야 합니다.",
     },
     {
@@ -119,6 +133,7 @@ export const reportGenerationLearnKo: LearnContent = {
         "비시간적 clinical correctness를 평가하지는 않습니다.",
       ],
       figure: "report-temporal-f1",
+      miniSim: miniSim("report-temporal-direction", "Temporal F1"),
       complements: "Temporal F1은 concept label과 graph metric과 같이 읽어야 합니다.",
     },
     {
@@ -159,6 +174,7 @@ export const reportGenerationLearnKo: LearnContent = {
         "extractor 오류를 그대로 물려받습니다.",
       ],
       figure: "report-srr-bert-f1",
+      miniSim: miniSim("report-label-graph-granularity", "SRR-BERT F1"),
       complements: "SRR-BERT F1은 graph metric과 error-category metric과 같이 읽어야 합니다.",
     },
     {
@@ -198,6 +214,7 @@ export const reportGenerationLearnKo: LearnContent = {
         "static dashboard에서는 precomputed example만 보여주고 live LLM judge는 돌리지 않습니다.",
       ],
       figure: "report-green",
+      miniSim: miniSim("report-error-weighting", "GREEN"),
       complements: "GREEN은 patient context가 severity를 바꾸는 경우 CRIMSON과 같이 읽어야 합니다.",
     },
     {
@@ -218,6 +235,25 @@ export const reportGenerationLearnKo: LearnContent = {
       ],
       figure: "report-crimson",
       complements: "CRIMSON은 deterministic automatic metric과 reader study와 같이 읽어야 합니다.",
+    },
+    {
+      id: "llm-evaluator-landscape",
+      title: "Related learned evaluators",
+      meaning:
+        "VERT, ReFINE, RadOT-Eval은 learned/LLM evaluator landscape에 속합니다. 단순 token overlap보다 model-based judgment, refinement signal, radiology-specific evaluation prompt로 report quality를 보려는 계열입니다.",
+      features: [
+        "GREEN과 CRIMSON 밖의 evaluator family를 보여주되, paper-specific evaluator마다 live dashboard metric을 만들지는 않습니다.",
+        "factuality, refinement quality, radiology-specific error pattern을 learned judgment로 보고 싶은 연구에서 유용합니다.",
+        "deterministic proxy row와 model, prompt, rubric, calibration에 의존하는 evaluator family를 분리해 읽게 해줍니다.",
+      ],
+      caveats: [
+        "여기서는 live LLM judge가 아니라 static dashboard의 related evaluator coverage로만 연결합니다.",
+        "evaluator model, prompt, rubric, data domain, deployment detail에 따라 score가 달라질 수 있습니다.",
+        "endpoint evidence처럼 해석하려면 automatic metric context와 reader-facing evidence가 같이 필요합니다.",
+      ],
+      figure: "report-llm-evaluator",
+      complements:
+        "VERT, ReFINE, RadOT-Eval은 standalone verdict가 아니라 GREEN, CRIMSON, Clinical Acceptance 옆에서 읽어야 합니다.",
     },
     {
       id: "clinical-acceptance",

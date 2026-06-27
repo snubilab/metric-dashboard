@@ -49,7 +49,9 @@ describe("splitMetricText", () => {
   });
 
   it("links report-generation metric names to their own sections", () => {
-    const segs = splitMetricText("BLEU, ROUGE, METEOR, BERTScore, RaTEscore, GREEN, CRIMSON");
+    const segs = splitMetricText(
+      "BLEU, ROUGE, METEOR, BERTScore, RaTEscore, GREEN, CRIMSON, VERT, ReFINE, RadOT-Eval",
+    );
     const linked = segs.filter((s) => s.sectionId);
     expect(linked.map((s) => [s.text, s.sectionId])).toEqual([
       ["BLEU", "bleu"],
@@ -59,6 +61,9 @@ describe("splitMetricText", () => {
       ["RaTEscore", "ratescore"],
       ["GREEN", "green"],
       ["CRIMSON", "crimson"],
+      ["VERT", "llm-evaluator-landscape"],
+      ["ReFINE", "llm-evaluator-landscape"],
+      ["RadOT-Eval", "llm-evaluator-landscape"],
     ]);
   });
 });

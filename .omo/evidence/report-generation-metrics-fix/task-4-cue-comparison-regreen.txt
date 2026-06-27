@@ -1,0 +1,12 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/topics/report-generation/ReportCueBoard.test.tsx src/topics/report-generation/Playground.test.tsx
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+
+ Test Files  2 passed (2)
+      Tests  4 passed (4)
+   Start at  17:05:39
+   Duration  2.25s (transform 224ms, setup 213ms, import 387ms, tests 675ms, environment 2.18s)

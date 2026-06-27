@@ -1,0 +1,12 @@
+
+> metric_dashboard@0.0.0 test
+> vitest run src/components/metrics/reportComparisonRows.test.ts src/engine/metrics/reportGeneration.test.ts
+
+
+ RUN  v4.1.9 /Users/kyh/Workspace/metric_dashboard
+
+
+ Test Files  2 passed (2)
+      Tests  10 passed (10)
+   Start at  16:49:11
+   Duration  613ms (transform 88ms, setup 115ms, import 98ms, tests 19ms, environment 823ms)
